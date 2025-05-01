@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/modal.dart';
+import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
@@ -52,11 +53,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             onPressed: _showTeamLogicInfo,
             tooltip: 'Informações',
           ),
-          IconButton(
+          /*IconButton(
             icon: const Icon(Icons.sports_soccer),
             onPressed: () {},
             tooltip: 'Gerar Times',
-          ),
+          ), */
         ],
       ),
       body:
@@ -66,21 +67,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton.extended(
-            heroTag: 'addMultiple',
-            onPressed: _showBatchAddPlayers,
-            backgroundColor: Theme.of(context).colorScheme.tertiary,
-            foregroundColor: Theme.of(context).colorScheme.onTertiary,
-            icon: const Icon(Icons.group_add),
-            label: const Text('Vários Jogadores'),
-          ),
-          const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'addOne',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddPlayer()),
+                MaterialPageRoute(builder: (context) => const AddGroup()),
               );
             },
             backgroundColor: Theme.of(context).colorScheme.secondary,

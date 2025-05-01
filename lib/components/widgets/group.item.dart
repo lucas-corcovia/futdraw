@@ -81,6 +81,7 @@ class GroupItem extends StatelessWidget {
                       ),
                       PopupMenuItem<String>(
                         value: 'addPlayer',
+
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
