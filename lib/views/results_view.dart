@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';

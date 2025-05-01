@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
+import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
 import 'package:futdraw/components/widgets/list.groups.dart';
 import 'package:futdraw/models/group.dart';
@@ -76,7 +77,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           const SizedBox(height: 12),
           FloatingActionButton(
             heroTag: 'addOne',
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddPlayer()),
+              );
+            },
             backgroundColor: Theme.of(context).colorScheme.secondary,
             foregroundColor: Theme.of(context).colorScheme.onSecondary,
             child: const Icon(Icons.add),
