@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
-  IconData? icon;
+  final IconData? icon;
 
-  CustomButton({
+  const CustomButton({
     required this.text,
     required this.onPressed,
     this.icon,

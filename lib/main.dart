@@ -12,21 +12,22 @@ void main() {
         ),
         // Adicione mais providers aqui, se necessário
       ],
-      child: const MyApp(),
+      child: const FutDrawApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FutDrawApp extends StatelessWidget {
+  const FutDrawApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'FutDraw',
       theme: ThemeData(
         primaryColor: Color.fromRGBO(79, 53, 155, 1.0),
         fontFamily: 'Kanit',
+        brightness: Brightness.dark,
       ),
       home: const HomeView(),
     );

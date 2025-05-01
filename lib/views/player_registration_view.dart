@@ -13,11 +13,9 @@ import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/imgbb_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/player.dart';
-import 'package:futdraw/utils/formatters.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/utils/money_controller.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class PlayerRegistrationView extends StatelessWidget {
