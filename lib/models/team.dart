@@ -6,11 +6,11 @@ class Team {
 
   double get somaNotasGoleiros => jogadores
       .where((j) => j.position == PlayerPosition.goalkeeper)
-      .fold(0.0, (sum, j) => sum + (j.nota ?? 0));
+      .fold(0.0, (sum, j) => sum + (j.nota));
 
   double get somaNotasLinha => jogadores
       .where((j) => j.position != PlayerPosition.goalkeeper)
-      .fold(0.0, (sum, j) => sum + (j.nota ?? 0));
+      .fold(0.0, (sum, j) => sum + (j.nota));
 
   double get somaNotas => somaNotasGoleiros + somaNotasLinha;
 }

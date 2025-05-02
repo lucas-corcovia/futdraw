@@ -3,6 +3,7 @@ import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/player.card.dart';
 import 'package:futdraw/components/widgets/players.list.empty.dart';
 import 'package:futdraw/controllers/player_controller.dart';
+import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:provider/provider.dart';
 
@@ -106,6 +107,18 @@ class PlayerList extends StatelessWidget {
           return Center(child: ListPlayersEmpty());
         }
 
+        controller.players.sort((p1, p2) {
+          if (p1.position == PlayerPosition.goalkeeper &&
+              p2.position == PlayerPosition.goalkeeper) {
+            return 0; // p1 vem antes de p2
+          }
+          if (p1.position == PlayerPosition.goalkeeper) {
+            return -1; // p1 vem antes de p2
+          }
+
+          return 1; // p1 vem depois de p2
+        });
+
         return RefreshIndicator(
           onRefresh: () => _refreshPlayers(context),
           child: ListView.builder(
@@ -132,7 +145,7 @@ class PlayerList extends StatelessWidget {
                     });
                   },
                   onDelete: () async {
-                    _refreshPlayers(context);
+                    //_refreshPlayers(context);
                   },
                 ),
               );

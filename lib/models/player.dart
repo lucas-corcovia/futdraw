@@ -40,7 +40,7 @@ class Player {
       ehCapitao: map['ehGoleiro'] == 0 ? false : true,
       urlFoto: map['urlFoto'],
       position: PlayerPosition.values.firstWhere(
-        (e) => e.index == map['position'] as int?,
+        (e) => e.index == map['posicao'] as int?,
         orElse: () => PlayerPosition.midfielder,
       ),
     );

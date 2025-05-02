@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:futdraw/helpers/db_helper.dart';
 import 'package:futdraw/models/player.dart';
 
@@ -14,6 +12,7 @@ class PlayerRepository {
       'ehGoleiro': player.ehCapitao ? 1 : 0,
       'urlFoto': player.urlFoto,
       'grupoId': player.grupoId,
+      'posicao': player.position.index,
     });
   }
 

@@ -22,8 +22,8 @@ class DrawController {
     linha.shuffle(rand);
     goleiros.shuffle(rand);
 
-    linha.sort((a, b) => b.nota!.compareTo(a.nota as num));
-    goleiros.sort((a, b) => b.nota!.compareTo(a.nota as num));
+    linha.sort((a, b) => b.nota.compareTo(a.nota as num));
+    goleiros.sort((a, b) => b.nota.compareTo(a.nota as num));
 
     final times = List.generate(numTimes, (_) => Team());
 

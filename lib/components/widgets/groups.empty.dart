@@ -22,7 +22,7 @@ class GroupsEmpty extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Grupos são criados ao cadastrar jogadores',
+          'Toque no botão + para criar um grupo',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],

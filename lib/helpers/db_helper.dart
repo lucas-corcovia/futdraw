@@ -32,7 +32,8 @@ class DBHelper {
           nome TEXT,
           nota REAL,
           ehGoleiro INTEGER,
-          urlFoto TEXT
+          urlFoto TEXT,
+          posicao INTEGER
         )
       ''');
 
