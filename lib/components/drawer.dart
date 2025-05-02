@@ -2,10 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/group_controller.dart';
-import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
-import 'package:futdraw/views/draw_view.dart';
-import 'package:futdraw/views/player_registration_view.dart';
 import 'package:provider/provider.dart';
 
 class DrawerComponent extends StatelessWidget {
@@ -23,32 +20,6 @@ class DrawerComponent extends StatelessWidget {
               'Menu',
               style: TextStyle(color: Colors.white, fontSize: 24),
             ),
-          ),
-          ListTile(
-            leading: Icon(Icons.person_add_alt_sharp),
-            title: Text('Cadastro de jogadores'),
-            onTap: () async {
-              await Provider.of<PlayerController>(
-                context,
-                listen: false,
-              ).getAll();
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PlayerRegistrationView(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.refresh),
-            title: Text('Sorteio'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => DrawView()),
-              );
-            },
           ),
           ListTile(
             leading: Icon(Icons.reset_tv),

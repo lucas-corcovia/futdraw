@@ -14,17 +14,12 @@ class GroupList extends StatelessWidget {
         if (controller.groups.isEmpty) return Center(child: GroupsEmpty());
 
         return ListView.builder(
+          padding: EdgeInsets.only(top: 10),
           itemCount: controller.groups.length,
           itemBuilder: (context, index) {
             final group = controller.groups[index];
-            final groupPlayers = [];
-            final captainCount = 0;
 
-            return GroupItem(
-              groupPlayers: groupPlayers,
-              group: group,
-              captainCount: captainCount,
-            );
+            return GroupItem(group: group);
           },
         );
       },

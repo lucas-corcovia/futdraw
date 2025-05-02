@@ -4,7 +4,7 @@ import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
 
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
-import 'package:futdraw/components/widgets/list.groups.dart';
+import 'package:futdraw/components/widgets/group.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
 import 'package:provider/provider.dart';
@@ -55,11 +55,6 @@ class _HomeViewState extends State<HomeView> {
             onPressed: _showTeamLogicInfo,
             tooltip: 'Informações',
           ),
-          /*IconButton(
-            icon: const Icon(Icons.sports_soccer),
-            onPressed: () {},
-            tooltip: 'Gerar Times',
-          ), */
         ],
       ),
       drawer: DrawerComponent(),
@@ -69,7 +64,6 @@ class _HomeViewState extends State<HomeView> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            heroTag: 'addOne',
             onPressed: () {
               Navigator.push(
                 context,

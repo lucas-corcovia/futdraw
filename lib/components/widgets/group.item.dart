@@ -2,21 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/player.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
-import 'package:futdraw/models/enums/group.item.options.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:provider/provider.dart';
 
 class GroupItem extends StatelessWidget {
-  const GroupItem({
-    super.key,
-    required this.groupPlayers,
-    required this.group,
-    required this.captainCount,
-  });
+  const GroupItem({super.key, required this.group});
 
-  final List groupPlayers;
   final Group group;
-  final int captainCount;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +35,7 @@ class GroupItem extends StatelessWidget {
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 radius: 24,
                 child: Text(
-                  '${groupPlayers.length}',
+                  '${group.id}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -68,17 +60,14 @@ class GroupItem extends StatelessWidget {
                   ],
                 ),
               ),
-              PopupMenuButton<GroupItemOptions>(
+              PopupMenuButton(
                 icon: Icon(
                   Icons.more_vert,
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 itemBuilder:
-                    (
-                      BuildContext context,
-                    ) => <PopupMenuEntry<GroupItemOptions>>[
+                    (BuildContext context) => <PopupMenuEntry>[
                       PopupMenuItem(
-                        value: GroupItemOptions.generateTeam,
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
@@ -89,8 +78,7 @@ class GroupItem extends StatelessWidget {
                         ),
                         onTap: () {},
                       ),
-                      PopupMenuItem<GroupItemOptions>(
-                        value: GroupItemOptions.addPlayer,
+                      PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
@@ -112,18 +100,6 @@ class GroupItem extends StatelessWidget {
                         },
                       ),
                       PopupMenuItem(
-                        value: GroupItemOptions.addMultiplePlayers,
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.group_add,
-                            color: Theme.of(context).colorScheme.tertiary,
-                          ),
-                          title: const Text('Adicionar Vários'),
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: GroupItemOptions.deleteGroup,
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
