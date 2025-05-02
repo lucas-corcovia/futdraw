@@ -20,8 +20,6 @@ class PlayerRepository {
   Future<List<Player>> getAll() async {
     final db = await DBHelper.getDatabase();
     final result = await db.query(table);
-    String jsonString = jsonEncode(result);
-    print(jsonString);
     return result.map((map) => Player.fromMap(map)).toList();
   }
 

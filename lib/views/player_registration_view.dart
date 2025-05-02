@@ -210,24 +210,20 @@ class PlayerRegistrationView extends StatelessWidget {
                             size: 25,
                           ),
                           onTap: () async {
-                            if (player.id != null) {
-                              var playerBd = await controller.getById(
-                                player.id!,
-                              );
+                            var playerBd = await controller.getById(player.id);
 
-                              showDialog(
-                                context: context,
-                                builder:
-                                    (context) => CustomModal(
-                                      titulo: 'Atualizar jogador',
-                                      content: _modalContent(
-                                        context,
-                                        controller,
-                                        playerBd: playerBd,
-                                      ),
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => CustomModal(
+                                    titulo: 'Atualizar jogador',
+                                    content: _modalContent(
+                                      context,
+                                      controller,
+                                      playerBd: playerBd,
                                     ),
-                              );
-                            }
+                                  ),
+                            );
                           },
                         ),
                         const SizedBox(width: 10),
@@ -238,51 +234,49 @@ class PlayerRegistrationView extends StatelessWidget {
                             size: 25,
                           ),
                           onTap: () async {
-                            if (player.id != null) {
-                              await showDialog(
-                                context: context,
-                                builder:
-                                    (context) => CustomModal(
-                                      titulo: 'Excluir jogador',
-                                      content: Column(
-                                        children: [
-                                          Text(
-                                            'Deseja excluir o jogador ${player.nome}?',
-                                          ),
-                                          const SizedBox(height: 15),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Expanded(
-                                                child: CustomButton(
-                                                  text: 'Sim',
-                                                  icon: Icons.check_circle,
-                                                  onPressed: () async {
-                                                    await controller.delete(
-                                                      player.id!,
-                                                    );
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
+                            await showDialog(
+                              context: context,
+                              builder:
+                                  (context) => CustomModal(
+                                    titulo: 'Excluir jogador',
+                                    content: Column(
+                                      children: [
+                                        Text(
+                                          'Deseja excluir o jogador ${player.nome}?',
+                                        ),
+                                        const SizedBox(height: 15),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: CustomButton(
+                                                text: 'Sim',
+                                                icon: Icons.check_circle,
+                                                onPressed: () async {
+                                                  await controller.delete(
+                                                    player.id,
+                                                  );
+                                                  Navigator.pop(context);
+                                                },
                                               ),
-                                              const SizedBox(width: 5),
-                                              Expanded(
-                                                child: CustomButton(
-                                                  text: 'Não',
-                                                  icon: Icons.cancel,
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Expanded(
+                                              child: CustomButton(
+                                                text: 'Não',
+                                                icon: Icons.cancel,
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
                                               ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                              );
-                            }
+                                  ),
+                            );
                           },
                         ),
                       ],
@@ -310,7 +304,7 @@ class PlayerRegistrationView extends StatelessWidget {
 
       var result = await imgBBController.uploadAndSaveImage(
         selectedImage,
-        player.id!,
+        player.id,
       );
 
       if (!result) {

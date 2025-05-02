@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:futdraw/components/drawer.dart';
 import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
-import 'package:futdraw/components/widgets/add.many.players.dart';
+
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
 import 'package:futdraw/components/widgets/list.groups.dart';
 import 'package:futdraw/controllers/group_controller.dart';
+import 'package:futdraw/helpers/db_helper.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatefulWidget {
@@ -25,17 +26,6 @@ class _HomeViewState extends State<HomeView> {
           (context) => CustomModal(
             titulo: 'Como os Times são Formados',
             content: InfoDrawTeams(),
-          ),
-    );
-  }
-
-  void _showBatchAddPlayers() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => CustomModal(
-            titulo: 'Adicionar Vários Jogadores',
-            content: AddManyPlayers(),
           ),
     );
   }

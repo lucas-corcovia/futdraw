@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
+import 'package:futdraw/components/widgets/player.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/models/enums/group.item.options.dart';
 import 'package:futdraw/models/group.dart';
@@ -25,7 +26,14 @@ class GroupItem extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PlayerListScreen(group: group),
+            ),
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -45,7 +53,7 @@ class GroupItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      group.nome ?? 'Grupo ${group.id}',
+                      group.nome,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -66,67 +74,71 @@ class GroupItem extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 itemBuilder:
-                    (BuildContext context) =>
-                        <PopupMenuEntry<GroupItemOptions>>[
-                          PopupMenuItem(
-                            value: GroupItemOptions.generateTeam,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(
-                                Icons.sports_soccer,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              title: const Text('Gerar Times'),
-                            ),
-                            onTap: () {},
+                    (
+                      BuildContext context,
+                    ) => <PopupMenuEntry<GroupItemOptions>>[
+                      PopupMenuItem(
+                        value: GroupItemOptions.generateTeam,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.sports_soccer,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
-                          PopupMenuItem<GroupItemOptions>(
-                            value: GroupItemOptions.addPlayer,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(
-                                Icons.person_add,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                              title: const Text('Adicionar Jogador'),
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AddPlayer(group: group),
-                                ),
-                              );
-                            },
+                          title: const Text('Gerar Times'),
+                        ),
+                        onTap: () {},
+                      ),
+                      PopupMenuItem<GroupItemOptions>(
+                        value: GroupItemOptions.addPlayer,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.person_add,
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
-                          PopupMenuItem(
-                            value: GroupItemOptions.addMultiplePlayers,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(
-                                Icons.group_add,
-                                color: Theme.of(context).colorScheme.tertiary,
-                              ),
-                              title: const Text('Adicionar Vários'),
+                          title: const Text('Adicionar Jogador'),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddPlayer(group: group),
                             ),
+                          ).then(
+                            (_) async =>
+                                await context.read<GroupController>().getAll(),
+                          );
+                        },
+                      ),
+                      PopupMenuItem(
+                        value: GroupItemOptions.addMultiplePlayers,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.group_add,
+                            color: Theme.of(context).colorScheme.tertiary,
                           ),
-                          PopupMenuItem(
-                            value: GroupItemOptions.deleteGroup,
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: Icon(
-                                Icons.delete,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              title: const Text('Excluir Grupo'),
-                            ),
-                            onTap: () async {
-                              await context.read<GroupController>().delete(
-                                group.id,
-                              );
-                            },
+                          title: const Text('Adicionar Vários'),
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: GroupItemOptions.deleteGroup,
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
-                        ],
+                          title: const Text('Excluir Grupo'),
+                        ),
+                        onTap: () async {
+                          await context.read<GroupController>().delete(
+                            group.id,
+                          );
+                        },
+                      ),
+                    ],
               ),
             ],
           ),

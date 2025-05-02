@@ -5,6 +5,7 @@ import 'package:futdraw/repositories/group_repository.dart';
 class GroupController extends ChangeNotifier {
   final repository = GroupRepository();
   List<Group> groups = [];
+  Group? selectedGroup;
 
   Future<List<Group>> getAll() async {
     var result = await repository.getAll();

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
@@ -316,6 +315,10 @@ class _AddPlayerState extends State<AddPlayer> {
             // Save Button
             ElevatedButton(
               onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+
+                _formKey.currentState!.save();
+
                 await context.read<PlayerController>().add(
                   Player(
                     id: 0,
@@ -323,11 +326,10 @@ class _AddPlayerState extends State<AddPlayer> {
                     nome: _name,
                     nota: _skillRating,
                     ehCapitao: _isCaptain,
-                    urlFoto: "",
+                    urlFoto: null,
                     position: _position,
                   ),
                 );
-                await context.read<GroupController>().getAll();
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(

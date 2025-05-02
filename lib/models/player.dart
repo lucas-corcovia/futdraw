@@ -3,8 +3,8 @@ import 'package:futdraw/models/enums/player.position.dart';
 class Player {
   int id;
   int grupoId;
-  String? nome;
-  double? nota;
+  String nome;
+  double nota;
   String? urlFoto;
   bool ehCapitao;
   PlayerPosition position;
@@ -37,7 +37,7 @@ class Player {
       grupoId: map['grupoId'],
       nome: map['nome'],
       nota: map['nota'],
-      ehCapitao: map['ehCapitao'] == 0 ? false : true,
+      ehCapitao: map['ehGoleiro'] == 0 ? false : true,
       urlFoto: map['urlFoto'],
       position: PlayerPosition.values.firstWhere(
         (e) => e.index == map['position'] as int?,

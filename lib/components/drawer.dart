@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
 import 'package:futdraw/views/draw_view.dart';
@@ -55,6 +56,7 @@ class DrawerComponent extends StatelessWidget {
             onTap: () async {
               await DBHelper.dropDataBase();
               await DBHelper.createDataBase();
+              context.read<GroupController>().getAll();
             },
           ),
         ],
