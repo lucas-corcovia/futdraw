@@ -1,29 +1,50 @@
+import 'package:futdraw/models/enums/player.position.dart';
+
 class Player {
-  int? id;
+  int id;
+  int grupoId;
   String? nome;
   double? nota;
-  bool ehGoleiro;
   String? urlFoto;
+  bool ehCapitao;
+  PlayerPosition position;
 
   Player({
     required this.id,
+    required this.grupoId,
     required this.nome,
     required this.nota,
-    required this.ehGoleiro,
+    required this.ehCapitao,
     required this.urlFoto,
+    required this.position,
   });
 
   factory Player.getInstance() {
-    return Player(id: 0, nome: '', nota: 0, ehGoleiro: false, urlFoto: null);
+    return Player(
+      id: 0,
+      grupoId: 0,
+      nome: '',
+      nota: 0,
+      ehCapitao: false,
+      urlFoto: null,
+      position: PlayerPosition.midfielder,
+    );
   }
 
   factory Player.fromMap(Map<String, dynamic> map) {
     return Player(
       id: map['id'],
+      grupoId: map['grupoId'],
       nome: map['nome'],
       nota: map['nota'],
-      ehGoleiro: map['ehGoleiro'] == 0 ? false : true,
+      ehCapitao: map['ehCapitao'] == 0 ? false : true,
       urlFoto: map['urlFoto'],
+      position: PlayerPosition.values.firstWhere(
+        (e) => e.index == map['position'] as int?,
+        orElse: () => PlayerPosition.midfielder,
+      ),
     );
   }
+
+  bool get isGoalkeeper => position == PlayerPosition.goalkeeper;
 }

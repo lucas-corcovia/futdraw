@@ -2,7 +2,7 @@ name: futdraw
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -35,17 +35,17 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   sqflite: ^2.4.2
-  path: ^1.9.1 
+  path: ^1.9.1
   provider: ^6.1.4
   collection: ^1.19.1
   path_provider: ^2.1.5
   image: ^4.5.4
-  open_file: ^3.5.10 
+  open_file: ^3.5.10
   intl: ^0.20.2
-  mask_text_input_formatter: ^2.9.0 
+  mask_text_input_formatter: ^2.9.0
   image_picker: ^1.1.2
   screenshot: ^3.0.0
-  http: ^1.3.0  
+  http: ^1.3.0
 
 flutter_icons:
   adroind: true
@@ -57,7 +57,7 @@ flutter_icons:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: "assets/images/splash_logo.png"
+  image: assets/images/splash.logo.png
   android: true
   ios: true
 
@@ -80,7 +80,6 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -105,14 +104,13 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:  
-   
+  fonts:
     - family: PervitinaDex
       fonts:
-        - asset: assets/fonts/PervitinaDex.ttf  
+        - asset: assets/fonts/PervitinaDex.ttf
     - family: Kanit
       fonts:
-        - asset: assets/fonts/KanitRegular.ttf                
-  
+        - asset: assets/fonts/KanitRegular.ttf
+
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

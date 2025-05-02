@@ -1,12 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
 
 class ResultsView extends StatelessWidget {
   ResultsView({super.key, required this.sortedTeams});
@@ -58,12 +56,12 @@ class ResultsView extends StatelessWidget {
                     ...time.map(
                       (j) => ListTile(
                         leading: Icon(
-                          j.ehGoleiro ? Icons.sports_soccer : Icons.person,
+                          j.isGoalkeeper ? Icons.sports_soccer : Icons.person,
                         ),
                         title: Text(j.nome!),
                         subtitle: Text('Nota: ${j.nota!.toStringAsFixed(2)}'),
                         trailing:
-                            j.ehGoleiro
+                            j.isGoalkeeper
                                 ? Text(
                                   '[G]',
                                   style: TextStyle(color: Colors.blue),
@@ -158,7 +156,7 @@ class ResultsView extends StatelessWidget {
       for (var jogador in time) {
         final notaStr = jogador.nota?.toStringAsFixed(2) ?? '0.0';
         final linha =
-            '${jogador.nome} (${notaStr}) ${jogador.ehGoleiro ? '[G]' : ''}'; // Icone de goleiro
+            '${jogador.nome} (${notaStr}) ${jogador.isGoalkeeper ? '[G]' : ''}'; // Icone de goleiro
 
         img.drawString(
           image,

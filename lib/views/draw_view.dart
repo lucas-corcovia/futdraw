@@ -81,7 +81,7 @@ class DrawView extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Goleiros: ${snapshot.data!.where((p) => p.ehGoleiro).length}',
+                                'Goleiros: ${snapshot.data!.where((p) => p.isGoalkeeper).length}',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class DrawView extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Jogadores de linha: ${snapshot.data!.where((p) => !p.ehGoleiro).length}',
+                                'Jogadores de linha: ${snapshot.data!.where((p) => !p.isGoalkeeper).length}',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,

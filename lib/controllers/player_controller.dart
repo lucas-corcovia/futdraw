@@ -7,6 +7,7 @@ class PlayerController extends ChangeNotifier {
   List<Player> players = [];
 
   add(Player player) async {
+    print("Adicionando Repo");
     await repository.add(player);
     await getAll();
     //notifyListeners();
@@ -15,7 +16,6 @@ class PlayerController extends ChangeNotifier {
   Future<List<Player>> getAll() async {
     var result = await repository.getAll();
     players = result;
-    print('Passou aqui');
     notifyListeners();
 
     return result;

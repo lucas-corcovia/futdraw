@@ -11,8 +11,9 @@ class PlayerRepository {
     await db.insert(table, {
       'nome': player.nome,
       'nota': player.nota,
-      'ehGoleiro': player.ehGoleiro ? 1 : 0,
+      'ehGoleiro': player.ehCapitao ? 1 : 0,
       'urlFoto': player.urlFoto,
+      'grupoId': player.grupoId,
     });
   }
 
@@ -44,7 +45,7 @@ class PlayerRepository {
       {
         'nome': player.nome,
         'nota': player.nota,
-        'ehGoleiro': player.ehGoleiro ? 1 : 0,
+        'ehGoleiro': player.ehCapitao ? 1 : 0,
         'urlFoto': player.urlFoto,
       },
       where: 'id = ?',

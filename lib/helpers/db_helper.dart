@@ -7,21 +7,7 @@ class DBHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, dbName);
 
-    return openDatabase(
-      path,
-      version: 3,
-      onCreate: (db, version) {
-        return db.execute('''
-        CREATE TABLE players(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          nome TEXT,
-          nota REAL,
-          ehGoleiro INTEGER,
-          urlFoto TEXT
-        )
-      ''');
-      },
-    );
+    return openDatabase(path, version: 1);
   }
 
   static Future<void> dropDataBase() async {
@@ -29,5 +15,34 @@ class DBHelper {
     final path = join(dbPath, dbName);
 
     await deleteDatabase(path);
+  }
+
+  static Future<void> createDataBase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, dbName);
+
+    await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) {
+        db.execute('''
+        CREATE TABLE players(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          grupoId INTEGER,
+          nome TEXT,
+          nota REAL,
+          ehGoleiro INTEGER,
+          urlFoto TEXT
+        )
+      ''');
+
+        return db.execute('''
+        CREATE TABLE groups(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome TEXT
+        )
+      ''');
+      },
+    );
   }
 }

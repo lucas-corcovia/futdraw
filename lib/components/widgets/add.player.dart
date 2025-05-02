@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/group_controller.dart';
+import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
+import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:provider/provider.dart';
 
 class AddPlayer extends StatefulWidget {
   final Player? player;
+  final Group group;
 
-  const AddPlayer({super.key, this.player});
+  const AddPlayer({super.key, this.player, required this.group});
 
   @override
   State<AddPlayer> createState() => _AddPlayerState();
@@ -20,7 +25,6 @@ class _AddPlayerState extends State<AddPlayer> {
   PlayerPosition _position = PlayerPosition.midfielder;
   late bool _isCaptain;
   String? _photoPath;
-  late String _group;
 
   bool _isLoading = false;
   bool _isEditing = false;
@@ -32,7 +36,6 @@ class _AddPlayerState extends State<AddPlayer> {
     _name = "";
     _skillRating = 5.0;
     _isCaptain = false;
-    _group = "";
   }
 
   /*   Future<void> _savePlayer() async {
@@ -195,10 +198,10 @@ class _AddPlayerState extends State<AddPlayer> {
             ),
             const SizedBox(height: 16),
             TextFormField(
-              initialValue: _group,
+              initialValue: widget.group.nome,
+              enabled: false,
               decoration: InputDecoration(
                 labelText: 'Turma/Grupo',
-                hintText: 'Ex: Turma A, Time da Quinta, etc.',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -209,9 +212,6 @@ class _AddPlayerState extends State<AddPlayer> {
                   return 'Por favor, informe a turma ou grupo';
                 }
                 return null;
-              },
-              onSaved: (value) {
-                _group = value!;
               },
             ),
             const SizedBox(height: 16),
@@ -315,7 +315,21 @@ class _AddPlayerState extends State<AddPlayer> {
             const SizedBox(height: 32),
             // Save Button
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                await context.read<PlayerController>().add(
+                  Player(
+                    id: 0,
+                    grupoId: widget.group.id,
+                    nome: _name,
+                    nota: _skillRating,
+                    ehCapitao: _isCaptain,
+                    urlFoto: "",
+                    position: _position,
+                  ),
+                );
+                await context.read<GroupController>().getAll();
+                Navigator.pop(context);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,

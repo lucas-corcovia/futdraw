@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/drawer.dart';
 import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
-import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
 import 'package:futdraw/components/widgets/list.groups.dart';
-import 'package:futdraw/models/group.dart';
+import 'package:futdraw/controllers/group_controller.dart';
+import 'package:provider/provider.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -14,9 +15,8 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  final List<Group> _groups = [];
-  final bool _isLoading = false;
+class _HomeViewState extends State<HomeView> {
+  bool _isLoading = true;
 
   void _showTeamLogicInfo() {
     showDialog(
@@ -41,6 +41,18 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GroupController>().getAll().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -60,10 +72,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ), */
         ],
       ),
+      drawer: DrawerComponent(),
       body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : GroupList(groups: _groups),
+          _isLoading ? Center(child: CircularProgressIndicator()) : GroupList(),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [

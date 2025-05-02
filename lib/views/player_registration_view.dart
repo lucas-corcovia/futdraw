@@ -119,10 +119,10 @@ class PlayerRegistrationView extends StatelessWidget {
                 StatefulBuilder(
                   builder: (BuildContext context, StateSetter setModalState) {
                     return Checkbox(
-                      value: player.ehGoleiro,
+                      value: player.isGoalkeeper,
                       onChanged: (bool? value) {
                         setModalState(() {
-                          player.ehGoleiro = value ?? false;
+                          //player.ehGoleiro = value ?? false;
                         });
                       },
                     );
@@ -162,7 +162,7 @@ class PlayerRegistrationView extends StatelessWidget {
               itemBuilder: (context, index) {
                 final player =
                     controller.players.sorted(
-                      (a, b) => b.ehGoleiro ? 1 : (a.ehGoleiro ? -1 : 0),
+                      (a, b) => b.isGoalkeeper ? 1 : (a.isGoalkeeper ? -1 : 0),
                     )[index];
 
                 return Card(
@@ -191,7 +191,7 @@ class PlayerRegistrationView extends StatelessWidget {
                           player.nome ?? '',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        player.ehGoleiro
+                        player.isGoalkeeper
                             ? Padding(
                               padding: const EdgeInsets.only(left: 5),
                               child: Text('(Goleiro)'),

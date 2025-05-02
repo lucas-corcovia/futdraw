@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/views/home_view.dart';
 import 'package:provider/provider.dart' as statemanagement;
@@ -9,6 +10,9 @@ void main() {
       providers: [
         statemanagement.ChangeNotifierProvider(
           create: (_) => PlayerController(),
+        ),
+        statemanagement.ChangeNotifierProvider(
+          create: (_) => GroupController(),
         ),
         // Adicione mais providers aqui, se necessário
       ],

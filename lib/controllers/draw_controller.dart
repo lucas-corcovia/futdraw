@@ -10,8 +10,8 @@ class DrawController {
   ) {
     final rand = Random();
 
-    final linha = [...jogadores.where((j) => !j.ehGoleiro)];
-    final goleiros = [...jogadores.where((j) => j.ehGoleiro)];
+    final linha = [...jogadores.where((j) => !j.isGoalkeeper)];
+    final goleiros = [...jogadores.where((j) => j.isGoalkeeper)];
 
     if (linha.length < numTimes || goleiros.length < numTimes) {
       throw Exception(

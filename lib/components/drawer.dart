@@ -54,6 +54,7 @@ class DrawerComponent extends StatelessWidget {
             title: Text('Resetar'),
             onTap: () async {
               await DBHelper.dropDataBase();
+              await DBHelper.createDataBase();
             },
           ),
         ],
