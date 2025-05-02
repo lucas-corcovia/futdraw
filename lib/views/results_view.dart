@@ -35,7 +35,7 @@ class ResultsView extends StatelessWidget {
           itemCount: sortedTeams.length,
           itemBuilder: (context, index) {
             final time = sortedTeams[index];
-            final somaNotas = time.fold(0.0, (sum, j) => sum + j.nota!);
+            final somaNotas = time.fold(0.0, (sum, j) => sum + j.nota);
 
             return Card(
               margin: EdgeInsets.all(12),
@@ -58,8 +58,8 @@ class ResultsView extends StatelessWidget {
                         leading: Icon(
                           j.isGoalkeeper ? Icons.sports_soccer : Icons.person,
                         ),
-                        title: Text(j.nome!),
-                        subtitle: Text('Nota: ${j.nota!.toStringAsFixed(2)}'),
+                        title: Text(j.nome),
+                        subtitle: Text('Nota: ${j.nota.toStringAsFixed(2)}'),
                         trailing:
                             j.isGoalkeeper
                                 ? Text(
@@ -154,9 +154,9 @@ class ResultsView extends StatelessWidget {
       ); // Borda preta
 
       for (var jogador in time) {
-        final notaStr = jogador.nota?.toStringAsFixed(2) ?? '0.0';
+        final notaStr = jogador.nota.toStringAsFixed(2);
         final linha =
-            '${jogador.nome} (${notaStr}) ${jogador.isGoalkeeper ? '[G]' : ''}'; // Icone de goleiro
+            '${jogador.nome} ($notaStr) ${jogador.isGoalkeeper ? '[G]' : ''}'; // Icone de goleiro
 
         img.drawString(
           image,

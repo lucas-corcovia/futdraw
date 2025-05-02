@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:futdraw/components/drawer.dart';
 import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
-
 import 'package:futdraw/components/widgets/infos.draw.teams.dart';
 import 'package:futdraw/components/widgets/group.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
-import 'package:futdraw/helpers/db_helper.dart';
 import 'package:provider/provider.dart';
 
 class HomeView extends StatefulWidget {
