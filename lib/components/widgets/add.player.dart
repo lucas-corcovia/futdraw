@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/player_controller.dart';
@@ -19,6 +21,8 @@ class AddPlayer extends StatefulWidget {
 class _AddPlayerState extends State<AddPlayer> {
   final _formKey = GlobalKey<FormState>();
 
+  late int _id;
+  late int _groupId;
   late String _name;
   late double _skillRating;
   PlayerPosition _position = PlayerPosition.midfielder;
@@ -32,6 +36,23 @@ class _AddPlayerState extends State<AddPlayer> {
   void initState() {
     super.initState();
     _isEditing = widget.player != null;
+    _initPlayer();
+  }
+
+  _initPlayer() {
+    if (_isEditing) {
+      _id = widget.player!.id;
+      _groupId = widget.player!.grupoId;
+      _name = widget.player!.nome;
+      _skillRating = widget.player!.nota;
+      _position = widget.player!.position;
+      _isCaptain = widget.player!.ehCapitao;
+      _photoPath = widget.player!.urlFoto;
+      return;
+    }
+
+    _id = 0;
+    _groupId = widget.group.id;
     _name = "";
     _skillRating = 5.0;
     _isCaptain = false;
@@ -318,18 +339,12 @@ class _AddPlayerState extends State<AddPlayer> {
                 if (!_formKey.currentState!.validate()) return;
 
                 _formKey.currentState!.save();
+                if (!_isEditing) {
+                  await context.read<PlayerController>().add(_buildPlayer());
+                } else {
+                  await context.read<PlayerController>().update(_buildPlayer());
+                }
 
-                await context.read<PlayerController>().add(
-                  Player(
-                    id: 0,
-                    grupoId: widget.group.id,
-                    nome: _name,
-                    nota: _skillRating,
-                    ehCapitao: _isCaptain,
-                    urlFoto: null,
-                    position: _position,
-                  ),
-                );
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -345,6 +360,18 @@ class _AddPlayerState extends State<AddPlayer> {
           ],
         ),
       ),
+    );
+  }
+
+  Player _buildPlayer() {
+    return Player(
+      id: _id,
+      grupoId: _groupId,
+      nome: _name,
+      nota: _skillRating,
+      ehCapitao: _isCaptain,
+      urlFoto: _photoPath,
+      position: _position,
     );
   }
 }

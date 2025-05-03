@@ -30,45 +30,57 @@ class _AddGroupState extends State<AddGroup> {
               : SingleChildScrollView(
                 child: Form(
                   key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        initialValue: _name,
-                        decoration: InputDecoration(
-                          labelText: 'Nome',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          initialValue: _name,
+                          decoration: InputDecoration(
+                            labelText: 'Nome',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            prefixIcon: const Icon(Icons.person),
                           ),
-                          prefixIcon: const Icon(Icons.person),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, informe o nome do grupo';
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            _name = value!;
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor, informe o nome do grupo';
-                          }
-                          return null;
-                        },
-                        onSaved: (value) {
-                          _name = value!;
-                        },
-                      ),
-                      ElevatedButton(
-                        onPressed: _saveGroup,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                        const SizedBox(height: 15),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _saveGroup,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  foregroundColor:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Salvar',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          'Salvar',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

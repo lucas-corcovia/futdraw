@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/player.card.dart';
 import 'package:futdraw/components/widgets/players.list.empty.dart';
+import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
@@ -36,11 +38,13 @@ class _PlayerListScreenState extends State<PlayerListScreen>
     _animationController.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PlayerController>().getAll().then((_) {
-        setState(() {
-          _isLoading = false;
-        });
-      });
+      context.read<PlayerController>().getAllByGroupIdAll(widget.group.id).then(
+        (_) {
+          setState(() {
+            _isLoading = false;
+          });
+        },
+      );
     });
   }
 
@@ -57,6 +61,14 @@ class _PlayerListScreenState extends State<PlayerListScreen>
         title: Text(widget.group.nome),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.read<GroupController>().getAll().then((_) {
+              Navigator.pop(context);
+            });
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.sports_soccer),
@@ -131,21 +143,21 @@ class PlayerList extends StatelessWidget {
                 child: PlayerCard(
                   player: player,
                   onEdit: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                AddPlayer(player: player, group: group),
-                      ),
-                    ).then((_) {
-                      WidgetsBinding.instance.addPersistentFrameCallback((_) {
-                        _refreshPlayers(context);
-                      });
+                    _refreshPlayers(context).then((_) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) =>
+                                  AddPlayer(player: player, group: group),
+                        ),
+                      );
                     });
                   },
                   onDelete: () async {
-                    //_refreshPlayers(context);
+                    context.read<PlayerController>().delete(player).then((_) {
+                      Toast.show(context, 'Jogador excluído com sucesso!');
+                    });
                   },
                 ),
               );
@@ -157,6 +169,6 @@ class PlayerList extends StatelessWidget {
   }
 
   Future<void> _refreshPlayers(BuildContext context) async {
-    context.read<PlayerController>().getAll(); // TODO GET BY GROUPID
+    context.read<PlayerController>().getAllByGroupIdAll(group.id);
   }
 }

@@ -29,9 +29,20 @@ class PlayerRepository {
     return result.isNotEmpty ? Player.fromMap(result.first) : null;
   }
 
-  Future<void> delete(int id) async {
+  Future<List<Player>> getAllByGroupId(int groupId) async {
     final db = await DBHelper.getDatabase();
-    await db.delete(table, where: 'id = ?', whereArgs: [id]);
+    final result = await db.query(
+      table,
+      where: 'grupoId = ?',
+      whereArgs: [groupId],
+    );
+
+    return result.map((map) => Player.fromMap(map)).toList();
+  }
+
+  Future<void> delete(Player player) async {
+    final db = await DBHelper.getDatabase();
+    await db.delete(table, where: 'id = ?', whereArgs: [player.id]);
   }
 
   Future<void> update(Player player) async {
@@ -44,6 +55,8 @@ class PlayerRepository {
         'nota': player.nota,
         'ehGoleiro': player.ehCapitao ? 1 : 0,
         'urlFoto': player.urlFoto,
+        'grupoId': player.grupoId,
+        'posicao': player.position.index,
       },
       where: 'id = ?',
       whereArgs: [player.id],

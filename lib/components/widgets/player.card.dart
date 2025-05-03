@@ -255,13 +255,13 @@ class PlayerCard extends StatelessWidget {
 
   Color _getSkillColor(BuildContext context, double skill) {
     if (skill >= 8.0) {
-      return Theme.of(context).colorScheme.tertiary;
+      return Colors.greenAccent;
     } else if (skill >= 6.0) {
-      return Theme.of(context).colorScheme.primary;
+      return Colors.blueAccent;
     } else if (skill >= 4.0) {
-      return Theme.of(context).colorScheme.secondary;
+      return Colors.yellowAccent;
     } else {
-      return Theme.of(context).colorScheme.outline;
+      return Colors.redAccent;
     }
   }
 

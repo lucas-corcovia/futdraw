@@ -4,8 +4,19 @@ import 'package:futdraw/components/widgets/groups.empty.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:provider/provider.dart';
 
-class GroupList extends StatelessWidget {
+class GroupList extends StatefulWidget {
   const GroupList({super.key});
+
+  @override
+  State<GroupList> createState() => _GroupListState();
+}
+
+class _GroupListState extends State<GroupList> {
+  @override
+  void initState() {
+    context.read<GroupController>().getAll();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

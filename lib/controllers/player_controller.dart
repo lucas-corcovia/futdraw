@@ -7,10 +7,8 @@ class PlayerController extends ChangeNotifier {
   List<Player> players = [];
 
   add(Player player) async {
-    print("Adicionando Repo");
     await repository.add(player);
-    await getAll();
-    //notifyListeners();
+    await getAllByGroupIdAll(player.grupoId);
   }
 
   Future<List<Player>> getAll() async {
@@ -21,15 +19,22 @@ class PlayerController extends ChangeNotifier {
     return result;
   }
 
-  delete(int id) async {
-    await repository.delete(id);
-    getAll();
+  Future<List<Player>> getAllByGroupIdAll(int groupId) async {
+    var result = await repository.getAllByGroupId(groupId);
+    players = result;
+    notifyListeners();
+
+    return result;
+  }
+
+  delete(Player player) async {
+    await repository.delete(player);
+    await getAllByGroupIdAll(player.grupoId);
   }
 
   update(Player player) async {
     await repository.update(player);
-    await getAll();
-    //notifyListeners();
+    await getAllByGroupIdAll(player.grupoId);
   }
 
   Future<Player?> getById(int id) async {
