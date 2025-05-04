@@ -21,7 +21,7 @@ class DrawView extends StatelessWidget {
       context,
       listen: false,
     );
-    playerController.getAll();
+    playerController.getAll(context);
     // playerController.getAll();
     // final int playersCount =
     //     playerController.players.where((p) => !p.ehGoleiro).length;
@@ -67,7 +67,7 @@ class DrawView extends StatelessWidget {
         ),
       ),
       body: FutureBuilder(
-        future: playerController.getAll(),
+        future: playerController.getAll(context),
         builder: (context, snapshot) {
           return snapshot.connectionState != ConnectionState.waiting
               ? SingleChildScrollView(

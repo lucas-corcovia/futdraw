@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
@@ -80,7 +79,7 @@ class PlayerCard extends StatelessWidget {
                       ).colorScheme.primary.withOpacity(0.1),
                       backgroundImage:
                           player.urlFoto != null
-                              ? MemoryImage(base64Decode(player.urlFoto!))
+                              ? NetworkImage(player.urlFoto!)
                               : null,
                       child:
                           player.urlFoto == null

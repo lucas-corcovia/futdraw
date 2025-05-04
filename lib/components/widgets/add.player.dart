@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/imgbb_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class AddPlayer extends StatefulWidget {
@@ -20,6 +21,7 @@ class AddPlayer extends StatefulWidget {
 
 class _AddPlayerState extends State<AddPlayer> {
   final _formKey = GlobalKey<FormState>();
+  final _imgController = ImgBBController();
 
   late int _id;
   late int _groupId;
@@ -28,9 +30,9 @@ class _AddPlayerState extends State<AddPlayer> {
   PlayerPosition _position = PlayerPosition.midfielder;
   late bool _isCaptain;
   String? _photoPath;
-
-  bool _isLoading = false;
   bool _isEditing = false;
+  final bool _isLoading = false;
+  File? _imageFile;
 
   @override
   void initState() {
@@ -144,12 +146,9 @@ class _AddPlayerState extends State<AddPlayer> {
                     backgroundColor: Theme.of(
                       context,
                     ).colorScheme.primary.withValues(alpha: 0.1),
-                    backgroundImage:
-                        _photoPath != null
-                            ? MemoryImage(base64Decode(_photoPath!))
-                            : null,
+                    backgroundImage: getProfilePicture(),
                     child:
-                        _photoPath == null
+                        _photoPath == null && _imageFile == null
                             ? Icon(
                               Icons.person,
                               size: 60,
@@ -165,29 +164,39 @@ class _AddPlayerState extends State<AddPlayer> {
                         color: Theme.of(context).colorScheme.secondary,
                         shape: BoxShape.circle,
                       ),
-                      child: PopupMenuButton<String>(
+                      child: PopupMenuButton<ImageSource>(
                         icon: Icon(
                           Icons.camera_alt,
                           color: Theme.of(context).colorScheme.onSecondary,
                         ),
-                        onSelected: (String value) {},
+                        onSelected: (ImageSource value) async {
+                          var imageFile = await _imgController.selectImage(
+                            context,
+                            value,
+                            _id,
+                          );
+                          setState(() {
+                            _imageFile = imageFile;
+                          });
+                        },
                         itemBuilder:
-                            (BuildContext context) => <PopupMenuEntry<String>>[
-                              const PopupMenuItem<String>(
-                                value: 'camera',
-                                child: ListTile(
-                                  leading: Icon(Icons.camera_alt),
-                                  title: Text('Câmera'),
-                                ),
-                              ),
-                              const PopupMenuItem<String>(
-                                value: 'gallery',
-                                child: ListTile(
-                                  leading: Icon(Icons.photo_library),
-                                  title: Text('Galeria'),
-                                ),
-                              ),
-                            ],
+                            (BuildContext context) =>
+                                <PopupMenuEntry<ImageSource>>[
+                                  const PopupMenuItem<ImageSource>(
+                                    value: ImageSource.camera,
+                                    child: ListTile(
+                                      leading: Icon(Icons.camera_alt),
+                                      title: Text('Câmera'),
+                                    ),
+                                  ),
+                                  const PopupMenuItem<ImageSource>(
+                                    value: ImageSource.gallery,
+                                    child: ListTile(
+                                      leading: Icon(Icons.photo_library),
+                                      title: Text('Galeria'),
+                                    ),
+                                  ),
+                                ],
                       ),
                     ),
                   ),
@@ -337,12 +346,19 @@ class _AddPlayerState extends State<AddPlayer> {
             ElevatedButton(
               onPressed: () async {
                 if (!_formKey.currentState!.validate()) return;
-
                 _formKey.currentState!.save();
+                var photoUrl = await getPhotoPath();
+
                 if (!_isEditing) {
-                  await context.read<PlayerController>().add(_buildPlayer());
+                  await context.read<PlayerController>().add(
+                    context,
+                    _buildPlayer(photoUrl),
+                  );
                 } else {
-                  await context.read<PlayerController>().update(_buildPlayer());
+                  await context.read<PlayerController>().update(
+                    context,
+                    _buildPlayer(photoUrl),
+                  );
                 }
 
                 Navigator.pop(context);
@@ -363,15 +379,32 @@ class _AddPlayerState extends State<AddPlayer> {
     );
   }
 
-  Player _buildPlayer() {
+  Player _buildPlayer(String? photoPath) {
     return Player(
       id: _id,
       grupoId: _groupId,
       nome: _name,
       nota: _skillRating,
       ehCapitao: _isCaptain,
-      urlFoto: _photoPath,
+      urlFoto: photoPath,
       position: _position,
     );
+  }
+
+  Future<String?> getPhotoPath() async {
+    var result = await _imgController.uploadAndSaveImage(context, _imageFile);
+    return result;
+  }
+
+  ImageProvider? getProfilePicture() {
+    if (!_isEditing && _imageFile != null) {
+      return FileImage(_imageFile!);
+    } else if (_isEditing && _imageFile != null) {
+      return FileImage(_imageFile!);
+    } else if (_isEditing && _photoPath != null) {
+      return NetworkImage(_photoPath!);
+    }
+
+    return null;
   }
 }

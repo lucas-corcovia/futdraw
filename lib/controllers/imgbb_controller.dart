@@ -1,26 +1,42 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/repositories/imgbb_repository.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ImgBBController {
   final imgBBRepository = ImgBBRepository();
   final playerController = PlayerController();
 
-  Future<bool> uploadAndSaveImage(File imageFile, int playerId) async {
+  Future<String?> uploadAndSaveImage(
+    BuildContext context,
+    File? imageFile,
+  ) async {
     try {
-      var result = await imgBBRepository.uploadImage(imageFile);
-
-      if (result != null) {
-        var playerBd = await playerController.getById(playerId);
-        if (playerBd != null) {
-          playerBd.urlFoto = result.data.url;
-          await playerController.update(playerBd);
-        }
+      if (imageFile == null) {
+        return null;
       }
+      var result = await imgBBRepository.uploadImage(imageFile);
+      return result?.data.url;
     } catch (e) {
-      return false;
+      Toast.show(context, 'Erro ao fazer upload da imagem: $e', true);
+      return null;
     }
+  }
 
-    return true;
+  Future<File?> selectImage(
+    BuildContext context,
+    ImageSource imageSource,
+    int playerId,
+  ) async {
+    final ImagePicker picker = ImagePicker();
+    XFile? image = await picker.pickImage(source: imageSource);
+
+    if (image != null) {
+      File selectedImage = File(image.path);
+      return selectedImage;
+    }
+    return null;
   }
 }

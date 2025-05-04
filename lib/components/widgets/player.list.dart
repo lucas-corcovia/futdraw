@@ -38,13 +38,14 @@ class _PlayerListScreenState extends State<PlayerListScreen>
     _animationController.forward();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PlayerController>().getAllByGroupIdAll(widget.group.id).then(
-        (_) {
-          setState(() {
-            _isLoading = false;
+      context
+          .read<PlayerController>()
+          .getAllByGroupId(context, widget.group.id)
+          .then((_) {
+            setState(() {
+              _isLoading = false;
+            });
           });
-        },
-      );
     });
   }
 
@@ -155,9 +156,16 @@ class PlayerList extends StatelessWidget {
                     });
                   },
                   onDelete: () async {
-                    context.read<PlayerController>().delete(player).then((_) {
-                      Toast.show(context, 'Jogador excluído com sucesso!');
-                    });
+                    context
+                        .read<PlayerController>()
+                        .delete(context, player)
+                        .then((_) {
+                          Toast.show(
+                            context,
+                            'Jogador excluído com sucesso!',
+                            false,
+                          );
+                        });
                   },
                 ),
               );
@@ -169,6 +177,6 @@ class PlayerList extends StatelessWidget {
   }
 
   Future<void> _refreshPlayers(BuildContext context) async {
-    context.read<PlayerController>().getAllByGroupIdAll(group.id);
+    context.read<PlayerController>().getAllByGroupId(context, group.id);
   }
 }
