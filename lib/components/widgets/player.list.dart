@@ -7,6 +7,7 @@ import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/views/team_generator_view.dart';
 import 'package:provider/provider.dart';
 
 class PlayerListScreen extends StatefulWidget {
@@ -73,7 +74,18 @@ class _PlayerListScreenState extends State<PlayerListScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.sports_soccer),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => TeamGenerationScreen(
+                        // Obter Pelo Provider
+                        preselectedGroup: widget.group,
+                      ),
+                ),
+              );
+            },
             tooltip: 'Gerar Times',
           ),
         ],
