@@ -1,3 +1,4 @@
+import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 
 import '../models/player.dart';
@@ -32,6 +33,7 @@ class TeamGenerator {
     required List<Player> players,
     required int numberOfTeams,
     required Group? group,
+    bool isOnlySociety = true, // Flag para ativar o modo "society"
   }) {
     print(players);
     print(numberOfTeams);
@@ -40,39 +42,77 @@ class TeamGenerator {
       return [];
     }
 
-    // Filter players by group if specified
-    // Filter out substituted players
-    //filteredPlayers = filteredPlayers.where((player) => !player.isSubstitute).toList();
+    // Separar jogadores por posição
+    final goalkeepers =
+        players.where((p) => p.position == PlayerPosition.goalkeeper).toList();
+    final defenders =
+        players.where((p) => p.position == PlayerPosition.defender).toList();
+    final midfielders =
+        players.where((p) => p.position == PlayerPosition.midfielder).toList();
+    final forwards =
+        players.where((p) => p.position == PlayerPosition.striker).toList();
 
-    // Separate goalkeepers and field players
-    final goalkeepers = players.where((p) => p.isGoalkeeper).toList();
-    final fieldPlayers = players.where((p) => !p.isGoalkeeper).toList();
+    // Adicionar aleatoriedade embaralhando as listas
+    goalkeepers.shuffle();
+    defenders.shuffle();
+    midfielders.shuffle();
+    forwards.shuffle();
 
-    // Sort by skill rating (descending)
-    goalkeepers.sort((a, b) => b.nota.compareTo(a.nota));
-    fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
-
-    // Initialize teams
+    // Inicializar os times
     List<Team> teams = List.generate(
       numberOfTeams,
       (index) => Team(name: 'Time ${index + 1}', players: []),
     );
 
-    // Distribute goalkeepers first
-    _distributePlayersEvenly(goalkeepers, teams);
+    if (isOnlySociety) {
+      // Distribuir jogadores de forma balanceada por posição
+      _distributePlayersByPosition(goalkeepers, teams, 1); // 1 goleiro por time
+      _distributePlayersByPosition(
+        defenders,
+        teams,
+        2,
+      ); // 2 defensores por time
+      _distributePlayersByPosition(midfielders, teams, 3); // 3 meias por time
+      _distributePlayersByPosition(forwards, teams, 1); // 1 atacante por time
+    } else {
+      // Distribuir jogadores de forma balanceada sem considerar posições
+      _distributePlayersEvenly(goalkeepers, teams);
+      _distributePlayersEvenly(defenders, teams);
+      _distributePlayersEvenly(midfielders, teams);
+      _distributePlayersEvenly(forwards, teams);
+    }
 
-    // Then distribute captains
-    final captains = fieldPlayers.where((p) => p.ehCapitao).toList();
-    fieldPlayers.removeWhere((p) => p.ehCapitao);
-    _distributePlayersEvenly(captains, teams);
-
-    // Distribute remaining field players using snake draft to ensure balance
-    _distributePlayersSnakeDraft(fieldPlayers, teams);
-
-    // Final balance check and adjustment
+    // Ajustar balanceamento final
     _balanceTeams(teams);
 
     return teams;
+  }
+
+  // Método para distribuir jogadores por posição
+  static void _distributePlayersByPosition(
+    List<Player> players,
+    List<Team> teams,
+    int playersPerTeam,
+  ) {
+    if (players.isEmpty || teams.isEmpty) return;
+
+    int teamIndex = 0;
+    for (final player in players) {
+      teams[teamIndex] = teams[teamIndex].copyWith(
+        players: [...teams[teamIndex].players, player],
+      );
+
+      // Avançar para o próximo time
+      teamIndex = (teamIndex + 1) % teams.length;
+
+      // Garantir que cada time receba apenas o número necessário de jogadores por posição
+      if (teams[teamIndex].players
+              .where((p) => p.position == player.position)
+              .length >=
+          playersPerTeam) {
+        teamIndex = (teamIndex + 1) % teams.length;
+      }
+    }
   }
 
   // Distribute players evenly across teams

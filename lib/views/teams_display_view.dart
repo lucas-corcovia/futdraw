@@ -116,8 +116,9 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.onPrimary,
+          indicatorColor: Theme.of(context).colorScheme.primary,
           labelColor: Theme.of(context).colorScheme.onPrimary,
+          labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           isScrollable: true,
           tabs: _teams.map((team) => Tab(text: team.name)).toList(),
         ),
@@ -309,44 +310,55 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Team Header
-          Card(
-            color: Theme.of(context).colorScheme.primary,
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Text(
-                    team.name,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Expanded(
+                child: Card(
+                  color: Theme.of(context).colorScheme.primary,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Column(
+                      children: [
+                        Text(
+                          team.name,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Média de Habilidade: ${team.averageSkill.toStringAsFixed(1)}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary.withOpacity(0.9),
+                          ),
+                        ),
+                        Text(
+                          'Jogadores: ${team.players.length}',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Média de Habilidade: ${team.averageSkill.toStringAsFixed(1)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withOpacity(0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Jogadores: ${team.players.length}',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onPrimary.withOpacity(0.8),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 24),
 

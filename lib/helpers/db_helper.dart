@@ -23,7 +23,7 @@ class DBHelper {
 
     await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) {
         db.execute('''
         CREATE TABLE players(
@@ -37,12 +37,29 @@ class DBHelper {
         )
       ''');
 
-        return db.execute('''
+        db.execute('''
         CREATE TABLE groups(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           nome TEXT
         )
       ''');
+
+        db.execute('''
+        CREATE TABLE configurations(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          isOnlySociety INTEGER
+        )
+      ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) {
+        if (oldVersion < 2) {
+          db.execute('''
+          CREATE TABLE configurations(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            isOnlySociety INTEGER
+          )
+        ''');
+        }
       },
     );
   }

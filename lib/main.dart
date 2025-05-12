@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
+import 'package:futdraw/helpers/db_helper.dart';
 import 'package:futdraw/views/home_view.dart';
 import 'package:provider/provider.dart' as statemanagement;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //await ConfigurationsController().initialize();
+
   runApp(
     statemanagement.MultiProvider(
       providers: [
@@ -30,7 +36,7 @@ class FutDrawApp extends StatelessWidget {
       title: 'FutDraw',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: Color.fromRGBO(2, 0, 94, 0),
           brightness: Brightness.dark,
         ),
         fontFamily: 'Kanit',
@@ -38,4 +44,6 @@ class FutDrawApp extends StatelessWidget {
       home: const HomeView(),
     );
   }
+
+  Future<void> _initializeConfigurations() async {}
 }

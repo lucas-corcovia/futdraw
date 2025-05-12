@@ -229,96 +229,119 @@ class _SoccerFieldState extends State<SoccerField> {
   }) {
     return Opacity(
       opacity: opacity,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color:
-                isHighlighted
-                    ? Theme.of(context).colorScheme.tertiary
-                    : player.ehCapitao
-                    ? Theme.of(context).colorScheme.tertiary
-                    : _getPositionColor(player.position),
-            width: 3,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color:
+                    isHighlighted
+                        ? Theme.of(context).colorScheme.tertiary
+                        : player.ehCapitao
+                        ? Theme.of(context).colorScheme.tertiary
+                        : _getPositionColor(player.position),
+                width: 3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, -1),
+                ),
+              ],
             ),
-            BoxShadow(
-              color: Colors.white.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -1),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            ClipOval(
-              child:
-                  player.urlFoto != null
-                      ? Image.network(
-                        player.urlFoto!,
-                        width: size,
-                        height: size,
-                        fit: BoxFit.cover,
-                      )
-                      : Container(
-                        color: Theme.of(context).colorScheme.primary,
-                        child: Center(
-                          child: Text(
-                            player.nome[0].toUpperCase(),
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: size / 3,
+            child: Stack(
+              children: [
+                ClipOval(
+                  child:
+                      player.urlFoto != null
+                          ? Image.network(
+                            player.urlFoto!,
+                            width: size,
+                            height: size,
+                            fit: BoxFit.cover,
+                          )
+                          : Container(
+                            color: Theme.of(context).colorScheme.primary,
+                            child: Center(
+                              child: Text(
+                                player.nome[0].toUpperCase(),
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: size / 3,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                ),
+                if (player.ehCapitao)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.tertiary,
+                        shape: BoxShape.circle,
                       ),
+                      child: Icon(
+                        Icons.star_outlined,
+                        color: Theme.of(context).colorScheme.onTertiary,
+                        size: size / 4,
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  left: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: _getPositionColor(player.position),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      _getPositionShortLabel(player.position),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: size / 5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            if (player.ehCapitao)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.tertiary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.star_outlined,
-                    color: Theme.of(context).colorScheme.onTertiary,
-                    size: size / 4,
-                  ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            player.nome,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: size / 4,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withAlpha(100),
+                  offset: const Offset(1, 1),
+                  blurRadius: 2,
                 ),
-              ),
-            Positioned(
-              left: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(
-                  color: _getPositionColor(player.position),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  _getPositionShortLabel(player.position),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: size / 5,
-                  ),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
