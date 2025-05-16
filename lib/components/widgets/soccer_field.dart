@@ -22,6 +22,7 @@ class _SoccerFieldState extends State<SoccerField> {
   List<Player> _defenders = [];
   List<Player> _midfielders = [];
   List<Player> _forwards = [];
+  bool isFreeEditMode = false;
 
   @override
   void initState() {
@@ -101,11 +102,34 @@ class _SoccerFieldState extends State<SoccerField> {
               painter: FieldPainter(),
             ),
 
-            // Position the players
-            ..._positionGoalkeepers(fieldWidth, fieldHeight),
-            ..._positionDefenders(fieldWidth, fieldHeight),
-            ..._positionMidfielders(fieldWidth, fieldHeight),
-            ..._positionForwards(fieldWidth, fieldHeight),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: FloatingActionButton(
+                mini: true,
+                onPressed: () {
+                  setState(() {
+                    if (!isFreeEditMode) {
+                      // Ao ativar o modo livre, salve as posições atuais dos jogadores
+                      _initializeFreePositions(fieldWidth, fieldHeight);
+                    }
+                    isFreeEditMode = !isFreeEditMode;
+                  });
+                },
+                child: Icon(isFreeEditMode ? Icons.lock_open : Icons.lock),
+                tooltip:
+                    isFreeEditMode
+                        ? 'Bloquear edição livre'
+                        : 'Liberar edição livre',
+              ),
+            ),
+            if (!isFreeEditMode)
+              ..._positionGoalkeepers(fieldWidth, fieldHeight),
+            if (!isFreeEditMode) ..._positionDefenders(fieldWidth, fieldHeight),
+            if (!isFreeEditMode)
+              ..._positionMidfielders(fieldWidth, fieldHeight),
+            if (!isFreeEditMode) ..._positionForwards(fieldWidth, fieldHeight),
+            if (isFreeEditMode) ..._buildFreePlayers(fieldWidth, fieldHeight),
           ],
         );
       },
@@ -200,11 +224,17 @@ class _SoccerFieldState extends State<SoccerField> {
     return positioned;
   }
 
+  // Altere o método _buildDraggablePlayer para:
   Widget _buildDraggablePlayer(Player player, String position) {
+    if (isFreeEditMode) {
+      // No modo livre, não usa DragTarget, apenas Draggable
+      return Container(); // Não desenha nada nas posições fixas
+    }
     return DragTarget<Player>(
       onWillAccept: (incomingPlayer) {
-        // Allow dropping only if player is from the same position
-        return incomingPlayer != null && incomingPlayer.position == position;
+        // Permite apenas troca entre posições iguais
+        return incomingPlayer != null &&
+            incomingPlayer.position == player.position;
       },
       onAccept: (incomingPlayer) {
         widget.onPlayersSwapped(player, incomingPlayer);
@@ -219,6 +249,67 @@ class _SoccerFieldState extends State<SoccerField> {
         );
       },
     );
+  }
+
+  // Inicializa as posições livres com as posições fixas dos jogadores
+  void _initializeFreePositions(double width, double height) {
+    _freePositions.clear();
+    // Goleiros
+    final gkY = height * 0.85;
+    final gkSpacing = width / (_goalkeepers.length + 1);
+    for (int i = 0; i < _goalkeepers.length; i++) {
+      _freePositions[_goalkeepers[i].id] = Offset(gkSpacing * (i + 1), gkY);
+    }
+    // Defensores
+    final defY = height * 0.65;
+    final defSpacing = width / (_defenders.length + 1);
+    for (int i = 0; i < _defenders.length; i++) {
+      _freePositions[_defenders[i].id] = Offset(defSpacing * (i + 1), defY);
+    }
+    // Meias
+    final midY = height * 0.40;
+    final midSpacing = width / (_midfielders.length + 1);
+    for (int i = 0; i < _midfielders.length; i++) {
+      _freePositions[_midfielders[i].id] = Offset(midSpacing * (i + 1), midY);
+    }
+    // Atacantes
+    final fwdY = height * 0.15;
+    final fwdSpacing = width / (_forwards.length + 1);
+    for (int i = 0; i < _forwards.length; i++) {
+      _freePositions[_forwards[i].id] = Offset(fwdSpacing * (i + 1), fwdY);
+    }
+  }
+
+  // Adicione um mapa para armazenar as posições livres dos jogadores
+  Map<int, Offset> _freePositions = {};
+
+  // Método para construir jogadores em posições livres
+  List<Widget> _buildFreePlayers(double width, double height) {
+    return widget.players.map((player) {
+      final pos = _freePositions[player.id] ?? Offset(width / 2, height / 2);
+      return Positioned(
+        left: pos.dx - 30,
+        top: pos.dy - 30,
+        child: Draggable<Player>(
+          data: player,
+          feedback: _buildPlayerAvatar(player, 60, isHighlighted: true),
+          childWhenDragging: _buildPlayerAvatar(player, 60, opacity: 0.3),
+          child: _buildPlayerAvatar(player, 60),
+          onDragEnd: (details) {
+            setState(() {
+              // Use o contexto do campo para calcular a posição relativa
+              final RenderBox? box = context.findRenderObject() as RenderBox?;
+              if (box != null) {
+                final Offset localOffset = box.globalToLocal(
+                  details.offset + Offset(30, 30),
+                );
+                _freePositions[player.id] = localOffset;
+              }
+            });
+          },
+        ),
+      );
+    }).toList();
   }
 
   Widget _buildPlayerAvatar(

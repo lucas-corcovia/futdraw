@@ -33,7 +33,6 @@ class TeamGenerator {
     required List<Player> players,
     required int numberOfTeams,
     required Group? group,
-    bool isOnlySociety = true, // Flag para ativar o modo "society"
   }) {
     print(players);
     print(numberOfTeams);
@@ -42,47 +41,37 @@ class TeamGenerator {
       return [];
     }
 
-    // Separar jogadores por posição
+    // Embaralhe a lista de jogadores para garantir aleatoriedade
+    players = List<Player>.from(players)..shuffle();
+
+    // Separate goalkeepers and field players
     final goalkeepers =
-        players.where((p) => p.position == PlayerPosition.goalkeeper).toList();
-    final defenders =
-        players.where((p) => p.position == PlayerPosition.defender).toList();
-    final midfielders =
-        players.where((p) => p.position == PlayerPosition.midfielder).toList();
-    final forwards =
-        players.where((p) => p.position == PlayerPosition.striker).toList();
+        players.where((p) => p.isGoalkeeper).toList()..shuffle();
+    final fieldPlayers =
+        players.where((p) => !p.isGoalkeeper).toList()..shuffle();
 
-    // Adicionar aleatoriedade embaralhando as listas
-    goalkeepers.shuffle();
-    defenders.shuffle();
-    midfielders.shuffle();
-    forwards.shuffle();
+    // Sort by skill rating (descending) para balanceamento, mas após shuffle para garantir aleatoriedade
+    goalkeepers.sort((a, b) => b.nota.compareTo(a.nota));
+    fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
 
-    // Inicializar os times
+    // Initialize teams
     List<Team> teams = List.generate(
       numberOfTeams,
       (index) => Team(name: 'Time ${index + 1}', players: []),
     );
 
-    if (isOnlySociety) {
-      // Distribuir jogadores de forma balanceada por posição
-      _distributePlayersByPosition(goalkeepers, teams, 1); // 1 goleiro por time
-      _distributePlayersByPosition(
-        defenders,
-        teams,
-        2,
-      ); // 2 defensores por time
-      _distributePlayersByPosition(midfielders, teams, 3); // 3 meias por time
-      _distributePlayersByPosition(forwards, teams, 1); // 1 atacante por time
-    } else {
-      // Distribuir jogadores de forma balanceada sem considerar posições
-      _distributePlayersEvenly(goalkeepers, teams);
-      _distributePlayersEvenly(defenders, teams);
-      _distributePlayersEvenly(midfielders, teams);
-      _distributePlayersEvenly(forwards, teams);
-    }
+    // Distribute goalkeepers first
+    _distributePlayersEvenly(goalkeepers, teams);
 
-    // Ajustar balanceamento final
+    // Then distribute captains
+    final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
+    fieldPlayers.removeWhere((p) => p.ehCapitao);
+    _distributePlayersEvenly(captains, teams);
+
+    // Distribute remaining field players using snake draft to ensure balance
+    _distributePlayersSnakeDraft(fieldPlayers, teams);
+
+    // Final balance check and adjustment
     _balanceTeams(teams);
 
     return teams;
