@@ -12,6 +12,8 @@ class DrawerComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var isProduction = bool.fromEnvironment('dart.vm.product');
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -28,15 +30,36 @@ class DrawerComponent extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            leading: Icon(Icons.reset_tv),
-            title: Text('Resetar'),
-            onTap: () async {
-              await DBHelper.dropDataBase();
-              await DBHelper.createDataBase();
-              context.read<GroupController>().getAll();
-            },
-          ),
+          if (!isProduction)
+            ListTile(
+              leading: Icon(Icons.reset_tv),
+              title: Text('Resetar'),
+              onTap: () async {
+                await DBHelper.dropDataBase();
+                await DBHelper.createDataBase();
+                context.read<GroupController>().getAll();
+              },
+            ),
+          if (!isProduction)
+            ListTile(
+              leading: Icon(Icons.upload_file),
+              title: Text('Exportar Banco de dados'),
+              onTap: () {
+                DBHelper.exportDatabase();
+              },
+            ),
+          if (!isProduction)
+            ListTile(
+              leading: Icon(Icons.download),
+              title: Text('Importar Banco de dados'),
+              onTap: () async {
+                var importado = await DBHelper.importDatabase();
+
+                if (!importado) return;
+
+                context.read<GroupController>().getAll();
+              },
+            ),
           ListTile(
             leading: Icon(Icons.sports_soccer),
             title: Row(

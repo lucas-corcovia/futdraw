@@ -2,6 +2,7 @@
 
     <!-- PERMISSÕES AQUI -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -12,6 +13,7 @@
         android:label="FutDraw"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

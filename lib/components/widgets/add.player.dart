@@ -60,60 +60,6 @@ class _AddPlayerState extends State<AddPlayer> {
     _isCaptain = false;
   }
 
-  /*   Future<void> _savePlayer() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    _formKey.currentState!.save();
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      if (_isEditing) {
-        final updatedPlayer = Player(
-          id: widget.player!.id,
-          name: _name,
-          skillRating: _skillRating,
-          position: _position,
-          isCaptain: _isCaptain,
-          photoPath: _photoPath,
-          group: _group,
-          isSubstitute: widget.player!.isSubstitute,
-          replacedPlayerId: widget.player!.replacedPlayerId,
-        );
-
-        await _playerService.updatePlayer(updatedPlayer);
-      } else {
-        final newPlayer = Player(
-          name: _name,
-          skillRating: _skillRating,
-          position: _position,
-          isCaptain: _isCaptain,
-          photoPath: _photoPath,
-          group: _group,
-        );
-
-        await _playerService.addPlayer(newPlayer);
-      }
-
-      // Go back to the home screen after saving
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao salvar jogador: $e')));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  } */
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -302,9 +248,9 @@ class _AddPlayerState extends State<AddPlayer> {
                     ),
                   ),
                   child: Slider(
-                    min: 1.0,
+                    min: 0.0,
                     max: 10.0,
-                    divisions: 18,
+                    divisions: 100,
                     value: _skillRating,
                     onChanged: (value) {
                       setState(() {
@@ -342,27 +288,9 @@ class _AddPlayerState extends State<AddPlayer> {
               ),
             ),
             const SizedBox(height: 32),
-            // Save Button
+
             ElevatedButton(
-              onPressed: () async {
-                if (!_formKey.currentState!.validate()) return;
-                _formKey.currentState!.save();
-                var photoUrl = await getPhotoPath();
-
-                if (!_isEditing) {
-                  await context.read<PlayerController>().add(
-                    context,
-                    _buildPlayer(photoUrl),
-                  );
-                } else {
-                  await context.read<PlayerController>().update(
-                    context,
-                    _buildPlayer(photoUrl),
-                  );
-                }
-
-                Navigator.pop(context);
-              },
+              onPressed: _savePlayer,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -379,32 +307,44 @@ class _AddPlayerState extends State<AddPlayer> {
     );
   }
 
-  Player _buildPlayer(String? photoPath) {
+  _savePlayer() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    if (!_isEditing) {
+      await context.read<PlayerController>().add(context, await _buildPlayer());
+    } else {
+      await context.read<PlayerController>().update(
+        context,
+        await _buildPlayer(),
+      );
+    }
+
+    Navigator.pop(context);
+  }
+
+  Future<Player> _buildPlayer() async {
+    var urlFoto = await getPhotoPath();
     return Player(
       id: _id,
       grupoId: _groupId,
       nome: _name,
       nota: _skillRating,
       ehCapitao: _isCaptain,
-      urlFoto: photoPath,
+      urlFoto: urlFoto,
       position: _position,
     );
   }
 
   Future<String?> getPhotoPath() async {
-    var result = await _imgController.uploadAndSaveImage(context, _imageFile);
-    return result;
+    if (_imageFile == null) return widget.player?.urlFoto;
+
+    return await _imgController.uploadAndSaveImage(context, _imageFile);
   }
 
   ImageProvider? getProfilePicture() {
-    if (!_isEditing && _imageFile != null) {
-      return FileImage(_imageFile!);
-    } else if (_isEditing && _imageFile != null) {
-      return FileImage(_imageFile!);
-    } else if (_isEditing && _photoPath != null) {
-      return NetworkImage(_photoPath!);
-    }
+    if (_imageFile != null) return FileImage(_imageFile!);
 
-    return null;
+    return _photoPath == null ? null : NetworkImage(_photoPath!);
   }
 }

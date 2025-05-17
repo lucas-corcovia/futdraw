@@ -192,7 +192,7 @@ class PlayerCard extends StatelessWidget {
                           child: _buildDetailItem(
                             context,
                             Icons.star,
-                            player.nota.toString(),
+                            player.nota.toStringAsFixed(1),
                             'Habilidade',
                             color: _getSkillColor(context, player.nota),
                           ),

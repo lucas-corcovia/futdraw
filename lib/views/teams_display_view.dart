@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -196,14 +195,14 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   Future<void> _shareImageMobile(Uint8List bytes) async {
     try {
-      final fileName = FileUtils.generateUniqueFileName('times', 'png');
+      final teamName = _teams[_tabController.index].name;
+      final fileName = FileUtils.generateUniqueFileName(teamName, 'png');
 
       await FileUtils.shareFileMobile(
         bytes,
         fileName,
         'image/png',
-        text: 'Times gerados pelo app Sorteio de Times',
-        subject: 'Times Equilibrados',
+        text: teamName,
       );
     } catch (e) {
       if (context.mounted) {

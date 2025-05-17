@@ -1,4 +1,3 @@
-import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 
 import '../models/player.dart';
@@ -34,9 +33,6 @@ class TeamGenerator {
     required int numberOfTeams,
     required Group? group,
   }) {
-    print(players);
-    print(numberOfTeams);
-    print(group);
     if (numberOfTeams <= 0 || players.isEmpty) {
       return [];
     }
@@ -60,18 +56,14 @@ class TeamGenerator {
       (index) => Team(name: 'Time ${index + 1}', players: []),
     );
 
-    // Distribute goalkeepers first
     _distributePlayersEvenly(goalkeepers, teams);
 
-    // Then distribute captains
     final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
     fieldPlayers.removeWhere((p) => p.ehCapitao);
     _distributePlayersEvenly(captains, teams);
 
-    // Distribute remaining field players using snake draft to ensure balance
     _distributePlayersSnakeDraft(fieldPlayers, teams);
 
-    // Final balance check and adjustment
     _balanceTeams(teams);
 
     return teams;

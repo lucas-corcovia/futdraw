@@ -36,8 +36,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       _isLoading = true;
     });
 
-    // Filter players by selected group
-    // TODO
     var players = await context.read<PlayerController>().getAllByGroupId(
       context,
       widget.preselectedGroup!.id,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
@@ -9,7 +8,7 @@ import 'package:provider/provider.dart' as statemanagement;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  //await ConfigurationsController().initialize();
+  await DBHelper.initializeDataBase();
 
   runApp(
     statemanagement.MultiProvider(
@@ -44,6 +43,4 @@ class FutDrawApp extends StatelessWidget {
       home: const HomeView(),
     );
   }
-
-  Future<void> _initializeConfigurations() async {}
 }

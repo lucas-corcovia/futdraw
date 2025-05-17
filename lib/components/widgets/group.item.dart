@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/components/widgets/player.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
@@ -71,17 +72,6 @@ class GroupItem extends StatelessWidget {
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: Icon(
-                            Icons.sports_soccer,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          title: const Text('Gerar Times'),
-                        ),
-                        onTap: () {},
-                      ),
-                      PopupMenuItem(
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(
                             Icons.person_add,
                             color: Theme.of(context).colorScheme.secondary,
                           ),
@@ -91,7 +81,28 @@ class GroupItem extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AddPlayer(group: group),
+                              builder: (_) => AddPlayer(group: group),
+                            ),
+                          ).then(
+                            (_) async =>
+                                await context.read<GroupController>().getAll(),
+                          );
+                        },
+                      ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.edit,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: const Text('Editar Grupo'),
+                        ),
+                        onTap: () async {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddGroup(group: group),
                             ),
                           ).then(
                             (_) async =>
@@ -113,6 +124,17 @@ class GroupItem extends StatelessWidget {
                             group.id,
                           );
                         },
+                      ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.sports_soccer,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: const Text('Gerar Times'),
+                        ),
+                        onTap: () {},
                       ),
                     ],
               ),

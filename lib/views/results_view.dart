@@ -177,8 +177,6 @@ class ResultsView extends StatelessWidget {
     final file = File('${dir.path}/times_gerados.png');
     await file.writeAsBytes(pngBytes);
 
-    print('Imagem criada em: ${file.path}');
-
     await OpenFile.open(file.path);
   }
 }
