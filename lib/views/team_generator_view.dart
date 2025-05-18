@@ -41,6 +41,9 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       widget.preselectedGroup!.id,
     );
 
+    // Filtra apenas titulares para o sorteio
+    players = players.where((p) => !p.reserva).toList();
+
     // Check if we have enough players
     if (players.length < _numberOfTeams) {
       setState(() {
