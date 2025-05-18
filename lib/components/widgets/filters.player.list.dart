@@ -6,7 +6,8 @@ import 'package:futdraw/utils/extensions.dart';
 import 'package:provider/provider.dart';
 
 class FiltersPlayerList extends StatelessWidget {
-  const FiltersPlayerList({super.key});
+  final int tabIndex;
+  const FiltersPlayerList({super.key, required this.tabIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,6 @@ class FiltersPlayerList extends StatelessWidget {
                   vertical: 0,
                 ),
               ),
-
               style: TextStyle(
                 fontSize: 15,
                 color: Theme.of(context).colorScheme.onPrimary,
@@ -64,12 +64,17 @@ class FiltersPlayerList extends StatelessWidget {
             SizedBox(height: 10),
             Consumer<PlayerController>(
               builder: (context, controller, child) {
+                // O filtro correto deve ser feito sobre todos os jogadores, não só os filtrados
+                final allPlayers =
+                    controller.players
+                        .where((p) => tabIndex == 0 ? !p.reserva : p.reserva)
+                        .toList();
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
                       ChipItem(
-                        name: "Todos (${controller.filteredPlayers.length})",
+                        name: "Todos (${allPlayers.length})",
                         onSelected: controller.toggleAll,
                         isSelected:
                             controller.showedPositions.length ==
@@ -77,7 +82,7 @@ class FiltersPlayerList extends StatelessWidget {
                       ),
                       ...PlayerPosition.values.toList().map((option) {
                         var itemCount =
-                            controller.filteredPlayers
+                            allPlayers
                                 .where((player) => player.position == option)
                                 .length;
                         var selected = controller.showedPositions.contains(

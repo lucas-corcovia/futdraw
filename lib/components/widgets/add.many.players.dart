@@ -17,6 +17,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
   final TextEditingController namesController = TextEditingController();
   PlayerPosition _position = PlayerPosition.midfielder;
   double _skillRating = 5.0;
+  bool _addAsReserve = false;
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +150,27 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Reserva'),
+                  subtitle: const Text(
+                    'Estes jogadores ficarão no banco de reservas',
+                  ),
+                  activeColor: Theme.of(context).colorScheme.tertiary,
+                  value: _addAsReserve,
+                  onChanged: (value) {
+                    setState(() {
+                      _addAsReserve = value;
+                    });
+                  },
+                  secondary: Icon(
+                    Icons.chair_rounded,
+                    color:
+                        _addAsReserve
+                            ? Theme.of(context).colorScheme.tertiary
+                            : Theme.of(context).colorScheme.outline,
+                  ),
+                ),
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _saveManyPlayers,
@@ -191,7 +213,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                 nome: name,
                 nota: _skillRating,
                 ehCapitao: false,
-                reserva: false,
+                reserva: _addAsReserve,
                 urlFoto: null,
                 position: _position,
               ),

@@ -55,4 +55,26 @@ class Player {
   bool filterByName(String searched) {
     return nome.toLowerCase().startsWith(searched.toLowerCase());
   }
+
+  Player copyWith({
+    int? id,
+    int? grupoId,
+    String? nome,
+    double? nota,
+    String? urlFoto,
+    bool? ehCapitao,
+    bool? reserva,
+    PlayerPosition? position,
+  }) {
+    return Player(
+      id: id ?? this.id,
+      grupoId: grupoId ?? this.grupoId,
+      nome: nome ?? this.nome,
+      nota: nota ?? this.nota,
+      urlFoto: urlFoto ?? this.urlFoto,
+      ehCapitao: ehCapitao ?? this.ehCapitao,
+      reserva: reserva ?? this.reserva,
+      position: position ?? this.position,
+    );
+  }
 }

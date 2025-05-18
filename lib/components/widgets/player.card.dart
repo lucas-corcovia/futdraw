@@ -6,19 +6,32 @@ class PlayerCard extends StatelessWidget {
   final Player player;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final void Function(Player)? onSwap;
+  final bool isSelected;
 
   const PlayerCard({
     super.key,
     required this.player,
     required this.onEdit,
     required this.onDelete,
+    this.onSwap,
+    this.isSelected = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: isSelected ? 6 : 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side:
+            isSelected
+                ? BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2.5,
+                )
+                : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onEdit,
         borderRadius: BorderRadius.circular(16),
@@ -30,14 +43,24 @@ class PlayerCard extends StatelessWidget {
                     ? LinearGradient(
                       colors: [
                         Theme.of(context).colorScheme.surface,
-                        Theme.of(
-                          context,
-                        ).colorScheme.tertiary.withValues(alpha: 0.1),
+                        Theme.of(context).colorScheme.tertiary.withOpacity(0.1),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
                     : null,
+            boxShadow:
+                isSelected
+                    ? [
+                      BoxShadow(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                    : [],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +148,7 @@ class PlayerCard extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.cached),
                       tooltip: 'Substituir Jogador',
-                      onPressed: () {},
+                      onPressed: onSwap != null ? () => onSwap!(player) : null,
                     ),
                     PopupMenuButton<String>(
                       icon: Icon(
