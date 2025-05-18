@@ -23,4 +23,9 @@ class GroupController extends ChangeNotifier {
     await repository.delete(id);
     await getAll();
   }
+
+  Future<void> update(Group group) async {
+    await repository.update(group);
+    await getAll();
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
+import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/models/group.dart';
@@ -82,6 +83,27 @@ class GroupItem extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (_) => AddPlayer(group: group),
+                            ),
+                          ).then(
+                            (_) async =>
+                                await context.read<GroupController>().getAll(),
+                          );
+                        },
+                      ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.person_add,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                          title: const Text('Adicionar Vários Jogadores'),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AddManyPlayers(groupId: group.id),
                             ),
                           ).then(
                             (_) async =>

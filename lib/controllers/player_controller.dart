@@ -34,6 +34,19 @@ class PlayerController extends ChangeNotifier {
     }
   }
 
+  Future<void> addMany(
+    BuildContext context,
+    List<Player> players,
+    int groupId,
+  ) async {
+    try {
+      await repository.addMany(players);
+      await getAllByGroupId(context, groupId);
+    } catch (e) {
+      Toast.show(context, 'Erro ao adicionar jogadores: $e', true);
+    }
+  }
+
   Future<List<Player>> getAll(BuildContext context) async {
     try {
       var result = await repository.getAll();

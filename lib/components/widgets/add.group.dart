@@ -12,26 +12,22 @@ class AddGroup extends StatefulWidget {
 }
 
 class _AddGroupState extends State<AddGroup> {
-  bool _isEditing = false;
-  String _name = '';
+  late bool _isEditing;
+  late String _name;
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _isEditing = widget.group != null;
-    if (_isEditing) setValues();
-  }
-
-  void setValues() {
-    _name = widget.group!.nome;
+    _name = widget.group?.nome ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${_isEditing ? 'Editar' : 'Adicionar'} Grupo"),
+        title: Text(_isEditing ? 'Editar Grupo' : 'Adicionar Grupo'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
@@ -39,8 +35,9 @@ class _AddGroupState extends State<AddGroup> {
         child: Form(
           key: _formKey,
           child: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
                   initialValue: _name,
@@ -49,41 +46,31 @@ class _AddGroupState extends State<AddGroup> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    prefixIcon: const Icon(Icons.person),
+                    prefixIcon: const Icon(Icons.group),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
+                    if (value == null || value.trim().isEmpty) {
                       return 'Por favor, informe o nome do grupo';
                     }
                     return null;
                   },
                   onSaved: (value) {
-                    _name = value!;
+                    _name = value!.trim();
                   },
                 ),
-                const SizedBox(height: 15),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _saveGroup,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'Salvar',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: _saveGroup,
+                  icon: const Icon(Icons.save),
+                  label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -93,18 +80,17 @@ class _AddGroupState extends State<AddGroup> {
     );
   }
 
-  void _saveGroup() async {
+  Future<void> _saveGroup() async {
     if (!_formKey.currentState!.validate()) return;
-
     _formKey.currentState!.save();
-
-    if (_isEditing) {
-      // TODO Salvar edição
-      await context.read<GroupController>().add(Group.add(_name));
+    final groupController = context.read<GroupController>();
+    if (_isEditing && widget.group != null) {
+      final updatedGroup = Group(id: widget.group!.id, nome: _name);
+      await groupController.update(updatedGroup);
     } else {
-      await context.read<GroupController>().add(Group.add(_name));
+      // Adiciona novo grupo
+      await groupController.add(Group.add(_name));
     }
-
     Navigator.pop(context);
   }
 }

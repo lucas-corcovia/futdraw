@@ -17,6 +17,23 @@ class PlayerRepository {
     });
   }
 
+  Future<void> addMany(List<Player> players) async {
+    final db = await DBHelper.getDatabase();
+    final batch = db.batch();
+    for (final player in players) {
+      batch.insert(table, {
+        'nome': player.nome,
+        'nota': player.nota,
+        'capitao': player.ehCapitao ? 1 : 0,
+        'reserva': player.reserva ? 1 : 0,
+        'urlFoto': player.urlFoto,
+        'grupoId': player.grupoId,
+        'posicao': player.position.index,
+      });
+    }
+    await batch.commit(noResult: true);
+  }
+
   Future<List<Player>> getAll() async {
     final db = await DBHelper.getDatabase();
     final result = await db.query(table);

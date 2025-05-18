@@ -35,7 +35,6 @@ class Player {
   }
 
   factory Player.fromMap(Map<String, dynamic> map) {
-    print(map);
     return Player(
       id: map['id'],
       grupoId: map['grupoId'],
