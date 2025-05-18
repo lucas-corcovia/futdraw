@@ -56,8 +56,7 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       return;
     }
 
-    // Generate teams
-    List<Team> teams = TeamGenerator.generateBalancedTeams(
+    var teams = TeamGenerator.generateBalancedTeams(
       players: players,
       numberOfTeams: _numberOfTeams,
       group: _selectedGroup,

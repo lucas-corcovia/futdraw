@@ -12,7 +12,9 @@ class Team {
     : averageSkill =
           players.isEmpty
               ? 0.0
-              : players.fold(0.0, (sum, player) => sum + player.nota) /
+              : players
+                      .where((p) => !p.isGoalkeeper)
+                      .fold(0.0, (sum, player) => sum + player.nota) /
                   players.length;
 
   int get goalkeepersCount => players.where((p) => p.isGoalkeeper).length;
@@ -36,63 +38,48 @@ class TeamGenerator {
     if (numberOfTeams <= 0 || players.isEmpty) {
       return [];
     }
-
-    // Embaralhe a lista de jogadores para garantir aleatoriedade
-    players = List<Player>.from(players)..shuffle();
-
-    // Separate goalkeepers and field players
-    final goalkeepers =
-        players.where((p) => p.isGoalkeeper).toList()..shuffle();
     final fieldPlayers =
         players.where((p) => !p.isGoalkeeper).toList()..shuffle();
 
-    // Sort by skill rating (descending) para balanceamento, mas após shuffle para garantir aleatoriedade
-    goalkeepers.sort((a, b) => b.nota.compareTo(a.nota));
-    fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
+    final goalkeepers =
+        players.where((p) => p.isGoalkeeper).toList()..shuffle();
 
-    // Initialize teams
+    final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
+
+    fieldPlayers.removeWhere((p) => p.ehCapitao);
+
+    //fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
+
     List<Team> teams = List.generate(
       numberOfTeams,
       (index) => Team(name: 'Time ${index + 1}', players: []),
     );
 
-    _distributePlayersEvenly(goalkeepers, teams);
+    _distributePlayersShuffleEvenly(fieldPlayers, teams);
 
-    final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
-    fieldPlayers.removeWhere((p) => p.ehCapitao);
     _distributePlayersEvenly(captains, teams);
-
-    _distributePlayersSnakeDraft(fieldPlayers, teams);
 
     _balanceTeams(teams);
 
+    _distributePlayersEvenly(goalkeepers, teams);
+
+    teams.sort((a, b) => a.name.compareTo(b.name));
     return teams;
   }
 
-  // Método para distribuir jogadores por posição
-  static void _distributePlayersByPosition(
+  static void _distributePlayersShuffleEvenly(
     List<Player> players,
     List<Team> teams,
-    int playersPerTeam,
   ) {
     if (players.isEmpty || teams.isEmpty) return;
 
-    int teamIndex = 0;
-    for (final player in players) {
-      teams[teamIndex] = teams[teamIndex].copyWith(
-        players: [...teams[teamIndex].players, player],
+    players.shuffle();
+    int playersPerTeam = (players.length / teams.length).ceil();
+
+    for (int i = 0; i < teams.length; i++) {
+      teams[i] = teams[i].copyWith(
+        players: players.sublist(i * playersPerTeam, (i + 1) * playersPerTeam),
       );
-
-      // Avançar para o próximo time
-      teamIndex = (teamIndex + 1) % teams.length;
-
-      // Garantir que cada time receba apenas o número necessário de jogadores por posição
-      if (teams[teamIndex].players
-              .where((p) => p.position == player.position)
-              .length >=
-          playersPerTeam) {
-        teamIndex = (teamIndex + 1) % teams.length;
-      }
     }
   }
 
@@ -169,7 +156,7 @@ class TeamGenerator {
       final strongestTeam = teams.first;
       final weakestTeam = teams.last;
 
-      if (strongestTeam.averageSkill - weakestTeam.averageSkill < 0.2) {
+      if (strongestTeam.averageSkill - weakestTeam.averageSkill < 1.0) {
         // Teams are already fairly balanced
         break;
       }
@@ -196,6 +183,7 @@ class TeamGenerator {
             name: strongestTeam.name,
             players: strongTeamPlayers,
           );
+
           final newWeakTeam = Team(
             name: weakestTeam.name,
             players: weakTeamPlayers,
