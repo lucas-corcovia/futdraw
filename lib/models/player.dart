@@ -47,4 +47,8 @@ class Player {
   }
 
   bool get isGoalkeeper => position == PlayerPosition.goalkeeper;
+
+  bool filterByName(String searched) {
+    return nome.toLowerCase().startsWith(searched.toLowerCase());
+  }
 }

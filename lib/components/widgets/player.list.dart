@@ -98,7 +98,107 @@ class _PlayerListScreenState extends State<PlayerListScreen>
         child:
             _isLoading
                 ? Center(child: CircularProgressIndicator())
-                : PlayerList(group: widget.group),
+                : Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 12,
+                          top: 10,
+                          bottom: 10,
+                        ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              decoration: InputDecoration(
+                                labelText: 'Buscar jogador',
+                                labelStyle: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    width: 2,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    width: 2,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.onPrimary,
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 0,
+                                ),
+                              ),
+
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                              onChanged: (value) {
+                                context.read<PlayerController>().filter(value);
+                              },
+                            ),
+                            SizedBox(height: 10),
+                            Consumer<PlayerController>(
+                              builder: (context, controller, child) {
+                                return SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      ChipItem(
+                                        name: "Todos",
+                                        onSelected: (selected) {
+                                          controller.toggleAll(selected);
+                                        },
+                                        isSelected:
+                                            controller.showedPositions.length ==
+                                            [...PlayerPosition.values].length,
+                                      ),
+                                      ...[...PlayerPosition.values].map((
+                                        option,
+                                      ) {
+                                        return ChipItem(
+                                          isSelected: controller.showedPositions
+                                              .contains(option),
+                                          name: _getPositionLabel(option),
+                                          onSelected: (selected) {
+                                            controller.toggleFilter(
+                                              selected,
+                                              option,
+                                            );
+                                          },
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(child: PlayerList(group: widget.group)),
+                  ],
+                ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -118,6 +218,61 @@ class _PlayerListScreenState extends State<PlayerListScreen>
   }
 
   Future<void> _refreshPlayers() async {}
+
+  String _getPositionLabel(PlayerPosition position) {
+    switch (position) {
+      case PlayerPosition.goalkeeper:
+        return 'Goleiro';
+      case PlayerPosition.defender:
+        return 'Defesa';
+      case PlayerPosition.midfielder:
+        return 'Meio';
+      case PlayerPosition.striker:
+        return 'Ataque';
+    }
+  }
+}
+
+class ChipItem extends StatelessWidget {
+  const ChipItem({
+    super.key,
+    required this.isSelected,
+    required this.name,
+    required this.onSelected,
+  });
+
+  final void Function(bool) onSelected;
+  final String name;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: ChoiceChip(
+        label: Text(
+          name,
+          style: TextStyle(
+            color:
+                isSelected
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        selected: isSelected,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        selectedColor: Theme.of(context).colorScheme.onPrimary,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.onPrimary,
+            width: 1,
+          ),
+        ),
+        onSelected: onSelected,
+      ),
+    );
+  }
 }
 
 class PlayerList extends StatelessWidget {
@@ -128,11 +283,13 @@ class PlayerList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<PlayerController>(
       builder: (context, controller, child) {
-        if (controller.players.isEmpty) {
+        if (controller.filteredPlayers.isEmpty) {
           return Center(child: ListPlayersEmpty());
         }
 
-        controller.players.sort((p1, p2) {
+        var playersFiltered = controller.filteredPlayers;
+
+        playersFiltered.sort((p1, p2) {
           if (p1.position == PlayerPosition.goalkeeper &&
               p2.position == PlayerPosition.goalkeeper) {
             return 0; // p1 vem antes de p2
@@ -148,9 +305,9 @@ class PlayerList extends StatelessWidget {
           onRefresh: () => _refreshPlayers(context),
           child: ListView.builder(
             padding: const EdgeInsets.all(8.0),
-            itemCount: controller.players.length,
+            itemCount: playersFiltered.length,
             itemBuilder: (context, index) {
-              final player = controller.players[index];
+              final player = playersFiltered[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: PlayerCard(

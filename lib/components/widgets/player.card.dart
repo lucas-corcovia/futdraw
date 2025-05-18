@@ -182,7 +182,7 @@ class PlayerCard extends StatelessWidget {
                         Expanded(
                           child: _buildDetailItem(
                             context,
-                            Icons.sports_soccer,
+                            _getPositionIcon(player.position),
                             _getPositionLabel(player.position),
                             'Posição',
                           ),
@@ -195,6 +195,7 @@ class PlayerCard extends StatelessWidget {
                             player.nota.toStringAsFixed(1),
                             'Habilidade',
                             color: _getSkillColor(context, player.nota),
+                            iconColor: _getSkillColor(context, player.nota),
                           ),
                         ),
                       ],
@@ -215,6 +216,7 @@ class PlayerCard extends StatelessWidget {
     String value,
     String label, {
     Color? color,
+    Color? iconColor,
   }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -227,11 +229,7 @@ class PlayerCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: color ?? Theme.of(context).colorScheme.primary,
-            size: 22,
-          ),
+          Icon(icon, color: iconColor ?? Colors.white, size: 22),
           const SizedBox(height: 4),
           Text(
             value,
@@ -253,14 +251,27 @@ class PlayerCard extends StatelessWidget {
   }
 
   Color _getSkillColor(BuildContext context, double skill) {
-    if (skill >= 8.0) {
-      return Colors.greenAccent;
-    } else if (skill >= 6.0) {
+    if (skill >= 8.5) {
+      return Colors.yellowAccent;
+    } else if (skill >= 6.5) {
       return Colors.blueAccent;
     } else if (skill >= 4.0) {
-      return Colors.yellowAccent;
+      return Colors.greenAccent;
     } else {
       return Colors.redAccent;
+    }
+  }
+
+  Color _getPositionColor(PlayerPosition position) {
+    switch (position) {
+      case PlayerPosition.goalkeeper:
+        return Colors.yellowAccent;
+      case PlayerPosition.defender:
+        return Colors.blueAccent;
+      case PlayerPosition.midfielder:
+        return Colors.greenAccent;
+      case PlayerPosition.striker:
+        return Colors.redAccent;
     }
   }
 
@@ -274,6 +285,19 @@ class PlayerCard extends StatelessWidget {
         return 'Meio';
       case PlayerPosition.striker:
         return 'Ataque';
+    }
+  }
+
+  IconData _getPositionIcon(PlayerPosition position) {
+    switch (position) {
+      case PlayerPosition.goalkeeper:
+        return Icons.sports_handball;
+      case PlayerPosition.defender:
+        return Icons.shield;
+      case PlayerPosition.midfielder:
+        return Icons.change_circle;
+      case PlayerPosition.striker:
+        return Icons.sports_soccer;
     }
   }
 

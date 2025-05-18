@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/toast.dart';
+import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:futdraw/repositories/player_repository.dart';
 
 class PlayerController extends ChangeNotifier {
   final repository = PlayerRepository();
-
+  String searched = "";
+  List<PlayerPosition> showedPositions = PlayerPosition.values.toList();
   List<Player> players = [];
+
+  List<Player> get filteredPlayers {
+    return players
+        .where(
+          (p) =>
+              (searched == "" || p.filterByName(searched)) &&
+              showedPositions.contains(p.position),
+        )
+        .toList();
+  }
+
+  void filter(String? input) {
+    searched = input ?? "";
+    notifyListeners();
+  }
 
   add(BuildContext context, Player player) async {
     try {
@@ -71,5 +88,33 @@ class PlayerController extends ChangeNotifier {
       Toast.show(context, 'Erro ao obter jogador: $e', true);
       return null;
     }
+  }
+
+  void toggleFilter(bool selected, PlayerPosition option) {
+    final newList = showedPositions.toList();
+
+    if (selected) {
+      if (!newList.contains(option)) {
+        newList.add(option);
+      }
+    } else {
+      newList.remove(option);
+    }
+
+    showedPositions = newList;
+    notifyListeners();
+  }
+
+  void toggleAll(bool selected) {
+    var newList = showedPositions.toList();
+
+    if (selected) {
+      newList = PlayerPosition.values.toList();
+    } else {
+      newList = [];
+    }
+
+    showedPositions = newList;
+    notifyListeners();
   }
 }
