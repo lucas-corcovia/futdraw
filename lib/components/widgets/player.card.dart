@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:futdraw/utils/extensions.dart';
 
 class PlayerCard extends StatelessWidget {
   final Player player;
@@ -118,50 +118,61 @@ class PlayerCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                trailing: PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  onSelected: (String value) {
-                    if (value == 'edit') {
-                      onEdit();
-                    } else if (value == 'delete') {
-                      _showDeleteDialog(context);
-                    }
-                  },
-                  itemBuilder:
-                      (BuildContext context) => <PopupMenuEntry<String>>[
-                        PopupMenuItem<String>(
-                          value: 'edit',
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.edit,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            title: const Text('Editar'),
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                        PopupMenuItem<String>(
-                          value: 'delete',
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.delete,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            title: Text(
-                              'Excluir',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
+                trailing: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.cached),
+                      tooltip: 'Substituir Jogador',
+                      onPressed: () {},
+                    ),
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      onSelected: (String value) {
+                        if (value == 'edit') {
+                          onEdit();
+                        } else if (value == 'delete') {
+                          _showDeleteDialog(context);
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'edit',
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.edit,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                title: const Text('Editar'),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
                               ),
                             ),
-                            contentPadding: EdgeInsets.zero,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        ),
-                      ],
+                            PopupMenuItem<String>(
+                              value: 'delete',
+                              child: ListTile(
+                                leading: Icon(
+                                  Icons.delete,
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                title: Text(
+                                  'Excluir',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                                contentPadding: EdgeInsets.zero,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
+                    ),
+                  ],
                 ),
               ),
 
@@ -182,8 +193,8 @@ class PlayerCard extends StatelessWidget {
                         Expanded(
                           child: _buildDetailItem(
                             context,
-                            _getPositionIcon(player.position),
-                            _getPositionLabel(player.position),
+                            player.position.icon,
+                            player.position.label,
                             'Posição',
                           ),
                         ),
@@ -259,45 +270,6 @@ class PlayerCard extends StatelessWidget {
       return Colors.greenAccent;
     } else {
       return Colors.redAccent;
-    }
-  }
-
-  Color _getPositionColor(PlayerPosition position) {
-    switch (position) {
-      case PlayerPosition.goalkeeper:
-        return Colors.yellowAccent;
-      case PlayerPosition.defender:
-        return Colors.blueAccent;
-      case PlayerPosition.midfielder:
-        return Colors.greenAccent;
-      case PlayerPosition.striker:
-        return Colors.redAccent;
-    }
-  }
-
-  String _getPositionLabel(PlayerPosition position) {
-    switch (position) {
-      case PlayerPosition.goalkeeper:
-        return 'Goleiro';
-      case PlayerPosition.defender:
-        return 'Defesa';
-      case PlayerPosition.midfielder:
-        return 'Meio';
-      case PlayerPosition.striker:
-        return 'Ataque';
-    }
-  }
-
-  IconData _getPositionIcon(PlayerPosition position) {
-    switch (position) {
-      case PlayerPosition.goalkeeper:
-        return Icons.sports_handball;
-      case PlayerPosition.defender:
-        return Icons.shield;
-      case PlayerPosition.midfielder:
-        return Icons.change_circle;
-      case PlayerPosition.striker:
-        return Icons.sports_soccer;
     }
   }
 

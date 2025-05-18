@@ -21,7 +21,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late List<Team> _teams;
-  bool _showField = false;
+  bool _showField = true;
   final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
@@ -80,27 +80,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     });
   }
 
-  void _substitutePlayer(Player player) {
-    // In a real app, you'd show a form to select a substitute player
-    // For this MVP, we'll just show a dialog saying it's substituted
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Jogador Substituto'),
-            content: const Text(
-              'Em uma versão completa, aqui você poderia selecionar um jogador substituto.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-    );
-  }
-
   // Check if the player can be dragged (not a goalkeeper)
   bool _canDragPlayer(Player player) {
     return !player.isGoalkeeper;
@@ -115,9 +94,10 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.primary,
+          indicatorColor: Theme.of(context).colorScheme.onPrimary,
           labelColor: Theme.of(context).colorScheme.onPrimary,
           labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          unselectedLabelColor: Theme.of(context).colorScheme.outline,
           isScrollable: true,
           tabs: _teams.map((team) => Tab(text: team.name)).toList(),
         ),
@@ -572,11 +552,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                   ),
                 ),
               ),
-            IconButton(
-              icon: const Icon(Icons.repeat),
-              tooltip: 'Substituir Jogador',
-              onPressed: () => _substitutePlayer(player),
-            ),
           ],
         ),
       ),

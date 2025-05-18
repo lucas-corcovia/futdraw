@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
-import 'package:futdraw/components/widgets/player.list.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/views/player.list.view.dart';
 import 'package:provider/provider.dart';
 
 class GroupItem extends StatelessWidget {

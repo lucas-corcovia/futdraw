@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
