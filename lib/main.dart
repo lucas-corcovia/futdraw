@@ -8,7 +8,7 @@ import 'package:provider/provider.dart' as statemanagement;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await DBHelper.initializeDataBase();
+  await DBHelper.initializeDatabase();
 
   runApp(
     statemanagement.MultiProvider(

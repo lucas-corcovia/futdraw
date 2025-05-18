@@ -7,6 +7,7 @@ class Player {
   double nota;
   String? urlFoto;
   bool ehCapitao;
+  bool reserva;
   PlayerPosition position;
 
   Player({
@@ -17,6 +18,7 @@ class Player {
     required this.ehCapitao,
     required this.urlFoto,
     required this.position,
+    required this.reserva,
   });
 
   factory Player.getInstance() {
@@ -26,18 +28,21 @@ class Player {
       nome: '',
       nota: 0,
       ehCapitao: false,
+      reserva: false,
       urlFoto: null,
       position: PlayerPosition.midfielder,
     );
   }
 
   factory Player.fromMap(Map<String, dynamic> map) {
+    print(map);
     return Player(
       id: map['id'],
       grupoId: map['grupoId'],
       nome: map['nome'],
       nota: map['nota'],
-      ehCapitao: map['ehGoleiro'] == 0 ? false : true,
+      ehCapitao: map['capitao'] == 1 ? true : false,
+      reserva: map['reserva'] == 1 ? true : false,
       urlFoto: map['urlFoto'],
       position: PlayerPosition.values.firstWhere(
         (e) => e.index == map['posicao'] as int?,

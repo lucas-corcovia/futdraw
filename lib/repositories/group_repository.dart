@@ -11,14 +11,20 @@ class GroupRepository {
 
   Future<List<Group>> getAll() async {
     final db = await DBHelper.getDatabase();
-    final result = await db.rawQuery(
-      '''SELECT g.id, g.nome, COUNT(p.Id) as playersCount, SUM(CASE WHEN p.ehGoleiro = 1 THEN 1 ELSE 0 END) AS captainCount
+    try {
+      final result = await db.rawQuery(
+        '''SELECT g.id, g.nome, COUNT(p.Id) as playersCount, SUM(CASE WHEN p.capitao = 1 THEN 1 ELSE 0 END) AS captainCount
          FROM $table AS g 
          LEFT JOIN players AS p ON g.id = p.grupoId
          GROUP BY g.id
       ''',
-    );
-    return result.map((map) => Group.fromJson(map)).toList();
+      );
+      return result.map((map) => Group.fromJson(map)).toList();
+    } catch (e) {
+      print(e);
+    }
+
+    return [];
   }
 
   Future<bool> delete(int id) async {

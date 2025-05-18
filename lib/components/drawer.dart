@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
+import 'package:futdraw/components/dialogs/import_database_dialog.dart';
+import 'package:futdraw/components/dialogs/export_database_dialog.dart';
 import 'package:provider/provider.dart';
 
 class DrawerComponent extends StatelessWidget {
@@ -35,8 +37,8 @@ class DrawerComponent extends StatelessWidget {
               leading: Icon(Icons.reset_tv),
               title: Text('Resetar'),
               onTap: () async {
-                await DBHelper.dropDataBase();
-                await DBHelper.createDataBase();
+                await DBHelper.dropDatabase();
+                await DBHelper.initializeDatabase();
                 context.read<GroupController>().getAll();
               },
             ),
@@ -45,7 +47,10 @@ class DrawerComponent extends StatelessWidget {
               leading: Icon(Icons.upload_file),
               title: Text('Exportar Banco de dados'),
               onTap: () {
-                DBHelper.exportDatabase();
+                showDialog(
+                  context: context,
+                  builder: (context) => const ExportDatabaseDialog(),
+                );
               },
             ),
           if (!isProduction)
@@ -53,11 +58,13 @@ class DrawerComponent extends StatelessWidget {
               leading: Icon(Icons.download),
               title: Text('Importar Banco de dados'),
               onTap: () async {
-                var importado = await DBHelper.importDatabase();
-
-                if (!importado) return;
-
-                context.read<GroupController>().getAll();
+                final result = await showDialog(
+                  context: context,
+                  builder: (context) => const ImportDatabaseDialog(),
+                );
+                if (result == true) {
+                  context.read<GroupController>().getAll();
+                }
               },
             ),
           ListTile(

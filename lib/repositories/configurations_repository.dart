@@ -21,7 +21,7 @@ class ConfigurationsRepository {
     try {
       await db.insert(table, {'isOnlySociety': 0});
     } catch (e) {
-      await DBHelper.createDataBase();
+      await DBHelper.initializeDatabase();
       await openDatabase(DBHelper.dbName, version: 2);
     }
 

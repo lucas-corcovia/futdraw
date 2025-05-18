@@ -29,6 +29,7 @@ class _AddPlayerState extends State<AddPlayer> {
   late double _skillRating;
   PlayerPosition _position = PlayerPosition.midfielder;
   late bool _isCaptain;
+  late bool _isSubstitute;
   String? _photoPath;
   bool _isEditing = false;
   final bool _isLoading = false;
@@ -50,6 +51,7 @@ class _AddPlayerState extends State<AddPlayer> {
       _position = widget.player!.position;
       _isCaptain = widget.player!.ehCapitao;
       _photoPath = widget.player!.urlFoto;
+      _isSubstitute = widget.player!.reserva;
       return;
     }
 
@@ -58,6 +60,7 @@ class _AddPlayerState extends State<AddPlayer> {
     _name = "";
     _skillRating = 5.0;
     _isCaptain = false;
+    _isSubstitute = false;
   }
 
   @override
@@ -287,6 +290,24 @@ class _AddPlayerState extends State<AddPlayer> {
                         : Theme.of(context).colorScheme.outline,
               ),
             ),
+            SwitchListTile(
+              title: const Text('Reserva'),
+              subtitle: const Text('Este jogador ficará no banco de reservas'),
+              activeColor: Theme.of(context).colorScheme.tertiary,
+              value: _isSubstitute,
+              onChanged: (value) {
+                setState(() {
+                  _isSubstitute = value;
+                });
+              },
+              secondary: Icon(
+                Icons.chair_rounded,
+                color:
+                    _isSubstitute
+                        ? Theme.of(context).colorScheme.tertiary
+                        : Theme.of(context).colorScheme.outline,
+              ),
+            ),
             const SizedBox(height: 32),
 
             ElevatedButton(
@@ -331,6 +352,7 @@ class _AddPlayerState extends State<AddPlayer> {
       nome: _name,
       nota: _skillRating,
       ehCapitao: _isCaptain,
+      reserva: _isSubstitute,
       urlFoto: urlFoto,
       position: _position,
     );

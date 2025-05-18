@@ -1,132 +1,116 @@
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DBHelper {
   static const String dbName = 'futdraw.db';
+
+  /// Retorna a instância do banco de dados, criando se necessário
   static Future<Database> getDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, dbName);
-
-    return openDatabase(path, version: 1);
-  }
-
-  static Future<void> dropDataBase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, dbName);
-
-    await deleteDatabase(path);
-  }
-
-  static Future<void> initializeDataBase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, dbName);
-
-    if (await databaseExists(path)) return;
-
-    await createDataBase();
-  }
-
-  static Future<void> createDataBase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, dbName);
-
-    await openDatabase(
+    return openDatabase(
       path,
-      version: 2,
-      onCreate: (db, version) {
-        db.execute('''
-        CREATE TABLE players(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          grupoId INTEGER,
-          nome TEXT,
-          nota REAL,
-          ehGoleiro INTEGER,
-          urlFoto TEXT,
-          posicao INTEGER
-        )
-      ''');
-
-        db.execute('''
-        CREATE TABLE groups(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          nome TEXT
-        )
-      ''');
-
-        db.execute('''
-        CREATE TABLE configurations(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          isOnlySociety INTEGER
-        )
-      ''');
-      },
-      onUpgrade: (db, oldVersion, newVersion) {
-        if (oldVersion < 2) {
-          db.execute('''
-          CREATE TABLE configurations(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            isOnlySociety INTEGER
-          )
-        ''');
-        }
+      version: 1,
+      onCreate: (db, version) async {
+        await _createTables(db);
       },
     );
   }
 
-  static Future<void> exportDatabase() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      requestStoragePermission();
-    });
+  /// Cria as tabelas do banco de dados
+  static Future<void> _createTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE players(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        grupoId INTEGER,
+        nome TEXT,
+        nota REAL,
+        urlFoto TEXT,
+        posicao INTEGER,
+        capitao INTEGER DEFAULT 0,
+        reserva INTEGER DEFAULT 0
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE groups(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT
+      );
+    ''');
+  }
 
+  /// Remove o banco de dados local
+  static Future<void> dropDatabase() async {
     final dbPath = await getDatabasesPath();
-    final dbFile = File(join(dbPath, dbName));
-
-    if (!await dbFile.exists()) return;
-
-    final directory = await getExternalStorageDirectory();
-    final documentsDir = Directory('${directory!.path}/Documents');
-    if (!await documentsDir.exists()) {
-      await documentsDir.create(recursive: true);
+    final path = join(dbPath, dbName);
+    if (await databaseExists(path)) {
+      await deleteDatabase(path);
     }
-
-    final exportFile = File(join(documentsDir.path, '${dbName}_backup.db'));
-
-    await dbFile.copy(exportFile.path);
   }
 
-  static Future<bool> importDatabase() async {
-    final directory = await getExternalStorageDirectory();
-    final documentsDir = Directory('${directory!.path}/Documents');
-    final result = await FilePicker.platform.pickFiles(
-      initialDirectory: documentsDir.path,
-    );
-
-    if (result == null && result!.files.single.path == null) return false;
-
-    final importFile = File(result.files.single.path!);
-
-    final dbFolder = await getDatabasesPath();
-    final dbFilePath = join(dbFolder, dbName);
-
-    await deleteDatabase(dbFilePath);
-
-    final dbFile = File(dbFilePath);
-    await dbFile.writeAsBytes(await importFile.readAsBytes());
-    return true;
+  /// Inicializa o banco de dados se não existir
+  static Future<void> initializeDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, dbName);
+    if (!await databaseExists(path)) {
+      await getDatabase();
+    }
   }
 
-  static Future<bool> requestStoragePermission() async {
-    var status = await Permission.storage.status;
+  /// Exporta o banco de dados para a pasta Documents
+  static Future<File?> exportDatabase() async {
+    try {
+      final dbPath = await getDatabasesPath();
+      final dbFilePath = join(dbPath, dbName);
 
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
+      // Fecha o banco se estiver aberto para garantir flush dos dados
+      final db = await openDatabase(dbFilePath);
+      await db.close();
+
+      final dbFile = File(dbFilePath);
+      if (!await dbFile.exists()) return null;
+
+      final directory = await getExternalStorageDirectory();
+      if (directory == null) return null;
+      final documentsDir = Directory('${directory.path}/Documents');
+      if (!await documentsDir.exists()) {
+        await documentsDir.create(recursive: true);
+      }
+      final exportFile = File(join(documentsDir.path, '${dbName}_backup.db'));
+      await dbFile.copy(exportFile.path);
+      return exportFile;
+    } catch (e) {
+      // Log de erro pode ser adicionado aqui
+      return null;
     }
+  }
 
-    return status.isGranted;
+  /// Importa um banco de dados selecionado pelo usuário
+  /// O caminho do arquivo deve ser fornecido externamente
+  static Future<bool> importDatabaseFromFile(String importFilePath) async {
+    try {
+      final importFile = File(importFilePath);
+      if (!await importFile.exists()) return false;
+      final dbFolder = await getDatabasesPath();
+      final dbFilePath = join(dbFolder, dbName);
+      if (await File(dbFilePath).exists()) {
+        await deleteDatabase(dbFilePath);
+      }
+      await importFile.copy(dbFilePath);
+      return true;
+    } catch (e) {
+      // Log de erro pode ser adicionado aqui
+      return false;
+    }
+  }
+
+  /// Retorna o caminho do banco de dados
+  static Future<String> getDatabasePath() async {
+    final dbPath = await getDatabasesPath();
+    return join(dbPath, dbName);
   }
 }
+
+// Fim do arquivo DBHelper
