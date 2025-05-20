@@ -61,7 +61,10 @@ class _AddGroupState extends State<AddGroup> {
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _saveGroup,
-                  icon: const Icon(Icons.save),
+                  icon: Icon(
+                    Icons.save,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
