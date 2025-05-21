@@ -32,26 +32,96 @@ class FutDrawApp extends StatelessWidget {
   final ThemeData lightTheme = ThemeData(
     fontFamily: 'Kanit',
     brightness: Brightness.light,
-    scaffoldBackgroundColor: Color(0xFFFFFFFF),
-    primaryColor: Color.fromARGB(255, 57, 105, 59),
-    colorScheme: ColorScheme.light(
+    scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+    primaryColor: const Color.fromARGB(255, 57, 105, 59),
+    colorScheme: const ColorScheme.light(
       primary: Color.fromARGB(255, 57, 105, 59),
-      secondary: Color(0xFFFFC107),
+      secondary: Color.fromARGB(255, 31, 78, 32),
       surface: Color(0xFFF5F5F5),
       onPrimary: Colors.white,
       onSecondary: Colors.black,
       onSurface: Color(0xFF212121),
     ),
-    appBarTheme: AppBarTheme(
+    tabBarTheme: const TabBarTheme(
+      labelColor: Color.fromARGB(255, 57, 105, 59),
+      unselectedLabelColor: Color(0xFF212121),
+      indicator: UnderlineTabIndicator(
+        borderSide: BorderSide(
+          color: Color.fromARGB(255, 57, 105, 59),
+          width: 2,
+        ),
+      ),
+      labelStyle: TextStyle(fontWeight: FontWeight.bold),
+      unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+    ),
+    sliderTheme: SliderThemeData(
+      activeTrackColor: const Color.fromARGB(255, 57, 105, 59),
+      inactiveTrackColor: const Color.fromARGB(255, 57, 105, 59).withAlpha(77),
+      thumbColor: const Color.fromARGB(255, 57, 105, 59),
+      overlayColor: const Color.fromARGB(255, 57, 105, 59).withAlpha(48),
+      valueIndicatorColor: const Color.fromARGB(255, 57, 105, 59),
+      trackHeight: 4,
+      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+      valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: const Color(0xFFF5F5F5),
+      selectedColor: const Color.fromARGB(255, 57, 105, 59),
+      secondarySelectedColor: const Color.fromARGB(255, 57, 105, 59),
+      labelStyle: const TextStyle(color: Color(0xFF212121)),
+      secondaryLabelStyle: const TextStyle(color: Colors.white),
+      brightness: Brightness.light,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: const StadiumBorder(
+        side: BorderSide(color: Color.fromARGB(255, 57, 105, 59)),
+      ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Color.fromARGB(255, 57, 105, 59);
+        }
+        return const Color(0xFF757575); // light
+      }),
+      trackColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Color.fromARGB(255, 57, 105, 59).withAlpha(128);
+        }
+        return const Color(0xFF757575).withAlpha(100);
+      }),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+        shape: WidgetStateProperty.resolveWith((states) {
+          return RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          );
+        }),
+        padding: WidgetStateProperty.resolveWith((states) {
+          return const EdgeInsets.symmetric(vertical: 16);
+        }),
+        textStyle: WidgetStateProperty.resolveWith((states) {
+          return const TextStyle(color: Colors.white, fontSize: 16); // light
+        }),
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.hovered)) {
+            return const Color.fromARGB(255, 57, 105, 59).withAlpha(77);
+          }
+          return const Color.fromARGB(255, 57, 105, 59); // light
+        }),
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFFFFFFFF),
       foregroundColor: Color(0xFF212121),
       elevation: 0,
     ),
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Color(0xFF212121)),
       bodyMedium: TextStyle(color: Color(0xFF757575)),
     ),
-    iconTheme: IconThemeData(color: Color.fromARGB(255, 255, 255, 255)),
+    iconTheme: const IconThemeData(color: Color.fromARGB(255, 57, 105, 59)),
   );
 
   final ThemeData darkTheme = ThemeData(
@@ -153,7 +223,9 @@ class FutDrawApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'FutDraw',
-      theme: darkTheme,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system,
       home: const HomeView(),
     );
   }
