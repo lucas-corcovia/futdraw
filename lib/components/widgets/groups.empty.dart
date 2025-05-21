@@ -8,11 +8,7 @@ class GroupsEmpty extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.group_work_outlined,
-          size: 80,
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-        ),
+        Icon(Icons.group_work_outlined, size: 80),
         const SizedBox(height: 16),
         Text(
           'Nenhum grupo cadastrado',

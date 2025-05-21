@@ -42,11 +42,11 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    var isProduction = bool.fromEnvironment('dart.vm.product');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('FutDraw - Sorteio de Times'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -55,7 +55,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
-      drawer: DrawerComponent(),
+      drawer: !isProduction ? DrawerComponent() : null,
       body:
           _isLoading ? Center(child: CircularProgressIndicator()) : GroupList(),
       floatingActionButton: Column(
@@ -68,9 +68,7 @@ class _HomeViewState extends State<HomeView> {
                 MaterialPageRoute(builder: (context) => const AddGroup()),
               );
             },
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Theme.of(context).colorScheme.onSecondary,
-            child: const Icon(Icons.add),
+            child: Center(child: Icon(Icons.add)),
           ),
         ],
       ),

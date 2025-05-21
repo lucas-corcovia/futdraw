@@ -43,7 +43,7 @@ class PlayerCard extends StatelessWidget {
                     ? LinearGradient(
                       colors: [
                         Theme.of(context).colorScheme.surface,
-                        Theme.of(context).colorScheme.tertiary.withOpacity(0.1),
+                        Theme.of(context).colorScheme.tertiary.withAlpha(25),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -55,7 +55,7 @@ class PlayerCard extends StatelessWidget {
                       BoxShadow(
                         color: Theme.of(
                           context,
-                        ).colorScheme.primary.withOpacity(0.15),
+                        ).colorScheme.primary.withAlpha(38),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -89,7 +89,7 @@ class PlayerCard extends StatelessWidget {
                         BoxShadow(
                           color: Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.2),
+                          ).colorScheme.primary.withAlpha(51),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -99,7 +99,7 @@ class PlayerCard extends StatelessWidget {
                       radius: 25,
                       backgroundColor: Theme.of(
                         context,
-                      ).colorScheme.primary.withOpacity(0.1),
+                      ).colorScheme.primary.withAlpha(25),
                       backgroundImage:
                           player.urlFoto != null
                               ? NetworkImage(player.urlFoto!)
@@ -151,10 +151,7 @@ class PlayerCard extends StatelessWidget {
                       onPressed: onSwap != null ? () => onSwap!(player) : null,
                     ),
                     PopupMenuButton<String>(
-                      icon: Icon(
-                        Icons.more_vert,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      icon: Icon(Icons.more_vert),
                       onSelected: (String value) {
                         if (value == 'edit') {
                           onEdit();
@@ -167,10 +164,7 @@ class PlayerCard extends StatelessWidget {
                             PopupMenuItem<String>(
                               value: 'edit',
                               child: ListTile(
-                                leading: Icon(
-                                  Icons.edit,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
+                                leading: Icon(Icons.edit),
                                 title: const Text('Editar'),
                                 contentPadding: EdgeInsets.zero,
                                 visualDensity: VisualDensity.compact,
@@ -208,7 +202,7 @@ class PlayerCard extends StatelessWidget {
                     Divider(
                       color: Theme.of(
                         context,
-                      ).colorScheme.outline.withOpacity(0.2),
+                      ).colorScheme.outline.withAlpha(50),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -256,9 +250,7 @@ class PlayerCard extends StatelessWidget {
       duration: const Duration(milliseconds: 300),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: (color ?? Theme.of(context).colorScheme.primary).withOpacity(
-          0.05,
-        ),
+        color: (color ?? Theme.of(context).colorScheme.primary).withAlpha(13),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(

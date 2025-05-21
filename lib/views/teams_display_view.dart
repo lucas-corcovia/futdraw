@@ -90,8 +90,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Times Gerados'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Theme.of(context).colorScheme.onPrimary,

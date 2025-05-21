@@ -33,8 +33,6 @@ class GroupItem extends StatelessWidget {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 radius: 24,
                 child: Text(
                   '${group.id}',
@@ -63,19 +61,13 @@ class GroupItem extends StatelessWidget {
                 ),
               ),
               PopupMenuButton(
-                icon: Icon(
-                  Icons.more_vert,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                icon: Icon(Icons.more_vert),
                 itemBuilder:
                     (BuildContext context) => <PopupMenuEntry>[
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.person_add,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
+                          leading: Icon(Icons.person_add),
                           title: const Text('Adicionar Jogador'),
                         ),
                         onTap: () {
@@ -93,10 +85,7 @@ class GroupItem extends StatelessWidget {
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.person_add,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
+                          leading: Icon(Icons.person_add),
                           title: const Text('Adicionar Vários Jogadores'),
                         ),
                         onTap: () {
@@ -114,10 +103,7 @@ class GroupItem extends StatelessWidget {
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.edit,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          leading: Icon(Icons.edit),
                           title: const Text('Editar Grupo'),
                         ),
                         onTap: () async {
@@ -135,10 +121,7 @@ class GroupItem extends StatelessWidget {
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.delete,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          leading: Icon(Icons.delete),
                           title: const Text('Excluir Grupo'),
                         ),
                         onTap: () async {
@@ -150,10 +133,7 @@ class GroupItem extends StatelessWidget {
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.sports_soccer,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          leading: Icon(Icons.sports_soccer),
                           title: const Text('Gerar Times'),
                         ),
                         onTap: () {},

@@ -58,7 +58,7 @@ class _ExportDatabaseDialogState extends State<ExportDatabaseDialog> {
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _exportDatabase,
-          child: const Text('Exportar'),
+          child: Text('Exportar', style: Theme.of(context).textTheme.bodyLarge),
         ),
       ],
     );

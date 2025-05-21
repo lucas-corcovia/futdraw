@@ -28,8 +28,6 @@ class _AddGroupState extends State<AddGroup> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Grupo' : 'Adicionar Grupo'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -62,14 +60,9 @@ class _AddGroupState extends State<AddGroup> {
                 ElevatedButton.icon(
                   onPressed: _saveGroup,
                   icon: const Icon(Icons.save),
-                  label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  label: Text(
+                    _isEditing ? 'Salvar Alterações' : 'Adicionar',
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],

@@ -62,11 +62,14 @@ class _ImportDatabaseDialogState extends State<ImportDatabaseDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Fechar'),
+          child: Text('Fechar', style: Theme.of(context).textTheme.bodyLarge),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _importDatabase,
-          child: const Text('Selecionar Arquivo'),
+          child: Text(
+            'Selecionar Arquivo',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
       ],
     );

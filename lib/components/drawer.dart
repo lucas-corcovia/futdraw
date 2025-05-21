@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
-import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
 import 'package:futdraw/components/dialogs/import_database_dialog.dart';
@@ -9,8 +7,7 @@ import 'package:futdraw/components/dialogs/export_database_dialog.dart';
 import 'package:provider/provider.dart';
 
 class DrawerComponent extends StatelessWidget {
-  DrawerComponent({super.key});
-  final ConfigurationsController _configController = ConfigurationsController();
+  const DrawerComponent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -67,27 +64,6 @@ class DrawerComponent extends StatelessWidget {
                 }
               },
             ),
-          ListTile(
-            leading: Icon(Icons.sports_soccer),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Modo Society'),
-                Switch(
-                  value:
-                      _configController.configuration?.isOnlySociety == null
-                          ? false
-                          : _configController.configuration!.isOnlySociety,
-                  onChanged: (value) async {
-                    _configController.configuration?.isOnlySociety = value;
-                    await _configController.update(
-                      _configController.configuration!,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

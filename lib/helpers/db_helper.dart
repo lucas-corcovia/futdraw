@@ -74,34 +74,35 @@ class DBHelper {
 
       final directory = await getExternalStorageDirectory();
       if (directory == null) return null;
+
       final documentsDir = Directory('${directory.path}/Documents');
       if (!await documentsDir.exists()) {
         await documentsDir.create(recursive: true);
       }
+
       final exportFile = File(join(documentsDir.path, '${dbName}_backup.db'));
+
       await dbFile.copy(exportFile.path);
       return exportFile;
     } catch (e) {
-      // Log de erro pode ser adicionado aqui
       return null;
     }
   }
 
-  /// Importa um banco de dados selecionado pelo usuário
-  /// O caminho do arquivo deve ser fornecido externamente
   static Future<bool> importDatabaseFromFile(String importFilePath) async {
     try {
       final importFile = File(importFilePath);
       if (!await importFile.exists()) return false;
+
       final dbFolder = await getDatabasesPath();
       final dbFilePath = join(dbFolder, dbName);
       if (await File(dbFilePath).exists()) {
         await deleteDatabase(dbFilePath);
       }
+
       await importFile.copy(dbFilePath);
       return true;
     } catch (e) {
-      // Log de erro pode ser adicionado aqui
       return false;
     }
   }

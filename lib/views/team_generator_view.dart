@@ -90,11 +90,7 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gerar Times'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
+      appBar: AppBar(title: const Text('Gerar Times')),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -156,13 +152,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                               const SizedBox(height: 16),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  inactiveTrackColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withOpacity(0.2),
-                                  thumbColor:
-                                      Theme.of(context).colorScheme.secondary,
                                   trackHeight: 8.0,
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 12.0,
@@ -217,8 +206,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                                     return ChoiceChip(
                                       label: Text('$number'),
                                       selected: _numberOfTeams == number,
-                                      selectedColor:
-                                          Theme.of(context).colorScheme.primary,
                                       labelStyle: TextStyle(
                                         color:
                                             _numberOfTeams == number
@@ -246,24 +233,13 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                       ),
 
                       const SizedBox(height: 32),
-
                       // Generate Button
                       ElevatedButton.icon(
                         onPressed: _generateTeams,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
                         icon: const Icon(Icons.shuffle),
-                        label: const Text(
+                        label: Text(
                           'Sortear Times',
-                          style: TextStyle(fontSize: 18),
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ),
                     ],
