@@ -46,23 +46,21 @@ class TeamGenerator {
       return [];
     }
 
-    final fieldPlayers =
-        players.where((p) => !p.isGoalkeeper).toList()..shuffle();
     final goalkeepers =
         players.where((p) => p.isGoalkeeper).toList()..shuffle();
-    final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
-    fieldPlayers.removeWhere((p) => p.ehCapitao);
+    final captains = players.where((p) => p.ehCapitao).toList()..shuffle();
+    final fieldPlayers =
+        players.where((p) => !p.isGoalkeeper && !p.ehCapitao).toList()
+          ..shuffle();
 
     List<Team> teams = List.generate(
       numberOfTeams,
       (index) => Team(name: 'Time ${index + 1}', players: []),
     );
 
-    _distributePlayersShuffleEvenly(fieldPlayers, teams);
+    _balancedTeams(algorithm, teams, fieldPlayers);
 
     _distributePlayersEvenly(captains, teams);
-
-    _balancedTeams(algorithm, teams, players);
 
     _distributePlayersEvenly(goalkeepers, teams);
 
@@ -74,28 +72,32 @@ class TeamGenerator {
   void _balancedTeams(
     GenerationAlgorithm algorithm,
     List<Team> teams,
-    List<Player> players,
+    List<Player> fieldPlayers,
   ) {
     switch (algorithm) {
       case GenerationAlgorithm.balanced:
-        _distributePlayersBalanced(teams);
+        _distributePlayersBalanced(fieldPlayers, teams);
+        break;
       case GenerationAlgorithm.snakeDraft:
-        _distributePlayersSnakeDraft(players, teams);
+        _distributePlayersSnakeDraft(fieldPlayers, teams);
+        break;
     }
   }
 
-  void _distributePlayersShuffleEvenly(List<Player> players, List<Team> teams) {
-    if (players.isEmpty || teams.isEmpty) return;
+  void _distributePlayersShuffleEvenly(
+    List<Player> fieldPlayers,
+    List<Team> teams,
+  ) {
+    if (fieldPlayers.isEmpty || teams.isEmpty) return;
 
-    players.shuffle();
-    int playersPerTeam = (players.length / teams.length).ceil();
+    int playersPerTeam = (fieldPlayers.length / teams.length).ceil();
 
     for (int i = 0; i < teams.length; i++) {
       int startIndex = i * playersPerTeam;
-      int endIndex = math.min(startIndex + playersPerTeam, players.length);
+      int endIndex = math.min(startIndex + playersPerTeam, fieldPlayers.length);
 
       teams[i] = teams[i].copyWith(
-        players: players.sublist(startIndex, endIndex),
+        players: fieldPlayers.sublist(startIndex, endIndex),
       );
     }
   }
@@ -126,6 +128,8 @@ class TeamGenerator {
   void _distributePlayersSnakeDraft(List<Player> players, List<Team> teams) {
     if (players.isEmpty || teams.isEmpty) return;
 
+    players.sort((a, b) => b.nota.compareTo(a.nota));
+
     bool forward = true;
     int teamIndex = 0;
 
@@ -150,8 +154,12 @@ class TeamGenerator {
     }
   }
 
-  void _distributePlayersBalanced(List<Team> teams) {
+  void _distributePlayersBalanced(List<Player> fieldPlayers, List<Team> teams) {
     if (teams.length <= 1) return;
+
+    fieldPlayers.shuffle();
+
+    _distributePlayersShuffleEvenly(fieldPlayers, teams);
 
     bool improved = true;
     while (improved) {
@@ -167,11 +175,7 @@ class TeamGenerator {
       }
 
       for (final playerA in strongestTeam.players) {
-        if (playerA.isGoalkeeper) continue;
-
         for (final playerB in weakestTeam.players) {
-          if (playerB.isGoalkeeper) continue;
-
           final strongTeamPlayers =
               List<Player>.from(strongestTeam.players)
                 ..remove(playerA)
