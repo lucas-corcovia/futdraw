@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/modal.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
@@ -6,6 +8,7 @@ import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/views/player.list.view.dart';
+import 'package:futdraw/views/team_generator_view.dart';
 import 'package:provider/provider.dart';
 
 class GroupItem extends StatelessWidget {
@@ -15,6 +18,7 @@ class GroupItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var isProduction = bool.fromEnvironment('dart.vm.product');
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       elevation: 2,
@@ -137,15 +141,22 @@ class GroupItem extends StatelessWidget {
                           leading: Icon(Icons.sports_soccer),
                           title: const Text('Gerar Times'),
                         ),
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => TeamGenerationScreen(
+                                    preselectedGroup: group,
+                                  ),
+                            ),
+                          );
+                        },
                       ),
                       PopupMenuItem(
                         child: ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.copy_all,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                          leading: Icon(Icons.copy_all),
                           title: const Text(
                             'Copiar jogadores para área de transferência',
                           ),
@@ -156,12 +167,96 @@ class GroupItem extends StatelessWidget {
                               .copyPlayersToClipboard(context);
                         },
                       ),
+                      if (!isProduction)
+                        PopupMenuItem(
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.copy_all),
+                            title: const Text('Exportar JSON dos jogadores'),
+                          ),
+                          onTap: () async {
+                            await context
+                                .read<PlayerController>()
+                                .exportPlayersToJson(context, group.id);
+                          },
+                        ),
+                      if (!isProduction)
+                        PopupMenuItem(
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(Icons.copy_all),
+                            title: const Text('Importar JSON dos jogadores'),
+                          ),
+                          onTap: () async {
+                            await _showImportModal(context);
+                          },
+                        ),
                     ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  _showImportModal(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder:
+          (context) =>
+              CustomModal(titulo: 'JSON', content: _modalImport(context)),
+    );
+  }
+
+  Widget _modalImport(BuildContext context) {
+    var jsonString = '';
+    return Column(
+      children: [
+        TextFormField(
+          controller: TextEditingController(),
+          decoration: const InputDecoration(border: OutlineInputBorder()),
+          minLines: 5,
+          maxLines: 10,
+          textCapitalization: TextCapitalization.words,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Insira o JSON dos jogadores.';
+            }
+
+            return null;
+          },
+          onChanged: (value) => jsonString = value,
+        ),
+
+        const SizedBox(height: 15),
+
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () async {
+                  await context.read<PlayerController>().importPlayersToJson(
+                    context,
+                    jsonString,
+                    group.id,
+                  );
+
+                  context.read<GroupController>().getAll().then((_) {
+                    Navigator.pop(context);
+                  });
+                },
+                child: Text(
+                  'Importar Jogadores',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

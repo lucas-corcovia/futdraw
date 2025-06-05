@@ -226,7 +226,7 @@ class FutDrawApp extends StatelessWidget {
       title: 'FutDraw',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       home: const HomeView(),
     );
   }

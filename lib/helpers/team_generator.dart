@@ -1,6 +1,9 @@
+import 'package:flutter/widgets.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:path/path.dart';
 
 import '../models/player.dart';
 import 'dart:math' as math;
@@ -31,7 +34,8 @@ class Team {
 }
 
 class TeamGenerator {
-  static List<Team> generateBalancedTeams({
+  static List<Team> generateBalancedTeams(
+    BuildContext context, {
     required List<Player> players,
     required int numberOfTeams,
     required Group? group,
