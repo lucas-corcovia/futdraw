@@ -1,10 +1,5 @@
-import 'package:flutter/widgets.dart';
-import 'package:futdraw/components/toast.dart';
-import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/group.dart';
-import 'package:path/path.dart';
-
 import '../models/player.dart';
 import 'dart:math' as math;
 
@@ -34,12 +29,19 @@ class Team {
 }
 
 class TeamGenerator {
-  static List<Team> generateBalancedTeams(
-    BuildContext context, {
-    required List<Player> players,
-    required int numberOfTeams,
-    required Group? group,
-  }) {
+  TeamGenerator({
+    required this.algorithm,
+    required this.players,
+    required this.group,
+    required this.numberOfTeams,
+  });
+
+  GenerationAlgorithm algorithm;
+  List<Player> players = [];
+  Group? group;
+  int numberOfTeams;
+
+  List<Team> generate() {
     if (numberOfTeams <= 0 || players.isEmpty) {
       return [];
     }
@@ -57,43 +59,51 @@ class TeamGenerator {
     );
 
     _distributePlayersShuffleEvenly(fieldPlayers, teams);
+
     _distributePlayersEvenly(captains, teams);
 
-    ConfigurationsController().configuration?.generationAlgorithm ==
-            GenerationAlgorithm.balanced
-        ? _balanceTeams(teams)
-        : _distributePlayersSnakeDraft(players, teams);
+    _balancedTeams(algorithm, teams, players);
 
     _distributePlayersEvenly(goalkeepers, teams);
+
     teams.sort((a, b) => a.name.compareTo(b.name));
 
     return teams;
   }
 
-  static void _distributePlayersShuffleEvenly(
-    List<Player> players,
+  void _balancedTeams(
+    GenerationAlgorithm algorithm,
     List<Team> teams,
+    List<Player> players,
   ) {
+    switch (algorithm) {
+      case GenerationAlgorithm.balanced:
+        _distributePlayersBalanced(teams);
+      case GenerationAlgorithm.snakeDraft:
+        _distributePlayersSnakeDraft(players, teams);
+    }
+  }
+
+  void _distributePlayersShuffleEvenly(List<Player> players, List<Team> teams) {
     if (players.isEmpty || teams.isEmpty) return;
 
     players.shuffle();
     int playersPerTeam = (players.length / teams.length).ceil();
 
     for (int i = 0; i < teams.length; i++) {
+      int startIndex = i * playersPerTeam;
+      int endIndex = math.min(startIndex + playersPerTeam, players.length);
+
       teams[i] = teams[i].copyWith(
-        players: players.sublist(i * playersPerTeam, (i + 1) * playersPerTeam),
+        players: players.sublist(startIndex, endIndex),
       );
     }
   }
 
-  // Distribute players evenly across teams
-  static void _distributePlayersEvenly(List<Player> players, List<Team> teams) {
+  void _distributePlayersEvenly(List<Player> players, List<Team> teams) {
     if (players.isEmpty || teams.isEmpty) return;
 
-    // For captains, make sure they are distributed to different teams
     if (players.every((p) => p.ehCapitao)) {
-      // If all players in this group are captains (rare case)
-      // Make sure not to exceed number of teams
       int limit = math.min(players.length, teams.length);
       for (int i = 0; i < limit; i++) {
         teams[i] = teams[i].copyWith(
@@ -113,11 +123,7 @@ class TeamGenerator {
     }
   }
 
-  // Distribute players using snake draft order (1->2->3->3->2->1)
-  static void _distributePlayersSnakeDraft(
-    List<Player> players,
-    List<Team> teams,
-  ) {
+  void _distributePlayersSnakeDraft(List<Player> players, List<Team> teams) {
     if (players.isEmpty || teams.isEmpty) return;
 
     bool forward = true;
@@ -128,7 +134,6 @@ class TeamGenerator {
         players: [...teams[teamIndex].players, player],
       );
 
-      // Calculate next team index with snake draft logic
       if (forward) {
         teamIndex++;
         if (teamIndex >= teams.length) {
@@ -145,33 +150,28 @@ class TeamGenerator {
     }
   }
 
-  // Make final adjustments to balance team skills
-  static void _balanceTeams(List<Team> teams) {
+  void _distributePlayersBalanced(List<Team> teams) {
     if (teams.length <= 1) return;
 
     bool improved = true;
     while (improved) {
       improved = false;
 
-      // Find the most and least skilled teams
       teams.sort((a, b) => b.averageSkill.compareTo(a.averageSkill));
 
       final strongestTeam = teams.first;
       final weakestTeam = teams.last;
 
       if (strongestTeam.averageSkill - weakestTeam.averageSkill < 1.0) {
-        // Teams are already fairly balanced
         break;
       }
 
-      // Try to swap players to improve balance
       for (final playerA in strongestTeam.players) {
-        if (playerA.isGoalkeeper) continue; // Don't swap goalkeepers
+        if (playerA.isGoalkeeper) continue;
 
         for (final playerB in weakestTeam.players) {
-          if (playerB.isGoalkeeper) continue; // Don't swap goalkeepers
+          if (playerB.isGoalkeeper) continue;
 
-          // Calculate new average skills after potential swap
           final strongTeamPlayers =
               List<Player>.from(strongestTeam.players)
                 ..remove(playerA)
@@ -192,7 +192,6 @@ class TeamGenerator {
             players: weakTeamPlayers,
           );
 
-          // Check if the swap improves balance
           final currentDiff =
               strongestTeam.averageSkill - weakestTeam.averageSkill;
           final newDiff = math.max(
@@ -201,7 +200,6 @@ class TeamGenerator {
           );
 
           if (newDiff < currentDiff) {
-            // Apply the swap
             final strongIndex = teams.indexOf(strongestTeam);
             final weakIndex = teams.indexOf(weakestTeam);
 

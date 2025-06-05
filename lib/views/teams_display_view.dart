@@ -33,7 +33,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   void _swapPlayers(Player playerA, Player playerB) {
     setState(() {
-      // Find the teams containing the players
       Team? teamA;
       Team? teamB;
       int teamAIndex = -1;

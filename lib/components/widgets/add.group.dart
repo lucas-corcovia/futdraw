@@ -64,6 +64,14 @@ class _AddGroupState extends State<AddGroup> {
                     _isEditing ? 'Salvar Alterações' : 'Adicionar',
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ],
             ),

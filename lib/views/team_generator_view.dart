@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/toast.dart';
+import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/helpers/team_generator.dart';
 import 'package:futdraw/models/group.dart';
@@ -16,16 +17,17 @@ class TeamGenerationScreen extends StatefulWidget {
 }
 
 class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
-  late int _numberOfTeams;
-  late Group? _selectedGroup;
-  bool _isLoading = false;
   final int _minTeams = 2;
   final int _maxTeams = 10;
+
+  bool _isLoading = false;
+  int _numberOfTeams = 2;
+
+  late Group? _selectedGroup;
 
   @override
   void initState() {
     super.initState();
-    _numberOfTeams = 2; // Default to 2 teams
     _selectedGroup = widget.preselectedGroup;
   }
 
@@ -41,10 +43,8 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       widget.preselectedGroup!.id,
     );
 
-    // Filtra apenas titulares para o sorteio
     players = players.where((p) => !p.reserva).toList();
 
-    // Check if we have enough players
     if (players.length < _numberOfTeams) {
       setState(() {
         _isLoading = false;
@@ -73,12 +73,18 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       return;
     }
 
-    var teams = TeamGenerator.generateBalancedTeams(
-      context,
+    var teamsGenerator = TeamGenerator(
+      algorithm:
+          context
+              .read<ConfigurationsController>()
+              .configuration
+              .generationAlgorithm,
       players: players,
-      numberOfTeams: _numberOfTeams,
       group: _selectedGroup,
+      numberOfTeams: _numberOfTeams,
     );
+
+    var teams = teamsGenerator.generate();
 
     setState(() {
       _isLoading = false;

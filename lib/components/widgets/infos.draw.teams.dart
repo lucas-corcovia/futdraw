@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/configurations_controller.dart';
+import 'package:futdraw/models/enums/generation_algorithm.dart';
+import 'package:provider/provider.dart';
 
 class InfoDrawTeams extends StatelessWidget {
   const InfoDrawTeams({super.key});
 
   @override
   Widget build(BuildContext context) {
+    var algo =
+        context
+            .read<ConfigurationsController>()
+            .configuration
+            .generationAlgorithm;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -12,30 +20,25 @@ class InfoDrawTeams extends StatelessWidget {
         children: [
           _buildInfoSection(
             context,
-            'Separação de Goleiros',
-            'Os goleiros são distribuídos primeiro para garantir que cada time tenha um goleiro, se possível.',
-            Icons.sports_handball,
+            'Jogadores de linha',
+            'Os jogadores de linha são distribuídos primeiro para garantir que cada time tenha a mesma quantidade de jogadores.',
+            Icons.social_distance_sharp,
           ),
           const Divider(),
           _buildInfoSection(
             context,
             'Distribuição de Capitães',
-            'Capitães são distribuídos em times diferentes. Nunca haverá dois capitães no mesmo time, a menos que haja mais capitães que times.',
+            'Nunca haverá dois capitães no mesmo time, a menos que haja mais capitães que times.',
             Icons.stars,
           ),
           const Divider(),
-          _buildInfoSection(
-            context,
-            'Método Snake Draft',
-            'Os jogadores são ordenados por habilidade e distribuídos em formato zigzag (1->2->3->3->2->1) para garantir equilíbrio.',
-            Icons.shuffle,
-          ),
+          _getAlgorithmInfo(context, algo),
           const Divider(),
           _buildInfoSection(
             context,
-            'Balanceamento Final',
-            'Ao final, o algoritmo tenta trocar jogadores entre times para minimizar a diferença de habilidade média.',
-            Icons.balance,
+            'Separação de Goleiros',
+            'Ao final, os goleiros são distribuídos para que cada time tenha um goleiro, se possível.',
+            Icons.sports_handball,
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -81,5 +84,24 @@ class InfoDrawTeams extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  _getAlgorithmInfo(BuildContext context, GenerationAlgorithm algorithm) {
+    switch (algorithm) {
+      case GenerationAlgorithm.snakeDraft:
+        return _buildInfoSection(
+          context,
+          'Método Snake Draft',
+          'Os jogadores são ordenados por habilidade e distribuídos em formato zigzag (1->2->3->3->2->1) para garantir equilíbrio.',
+          Icons.shuffle,
+        );
+      case GenerationAlgorithm.balanced:
+        return _buildInfoSection(
+          context,
+          'Balanceamento',
+          'O algoritmo tenta trocar jogadores entre times para minimizar a diferença de habilidade média.',
+          Icons.balance,
+        );
+    }
   }
 }

@@ -1,12 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:futdraw/repositories/player_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class PlayerController extends ChangeNotifier {
   final repository = PlayerRepository();
