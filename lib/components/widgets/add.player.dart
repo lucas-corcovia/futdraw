@@ -7,6 +7,7 @@ import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 
 class AddPlayer extends StatefulWidget {
@@ -65,14 +66,18 @@ class _AddPlayerState extends State<AddPlayer> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Editar Jogador' : 'Novo Jogador'),
+    return LoaderOverlay(
+      overlayColor: const Color.fromRGBO(0, 0, 0, 0.6),
+
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditing ? 'Editar Jogador' : 'Novo Jogador'),
+        ),
+        body:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(child: _formContent(context)),
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(child: _formContent(context)),
     );
   }
 
@@ -312,8 +317,10 @@ class _AddPlayerState extends State<AddPlayer> {
 
   _savePlayer() async {
     if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
+    context.loaderOverlay.show();
 
+    _formKey.currentState!.save();
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (!_isEditing) {
       await context.read<PlayerController>().add(context, await _buildPlayer());
     } else {
@@ -322,6 +329,7 @@ class _AddPlayerState extends State<AddPlayer> {
         await _buildPlayer(),
       );
     }
+    context.loaderOverlay.hide();
 
     Navigator.pop(context);
   }
