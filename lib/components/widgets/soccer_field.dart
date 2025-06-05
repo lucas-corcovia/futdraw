@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:futdraw/models/consts/app.colors.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 
@@ -361,13 +364,12 @@ class _SoccerFieldState extends State<SoccerField> {
                             fit: BoxFit.cover,
                           )
                           : Container(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: CommonsColors.avatarFieldBackgroundColor,
                             child: Center(
                               child: Text(
                                 player.nome[0].toUpperCase(),
                                 style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
+                                  color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                   fontSize: size / 3,
                                 ),

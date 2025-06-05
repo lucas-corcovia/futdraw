@@ -9,6 +9,12 @@ class CommonsColors {
   static const Color unselectedLabelColor = Colors.white;
   static const Color bodyMediumColor = Color(0xFFBDBDBD);
   static const Color iconColor = Color.fromARGB(255, 255, 255, 255);
+  static const Color avatarFieldBackgroundColor = Color.from(
+    alpha: 1.0000,
+    red: 0.7490,
+    green: 0.7569,
+    blue: 1.0000,
+  );
 }
 
 class ThemeColors {
