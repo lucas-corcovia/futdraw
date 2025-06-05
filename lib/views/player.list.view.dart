@@ -309,19 +309,32 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceEvenly,
                                             children: [
-                                              OutlinedButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      ctx,
-                                                    ).pop(false),
-                                                child: const Text('Cancelar'),
+                                              Expanded(
+                                                child: OutlinedButton(
+                                                  onPressed:
+                                                      () => Navigator.of(
+                                                        ctx,
+                                                      ).pop(false),
+                                                  child: Text(
+                                                    'Cancelar',
+                                                    style: TextStyle(
+                                                      color:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .onPrimary,
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
-                                              FilledButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      ctx,
-                                                    ).pop(true),
-                                                child: const Text('Sim'),
+                                              const SizedBox(width: 15),
+                                              Expanded(
+                                                child: FilledButton(
+                                                  onPressed:
+                                                      () => Navigator.of(
+                                                        ctx,
+                                                      ).pop(true),
+                                                  child: const Text('Sim'),
+                                                ),
                                               ),
                                             ],
                                           ),
