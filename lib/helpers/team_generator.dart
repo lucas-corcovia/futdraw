@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:provider/provider.dart';
 
 import '../models/player.dart';
 import 'dart:math' as math;
@@ -32,6 +34,7 @@ class Team {
 
 class TeamGenerator {
   static List<Team> generateBalancedTeams({
+    required BuildContext context,
     required List<Player> players,
     required int numberOfTeams,
     required Group? group,
@@ -53,17 +56,35 @@ class TeamGenerator {
     );
 
     _distributePlayersShuffleEvenly(fieldPlayers, teams);
+
     _distributePlayersEvenly(captains, teams);
 
-    ConfigurationsController().configuration?.generationAlgorithm ==
-            GenerationAlgorithm.balanced
-        ? _balanceTeams(teams)
-        : _distributePlayersSnakeDraft(players, teams);
+    _balancedTeams(context, teams, players);
 
     _distributePlayersEvenly(goalkeepers, teams);
+
     teams.sort((a, b) => a.name.compareTo(b.name));
 
     return teams;
+  }
+
+  static void _balancedTeams(
+    BuildContext context,
+    List<Team> teams,
+    List<Player> players,
+  ) {
+    var algorithm =
+        context
+            .read<ConfigurationsController>()
+            .configuration
+            .generationAlgorithm;
+
+    switch (algorithm) {
+      case GenerationAlgorithm.balanced:
+        _distributePlayersBalanced(teams);
+      case GenerationAlgorithm.snakeDraft:
+        _distributePlayersSnakeDraft(players, teams);
+    }
   }
 
   static void _distributePlayersShuffleEvenly(
@@ -142,7 +163,7 @@ class TeamGenerator {
   }
 
   // Make final adjustments to balance team skills
-  static void _balanceTeams(List<Team> teams) {
+  static void _distributePlayersBalanced(List<Team> teams) {
     if (teams.length <= 1) return;
 
     bool improved = true;

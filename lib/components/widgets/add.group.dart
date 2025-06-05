@@ -59,11 +59,11 @@ class _AddGroupState extends State<AddGroup> {
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: _saveGroup,
-                  icon: Icon(
-                    Icons.save,
-                    color: Theme.of(context).colorScheme.onPrimary,
+                  icon: const Icon(Icons.save),
+                  label: Text(
+                    _isEditing ? 'Salvar Alterações' : 'Adicionar',
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -71,10 +71,6 @@ class _AddGroupState extends State<AddGroup> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                  icon: const Icon(Icons.save),
-                  label: Text(
-                    _isEditing ? 'Salvar Alterações' : 'Adicionar',
-                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],

@@ -1,19 +1,22 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:futdraw/models/configuration.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/enums/theme_color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ConfigurationsController {
+class ConfigurationsController extends ChangeNotifier {
   static const String _key = '_config';
-  Configuration? configuration;
-  static final ConfigurationsController _instance =
-      ConfigurationsController._internal();
-  factory ConfigurationsController() => _instance;
-  ConfigurationsController._internal();
+  Configuration? _configuration;
 
-  save(Configuration config) async {
+  Configuration get configuration =>
+      _configuration ??= Configuration(
+        generationAlgorithm: GenerationAlgorithm.balanced,
+        themeColor: ThemeColor.green,
+      );
+
+  void save() async {
     final prefs = await SharedPreferences.getInstance();
     final result = prefs.getString(_key);
 
@@ -21,31 +24,44 @@ class ConfigurationsController {
       prefs.remove(_key);
     }
 
-    final json = config.toJson();
+    final json = configuration.toJson();
     final jsonString = jsonEncode(json);
 
     await prefs.setString(_key, jsonString);
   }
 
-  Future<void> get() async {
+  Future<Configuration?> get() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_key);
       if (jsonString == null) {
-        configuration = Configuration(
+        _configuration = Configuration(
           generationAlgorithm: GenerationAlgorithm.balanced,
           themeColor: ThemeColor.green,
         );
-        await save(configuration!);
 
-        return;
+        save();
+
+        return _configuration;
       }
 
       final json = jsonDecode(jsonString);
-      configuration = Configuration.fromJson(json);
+      return Configuration.fromJson(json);
     } catch (e) {
-      return;
+      return null;
     }
+  }
+
+  void setTheme(ThemeColor value) {
+    _configuration!.themeColor = value;
+    save();
+    notifyListeners();
+  }
+
+  void setAlgorithm(GenerationAlgorithm value) {
+    _configuration!.generationAlgorithm = value;
+    save();
+    notifyListeners();
   }
 }
 
