@@ -22,16 +22,9 @@ class DrawView extends StatelessWidget {
       listen: false,
     );
     playerController.getAll(context);
-    // playerController.getAll();
-    // final int playersCount =
-    //     playerController.players.where((p) => !p.ehGoleiro).length;
-    // final int goalkeepersCount =
-    //     playerController.players.where((p) => p.ehGoleiro).length;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [Text('Sortear jogadores')],

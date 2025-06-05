@@ -68,8 +68,6 @@ class _AddPlayerState extends State<AddPlayer> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Jogador' : 'Novo Jogador'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
       body:
           _isLoading
@@ -86,15 +84,12 @@ class _AddPlayerState extends State<AddPlayer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Player Photo
             Center(
               child: Stack(
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: Theme.of(context).colorScheme.onSecondary,
                     backgroundImage: getProfilePicture(),
                     child:
                         _photoPath == null && _imageFile == null
@@ -237,11 +232,6 @@ class _AddPlayerState extends State<AddPlayer> {
                 const SizedBox(height: 8),
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.2),
-                    thumbColor: Theme.of(context).colorScheme.secondary,
                     trackHeight: 8.0,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 12.0,
@@ -275,7 +265,6 @@ class _AddPlayerState extends State<AddPlayer> {
             SwitchListTile(
               title: const Text('Capitão de Time'),
               subtitle: const Text('Designar este jogador como capitão'),
-              activeColor: Theme.of(context).colorScheme.tertiary,
               value: _isCaptain,
               onChanged: (value) {
                 setState(() {
@@ -293,7 +282,6 @@ class _AddPlayerState extends State<AddPlayer> {
             SwitchListTile(
               title: const Text('Reserva'),
               subtitle: const Text('Este jogador ficará no banco de reservas'),
-              activeColor: Theme.of(context).colorScheme.tertiary,
               value: _isSubstitute,
               onChanged: (value) {
                 setState(() {
@@ -309,18 +297,12 @@ class _AddPlayerState extends State<AddPlayer> {
               ),
             ),
             const SizedBox(height: 32),
-
             ElevatedButton(
               onPressed: _savePlayer,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              child: Text(
+                'Salvar',
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
-              child: Text('Salvar', style: const TextStyle(fontSize: 16)),
             ),
           ],
         ),

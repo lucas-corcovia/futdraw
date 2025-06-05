@@ -22,11 +22,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Adicionar Vários Jogadores'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      ),
+      appBar: AppBar(title: const Text('Adicionar Vários Jogadores')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -109,11 +105,6 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                     const SizedBox(height: 8),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: Theme.of(context).colorScheme.primary,
-                        inactiveTrackColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.2),
-                        thumbColor: Theme.of(context).colorScheme.secondary,
                         trackHeight: 8.0,
                         thumbShape: const RoundSliderThumbShape(
                           enabledThumbRadius: 12.0,
@@ -174,17 +165,10 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                 const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: _saveManyPlayers,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
+
+                  child: Text(
                     'Adicionar Todos',
-                    style: TextStyle(fontSize: 16),
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
               ],

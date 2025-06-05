@@ -17,6 +17,7 @@ class ChipItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ChoiceChip(
+        checkmarkColor: Theme.of(context).iconTheme.color,
         label: Text(
           name,
           style: TextStyle(
@@ -28,8 +29,6 @@ class ChipItem extends StatelessWidget {
           ),
         ),
         selected: isSelected,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        selectedColor: Theme.of(context).colorScheme.onPrimary,
         shape: StadiumBorder(
           side: BorderSide(
             color: Theme.of(context).colorScheme.onPrimary,

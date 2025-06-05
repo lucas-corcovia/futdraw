@@ -12,7 +12,9 @@ class FiltersPlayerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+      decoration: BoxDecoration(
+        color: Theme.of(context).appBarTheme.backgroundColor,
+      ),
       child: Padding(
         padding: const EdgeInsets.only(
           left: 12,

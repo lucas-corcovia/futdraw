@@ -72,8 +72,6 @@ class _PlayerListScreenState extends State<PlayerListScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.group.nome),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -109,14 +107,12 @@ class _PlayerListScreenState extends State<PlayerListScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Theme.of(context).colorScheme.onPrimary,
-          labelColor: Theme.of(context).colorScheme.onPrimary,
           labelStyle: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
-          unselectedLabelColor: Theme.of(context).colorScheme.outline,
-          isScrollable: false, // Agora as tabs ocupam todo o espaço
+          indicatorSize: TabBarIndicatorSize.tab,
+          isScrollable: false,
           tabs: const [Tab(text: 'Titulares'), Tab(text: 'Reservas')],
         ),
       ),
@@ -163,7 +159,6 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                         Expanded(
                           child: TabBarView(
                             controller: _tabController,
-
                             children: [
                               TitularesList(
                                 group: widget.group,
@@ -250,8 +245,6 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                 ),
               ).then((_) => _refreshPlayers());
             },
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Theme.of(context).colorScheme.onSecondary,
             tooltip: 'Adicionar Jogador',
             child: const Icon(Icons.add),
           ),
@@ -278,11 +271,7 @@ class _PlayerListScreenState extends State<PlayerListScreen>
         fullscreenDialog: true,
         builder: (context) {
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('Substituir Jogador'),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-            ),
+            appBar: AppBar(title: const Text('Substituir Jogador')),
             body:
                 reservas.isEmpty
                     ? const Center(

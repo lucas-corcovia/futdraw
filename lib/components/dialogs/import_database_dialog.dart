@@ -21,8 +21,8 @@ class _ImportDatabaseDialogState extends State<ImportDatabaseDialog> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
       if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        final success = await DBHelper.importDatabaseFromFile(filePath);
+        final directory = await DBHelper.getDefaultDatabaseStorage();
+        final success = await DBHelper.importDatabaseFromFile(directory.path);
         setState(() {
           _message =
               success
@@ -62,11 +62,14 @@ class _ImportDatabaseDialogState extends State<ImportDatabaseDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Fechar'),
+          child: Text('Fechar', style: Theme.of(context).textTheme.bodyLarge),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _importDatabase,
-          child: const Text('Selecionar Arquivo'),
+          child: Text(
+            'Selecionar Arquivo',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
         ),
       ],
     );

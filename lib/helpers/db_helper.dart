@@ -72,45 +72,74 @@ class DBHelper {
       final dbFile = File(dbFilePath);
       if (!await dbFile.exists()) return null;
 
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) return null;
-      final documentsDir = Directory('${directory.path}/Documents');
+      var documentsDir = await _getDefaultExportDirectory();
       if (!await documentsDir.exists()) {
         await documentsDir.create(recursive: true);
       }
+
       final exportFile = File(join(documentsDir.path, '${dbName}_backup.db'));
+
       await dbFile.copy(exportFile.path);
       return exportFile;
     } catch (e) {
-      // Log de erro pode ser adicionado aqui
       return null;
     }
   }
 
-  /// Importa um banco de dados selecionado pelo usuário
-  /// O caminho do arquivo deve ser fornecido externamente
+  static Future<Directory> _getDefaultExportDirectory() async {
+    if (Platform.isAndroid) {
+      final downloadsDir = await getExternalStorageDirectory();
+      if (downloadsDir != null) {
+        final downloadsPath = Directory('${downloadsDir.path}/Downloads');
+        if (await downloadsPath.exists()) {
+          return downloadsPath;
+        } else {
+          await downloadsPath.create(recursive: true);
+          return downloadsPath;
+        }
+      } else {
+        throw Exception(
+          'Não foi possível acessar o diretório de armazenamento externo.',
+        );
+      }
+    } else if (Platform.isIOS) {
+      final downloadsDir = await getApplicationDocumentsDirectory();
+      return Directory('${downloadsDir.path}/Downloads');
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      final downloadsDir = Directory(
+        '${Platform.environment['USERPROFILE'] ?? Platform.environment['HOME']}/Downloads',
+      );
+      return downloadsDir;
+    } else {
+      throw UnsupportedError(
+        'Plataforma não suportada para exportação de banco de dados.',
+      );
+    }
+  }
+
+  static Future<Directory> getDefaultDatabaseStorage() =>
+      _getDefaultExportDirectory();
+
   static Future<bool> importDatabaseFromFile(String importFilePath) async {
     try {
       final importFile = File(importFilePath);
       if (!await importFile.exists()) return false;
+
       final dbFolder = await getDatabasesPath();
       final dbFilePath = join(dbFolder, dbName);
       if (await File(dbFilePath).exists()) {
         await deleteDatabase(dbFilePath);
       }
+
       await importFile.copy(dbFilePath);
       return true;
     } catch (e) {
-      // Log de erro pode ser adicionado aqui
       return false;
     }
   }
 
-  /// Retorna o caminho do banco de dados
   static Future<String> getDatabasePath() async {
     final dbPath = await getDatabasesPath();
     return join(dbPath, dbName);
   }
 }
-
-// Fim do arquivo DBHelper
