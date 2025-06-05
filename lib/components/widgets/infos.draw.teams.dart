@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/configurations_controller.dart';
+import 'package:futdraw/models/enums/generation_algorithm.dart';
+import 'package:provider/provider.dart';
 
 class InfoDrawTeams extends StatelessWidget {
   const InfoDrawTeams({super.key});
 
   @override
   Widget build(BuildContext context) {
+    var algo =
+        context
+            .read<ConfigurationsController>()
+            .configuration
+            .generationAlgorithm;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -24,19 +32,7 @@ class InfoDrawTeams extends StatelessWidget {
             Icons.stars,
           ),
           const Divider(),
-          _buildInfoSection(
-            context,
-            'Método Snake Draft',
-            'Os jogadores são ordenados por habilidade e distribuídos em formato zigzag (1->2->3->3->2->1) para garantir equilíbrio.',
-            Icons.shuffle,
-          ),
-          const Divider(),
-          _buildInfoSection(
-            context,
-            'Balanceamento Final',
-            'Ao final, o algoritmo tenta trocar jogadores entre times para minimizar a diferença de habilidade média.',
-            Icons.balance,
-          ),
+          _getAlgorithmInfo(context, algo),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
@@ -81,5 +77,24 @@ class InfoDrawTeams extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  _getAlgorithmInfo(BuildContext context, GenerationAlgorithm algorithm) {
+    switch (algorithm) {
+      case GenerationAlgorithm.snakeDraft:
+        return _buildInfoSection(
+          context,
+          'Método Snake Draft',
+          'Os jogadores são ordenados por habilidade e distribuídos em formato zigzag (1->2->3->3->2->1) para garantir equilíbrio.',
+          Icons.shuffle,
+        );
+      case GenerationAlgorithm.balanced:
+        return _buildInfoSection(
+          context,
+          'Balanceamento',
+          'O algoritmo tenta trocar jogadores entre times para minimizar a diferença de habilidade média.',
+          Icons.balance,
+        );
+    }
   }
 }
