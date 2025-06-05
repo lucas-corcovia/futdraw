@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/modal.dart';
-import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
