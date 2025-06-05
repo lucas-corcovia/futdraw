@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
@@ -129,5 +130,27 @@ class PlayerController extends ChangeNotifier {
 
     showedPositions = newList;
     notifyListeners();
+  }
+
+  Future<void> copyPlayersToClipboard(BuildContext context) async {
+    try {
+      final playersList = await repository.getAll();
+      final buffer = StringBuffer();
+
+      for (final player in playersList) {
+        buffer.writeln(
+          '${player.nome} - Nota: ${player.nota.toStringAsFixed(1)}',
+        );
+      }
+
+      await Clipboard.setData(ClipboardData(text: buffer.toString()));
+      Toast.show(
+        context,
+        'Jogadores copiados para a área de transferência!',
+        false,
+      );
+    } catch (e) {
+      Toast.show(context, 'Erro ao copiar jogadores: $e', true);
+    }
   }
 }

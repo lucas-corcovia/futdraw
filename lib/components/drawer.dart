@@ -4,11 +4,21 @@ import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/helpers/db_helper.dart';
 import 'package:futdraw/components/dialogs/import_database_dialog.dart';
 import 'package:futdraw/components/dialogs/export_database_dialog.dart';
+import 'package:futdraw/models/configuration.dart';
+import 'package:futdraw/models/enums/generation_algorithm.dart';
+import 'package:futdraw/models/enums/theme_color.dart';
 import 'package:provider/provider.dart';
 
+class DrawerComponent extends StatefulWidget {
+  const DrawerComponent({super.key});
 class DrawerComponent extends StatelessWidget {
   const DrawerComponent({super.key});
 
+  @override
+  State<DrawerComponent> createState() => _DrawerComponentState();
+}
+
+class _DrawerComponentState extends State<DrawerComponent> {
   @override
   Widget build(BuildContext context) {
     var isProduction = bool.fromEnvironment('dart.vm.product');
@@ -63,6 +73,86 @@ class DrawerComponent extends StatelessWidget {
                   context.read<GroupController>().getAll();
                 }
               },
+            ),
+          ListTile(
+            leading: Icon(Icons.shuffle),
+            title: Row(
+              children: [
+                Expanded(
+                  child: DropdownButton<GenerationAlgorithm>(
+                    isExpanded: true,
+                    value:
+                        ConfigurationsController()
+                            .configuration
+                            ?.generationAlgorithm ??
+                        GenerationAlgorithm.balanced,
+                    items:
+                        GenerationAlgorithm.values.map((algo) {
+                          return DropdownMenuItem(
+                            value: algo,
+                            child: Text(
+                              algo == GenerationAlgorithm.balanced
+                                  ? 'Balanceado'
+                                  : 'Snake Draft',
+                            ),
+                          );
+                        }).toList(),
+                    onChanged: (value) async {
+                      if (value != null) {
+                        setState(() {
+                          ConfigurationsController()
+                              .configuration
+                              ?.generationAlgorithm = value;
+
+                          Future.delayed(Duration(), () async {
+                            await ConfigurationsController().save(
+                              ConfigurationsController().configuration!,
+                            );
+                          });
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.color_lens),
+            title: Row(
+              children: [
+                Expanded(
+                  child: DropdownButton<ThemeColor>(
+                    isExpanded: true,
+                    value:
+                        ConfigurationsController().configuration?.themeColor ??
+                        ThemeColor.green,
+                    items:
+                        ThemeColor.values.map((color) {
+                          return DropdownMenuItem(
+                            value: color,
+                            child: Text(Configuration.getColorThemeName(color)),
+                          );
+                        }).toList(),
+                    onChanged: (value) async {
+                      if (value != null) {
+                        setState(() {
+                          ConfigurationsController().configuration?.themeColor =
+                              value;
+
+                          Future.delayed(Duration(), () async {
+                            await ConfigurationsController().save(
+                              ConfigurationsController().configuration!,
+                            );
+                          });
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
             ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/controllers/group_controller.dart';
+import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/views/player.list.view.dart';
 import 'package:provider/provider.dart';
@@ -137,6 +138,23 @@ class GroupItem extends StatelessWidget {
                           title: const Text('Gerar Times'),
                         ),
                         onTap: () {},
+                      ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.copy_all,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          title: const Text(
+                            'Copiar jogadores para área de transferência',
+                          ),
+                        ),
+                        onTap: () async {
+                          await context
+                              .read<PlayerController>()
+                              .copyPlayersToClipboard(context);
+                        },
                       ),
                     ],
               ),

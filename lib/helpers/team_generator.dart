@@ -1,3 +1,5 @@
+import 'package:futdraw/controllers/configurations_controller.dart';
+import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/group.dart';
 
 import '../models/player.dart';
@@ -29,7 +31,6 @@ class Team {
 }
 
 class TeamGenerator {
-  // Generate teams with balanced skills
   static List<Team> generateBalancedTeams({
     required List<Player> players,
     required int numberOfTeams,
@@ -38,14 +39,12 @@ class TeamGenerator {
     if (numberOfTeams <= 0 || players.isEmpty) {
       return [];
     }
+
     final fieldPlayers =
         players.where((p) => !p.isGoalkeeper).toList()..shuffle();
-
     final goalkeepers =
         players.where((p) => p.isGoalkeeper).toList()..shuffle();
-
     final captains = fieldPlayers.where((p) => p.ehCapitao).toList()..shuffle();
-
     fieldPlayers.removeWhere((p) => p.ehCapitao);
 
     List<Team> teams = List.generate(
@@ -54,14 +53,16 @@ class TeamGenerator {
     );
 
     _distributePlayersShuffleEvenly(fieldPlayers, teams);
-
     _distributePlayersEvenly(captains, teams);
 
-    _balanceTeams(teams);
+    ConfigurationsController().configuration?.generationAlgorithm ==
+            GenerationAlgorithm.balanced
+        ? _balanceTeams(teams)
+        : _distributePlayersSnakeDraft(players, teams);
 
     _distributePlayersEvenly(goalkeepers, teams);
-
     teams.sort((a, b) => a.name.compareTo(b.name));
+
     return teams;
   }
 

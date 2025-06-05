@@ -1,0 +1,1 @@
+enum GenerationAlgorithm { balanced, snakeDraft }
