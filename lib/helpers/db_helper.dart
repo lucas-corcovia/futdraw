@@ -87,8 +87,34 @@ class DBHelper {
   }
 
   static Future<Directory> _getDefaultExportDirectory() async {
-    final directory = await getDownloadsDirectory();
-    return Directory('${directory!.path}/$dbName');
+    if (Platform.isAndroid) {
+      final downloadsDir = await getExternalStorageDirectory();
+      if (downloadsDir != null) {
+        final downloadsPath = Directory('${downloadsDir.path}/Downloads');
+        if (await downloadsPath.exists()) {
+          return downloadsPath;
+        } else {
+          await downloadsPath.create(recursive: true);
+          return downloadsPath;
+        }
+      } else {
+        throw Exception(
+          'Não foi possível acessar o diretório de armazenamento externo.',
+        );
+      }
+    } else if (Platform.isIOS) {
+      final downloadsDir = await getApplicationDocumentsDirectory();
+      return Directory('${downloadsDir.path}/Downloads');
+    } else if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      final downloadsDir = Directory(
+        '${Platform.environment['USERPROFILE'] ?? Platform.environment['HOME']}/Downloads',
+      );
+      return downloadsDir;
+    } else {
+      throw UnsupportedError(
+        'Plataforma não suportada para exportação de banco de dados.',
+      );
+    }
   }
 
   static Future<Directory> getDefaultDatabaseStorage() =>
