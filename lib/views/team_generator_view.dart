@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/helpers/team_generator.dart';
@@ -55,6 +56,20 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
           backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    if (players.where((p) => p.ehCapitao).toList().length != _numberOfTeams) {
+      Toast.show(
+        context,
+        'O número de capitães deve ser o mesmo do número de times!',
+        true,
+        duration: 5,
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
 

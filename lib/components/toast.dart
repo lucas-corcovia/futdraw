@@ -3,9 +3,20 @@ import 'package:flutter/material.dart';
 class Toast extends StatelessWidget {
   final String message;
   bool isError;
-  Toast({super.key, required this.message, this.isError = false});
+  int duration;
+  Toast({
+    super.key,
+    required this.message,
+    this.isError = false,
+    this.duration = 3,
+  });
 
-  static void show(BuildContext context, String message, bool isError) {
+  static void show(
+    BuildContext context,
+    String message,
+    bool isError, {
+    int duration = 3,
+  }) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
       builder:
@@ -13,13 +24,17 @@ class Toast extends StatelessWidget {
             bottom: 50.0,
             left: 20.0,
             right: 20.0,
-            child: Toast(message: message, isError: isError),
+            child: Toast(
+              message: message,
+              isError: isError,
+              duration: duration,
+            ),
           ),
     );
 
     overlay.insert(overlayEntry);
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: duration), () {
       overlayEntry.remove();
     });
   }

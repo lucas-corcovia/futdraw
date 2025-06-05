@@ -77,4 +77,27 @@ class Player {
       position: position ?? this.position,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'grupoId': grupoId,
+      'nome': nome,
+      'nota': nota,
+      'urlFoto': urlFoto,
+      'capitao': ehCapitao ? 1 : 0,
+      'reserva': reserva ? 1 : 0,
+      'posicao': position.index,
+    };
+  }
+
+  static List<Map<String, dynamic>> fromListToJson(List<Player> players) {
+    return players.map((player) => player.toJson()).toList();
+  }
+
+  static List<Player> fromJsonToList(List<dynamic> jsonList) {
+    return jsonList
+        .map((item) => Player.fromMap(item as Map<String, dynamic>))
+        .toList();
+  }
 }
