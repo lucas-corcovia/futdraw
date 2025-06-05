@@ -20,19 +20,26 @@ class InfoDrawTeams extends StatelessWidget {
         children: [
           _buildInfoSection(
             context,
-            'Separação de Goleiros',
-            'Os goleiros são distribuídos primeiro para garantir que cada time tenha um goleiro, se possível.',
-            Icons.sports_handball,
+            'Jogadores de linha',
+            'Os jogadores de linha são distribuídos primeiro para garantir que cada time tenha a mesma quantidade de jogadores.',
+            Icons.social_distance_sharp,
           ),
           const Divider(),
           _buildInfoSection(
             context,
             'Distribuição de Capitães',
-            'Capitães são distribuídos em times diferentes. Nunca haverá dois capitães no mesmo time, a menos que haja mais capitães que times.',
+            'Nunca haverá dois capitães no mesmo time, a menos que haja mais capitães que times.',
             Icons.stars,
           ),
           const Divider(),
           _getAlgorithmInfo(context, algo),
+          const Divider(),
+          _buildInfoSection(
+            context,
+            'Separação de Goleiros',
+            'Ao final, os goleiros são distribuídos para que cada time tenha um goleiro, se possível.',
+            Icons.sports_handball,
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
