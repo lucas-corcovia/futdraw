@@ -21,8 +21,8 @@ class _ImportDatabaseDialogState extends State<ImportDatabaseDialog> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
       if (result != null && result.files.single.path != null) {
-        final filePath = result.files.single.path!;
-        final success = await DBHelper.importDatabaseFromFile(filePath);
+        final directory = await DBHelper.getDefaultDatabaseStorage();
+        final success = await DBHelper.importDatabaseFromFile(directory.path);
         setState(() {
           _message =
               success

@@ -48,8 +48,6 @@ class TeamGenerator {
 
     fieldPlayers.removeWhere((p) => p.ehCapitao);
 
-    //fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
-
     List<Team> teams = List.generate(
       numberOfTeams,
       (index) => Team(name: 'Time ${index + 1}', players: []),

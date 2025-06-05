@@ -26,7 +26,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
     super.initState();
     _numberOfTeams = 2; // Default to 2 teams
     _selectedGroup = widget.preselectedGroup;
-    _generateTeams();
   }
 
   void _generateTeams() async {
@@ -70,7 +69,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
     });
 
     if (teams.isNotEmpty) {
-      // Navigate to teams display screen
       Navigator.push(
         context,
         MaterialPageRoute(

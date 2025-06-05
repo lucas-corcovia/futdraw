@@ -72,10 +72,7 @@ class DBHelper {
       final dbFile = File(dbFilePath);
       if (!await dbFile.exists()) return null;
 
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) return null;
-
-      final documentsDir = Directory('${directory.path}/Documents');
+      var documentsDir = await _getDefaultExportDirectory();
       if (!await documentsDir.exists()) {
         await documentsDir.create(recursive: true);
       }
@@ -88,6 +85,14 @@ class DBHelper {
       return null;
     }
   }
+
+  static Future<Directory> _getDefaultExportDirectory() async {
+    final directory = await getDownloadsDirectory();
+    return Directory('${directory!.path}/$dbName');
+  }
+
+  static Future<Directory> getDefaultDatabaseStorage() =>
+      _getDefaultExportDirectory();
 
   static Future<bool> importDatabaseFromFile(String importFilePath) async {
     try {
@@ -107,11 +112,8 @@ class DBHelper {
     }
   }
 
-  /// Retorna o caminho do banco de dados
   static Future<String> getDatabasePath() async {
     final dbPath = await getDatabasesPath();
     return join(dbPath, dbName);
   }
 }
-
-// Fim do arquivo DBHelper
