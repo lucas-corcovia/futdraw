@@ -42,8 +42,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    var isProduction = bool.fromEnvironment('dart.vm.product');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('FutDraw - Sorteio de Times'),
@@ -55,7 +53,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
       ),
-      drawer: !isProduction ? DrawerComponent() : null,
+      drawer: DrawerComponent(),
       body:
           _isLoading ? Center(child: CircularProgressIndicator()) : GroupList(),
       floatingActionButton: Column(

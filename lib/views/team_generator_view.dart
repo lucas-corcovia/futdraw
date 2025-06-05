@@ -59,7 +59,9 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
       return;
     }
 
-    if (players.where((p) => p.ehCapitao).toList().length != _numberOfTeams) {
+    var captainsCount = players.where((p) => p.ehCapitao).toList().length;
+
+    if (captainsCount > 0 && captainsCount != _numberOfTeams) {
       Toast.show(
         context,
         'O número de capitães deve ser o mesmo do número de times!',

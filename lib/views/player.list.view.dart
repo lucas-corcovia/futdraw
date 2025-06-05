@@ -189,7 +189,10 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                                       reservas
                                           .where(
                                             (r) =>
-                                                r.position == player.position,
+                                                player.isGoalkeeper
+                                                    ? player.position ==
+                                                        r.position
+                                                    : true,
                                           )
                                           .toList();
                                   await _showSwapScreen(
