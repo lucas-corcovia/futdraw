@@ -302,9 +302,13 @@ class _AddPlayerState extends State<AddPlayer> {
               ),
             ),
             const SizedBox(height: 32),
-            ElevatedButton(
+            ElevatedButton.icon(
+              icon: Icon(
+                Icons.save,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
               onPressed: _savePlayer,
-              child: Text(
+              label: Text(
                 'Salvar',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),

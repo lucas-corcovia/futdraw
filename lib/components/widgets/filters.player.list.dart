@@ -31,6 +31,7 @@ class FiltersPlayerList extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onPrimary,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.normal,
+                  fontSize: 15,
                 ),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(

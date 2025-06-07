@@ -63,7 +63,7 @@ flutter_icons:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/images/splash.logo.png
+  image: "assets/images/newsplash.png"
   android: true
   ios: true
 
@@ -96,7 +96,9 @@ flutter:
     - assets/images/jogador_nao_encontrado.png
     - assets/images/home.png
     - assets/images/user.png
-    - assets/images/sortear.png
+    - assets/images/sortear.png      
+    - assets/images/logo.png
+    - assets/images/newsplash.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
