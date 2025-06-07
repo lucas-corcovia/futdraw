@@ -23,6 +23,7 @@ class _DrawerComponentState extends State<DrawerComponent> {
     var isProduction = bool.fromEnvironment('dart.vm.product');
 
     return Drawer(
+      elevation: 8,
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[

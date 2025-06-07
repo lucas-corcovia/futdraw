@@ -64,17 +64,24 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           teamB != null &&
           playerAIndex != -1 &&
           playerBIndex != -1) {
-        // Create copies of the player lists
-        final List<Player> newTeamAPlayers = List.from(teamA.players);
-        final List<Player> newTeamBPlayers = List.from(teamB.players);
+        if (teamAIndex == teamBIndex) {
+          // Troca dentro do mesmo time
+          final List<Player> newPlayers = List.from(teamA.players);
+          final temp = newPlayers[playerAIndex];
+          newPlayers[playerAIndex] = newPlayers[playerBIndex];
+          newPlayers[playerBIndex] = temp;
+          _teams[teamAIndex] = Team(name: teamA.name, players: newPlayers);
+        } else {
+          // Troca entre times diferentes
+          final List<Player> newTeamAPlayers = List.from(teamA.players);
+          final List<Player> newTeamBPlayers = List.from(teamB.players);
 
-        // Swap the players
-        newTeamAPlayers[playerAIndex] = playerB;
-        newTeamBPlayers[playerBIndex] = playerA;
+          newTeamAPlayers[playerAIndex] = playerB;
+          newTeamBPlayers[playerBIndex] = playerA;
 
-        // Update the teams
-        _teams[teamAIndex] = Team(name: teamA.name, players: newTeamAPlayers);
-        _teams[teamBIndex] = Team(name: teamB.name, players: newTeamBPlayers);
+          _teams[teamAIndex] = Team(name: teamA.name, players: newTeamAPlayers);
+          _teams[teamBIndex] = Team(name: teamB.name, players: newTeamBPlayers);
+        }
       }
     });
   }
@@ -107,6 +114,22 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                 _showField = !_showField;
               });
             },
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.tune),
+            tooltip: 'Opções de tática',
+            onSelected: (value) {
+              if (value == 'tactic') {
+                _reorganizeTeamByTactic(_tabController.index);
+              }
+            },
+            itemBuilder:
+                (context) => [
+                  const PopupMenuItem(
+                    value: 'tactic',
+                    child: Text('Reorganizar por tática'),
+                  ),
+                ],
           ),
           IconButton(
             icon: const Icon(Icons.share),
@@ -461,8 +484,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                 child: DragTarget<Player>(
                   onWillAccept: (incomingPlayer) {
                     return incomingPlayer != null &&
-                        incomingPlayer.id != player.id &&
-                        _canDragPlayer(incomingPlayer);
+                        incomingPlayer.id != player.id;
                   },
                   onAccept: (incomingPlayer) {
                     _swapPlayers(player, incomingPlayer);
@@ -478,8 +500,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               : DragTarget<Player>(
                 onWillAccept: (incomingPlayer) {
                   return incomingPlayer != null &&
-                      incomingPlayer.id != player.id &&
-                      _canDragPlayer(incomingPlayer);
+                      incomingPlayer.id != player.id;
                 },
                 onAccept: (incomingPlayer) {
                   _swapPlayers(player, incomingPlayer);
@@ -566,5 +587,68 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       case PlayerPosition.striker:
         return 'Atacante';
     }
+  }
+
+  void _reorganizeTeamByTactic(int teamIndex) {
+    final team = _teams[teamIndex];
+    final goalkeepers =
+        team.players
+            .where((p) => p.position == PlayerPosition.goalkeeper)
+            .toList();
+    final fieldPlayers =
+        team.players
+            .where((p) => p.position != PlayerPosition.goalkeeper)
+            .toList();
+
+    // Exemplo de tática para 6 jogadores de linha: 2 defensores, 3 meias, 1 atacante
+    int defendersCount = 2;
+    int midfieldersCount = 3;
+    int forwardsCount = 1;
+
+    // Ajusta se tiver menos jogadores
+    int totalField = fieldPlayers.length;
+    if (totalField < 6) {
+      defendersCount = (totalField / 3).floor();
+      midfieldersCount = (totalField / 2).floor();
+      forwardsCount = totalField - defendersCount - midfieldersCount;
+      if (defendersCount < 1) defendersCount = 1;
+      if (midfieldersCount < 1) midfieldersCount = 1;
+      if (forwardsCount < 1) forwardsCount = 1;
+    }
+
+    // Ordena por nota para distribuir os melhores
+    fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
+
+    final defenders = fieldPlayers.take(defendersCount).toList();
+    final midfielders =
+        fieldPlayers.skip(defendersCount).take(midfieldersCount).toList();
+    final forwards =
+        fieldPlayers
+            .skip(defendersCount + midfieldersCount)
+            .take(forwardsCount)
+            .toList();
+
+    // Atualiza as posições
+    for (var p in defenders) {
+      p.position = PlayerPosition.defender;
+    }
+    for (var p in midfielders) {
+      p.position = PlayerPosition.midfielder;
+    }
+    for (var p in forwards) {
+      p.position = PlayerPosition.striker;
+    }
+
+    // Junta tudo (mantendo goleiros)
+    final newPlayers = [
+      ...goalkeepers,
+      ...defenders,
+      ...midfielders,
+      ...forwards,
+    ];
+
+    setState(() {
+      _teams[teamIndex] = Team(name: team.name, players: newPlayers);
+    });
   }
 }

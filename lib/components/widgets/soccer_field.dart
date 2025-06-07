@@ -25,6 +25,7 @@ class _SoccerFieldState extends State<SoccerField> {
   List<Player> _midfielders = [];
   List<Player> _forwards = [];
   bool isFreeEditMode = false;
+  Player? _selectedPlayer;
 
   @override
   void initState() {
@@ -226,7 +227,6 @@ class _SoccerFieldState extends State<SoccerField> {
     return positioned;
   }
 
-  // Altere o método _buildDraggablePlayer para:
   Widget _buildDraggablePlayer(Player player, String position) {
     if (isFreeEditMode) {
       // No modo livre, não usa DragTarget, apenas Draggable
@@ -234,20 +234,35 @@ class _SoccerFieldState extends State<SoccerField> {
     }
     return DragTarget<Player>(
       onWillAccept: (incomingPlayer) {
-        // Permite apenas troca entre posições iguais
-        return incomingPlayer != null &&
-            incomingPlayer.position == player.position;
+        // Permite trocar com qualquer jogador, exceto ele mesmo
+        return incomingPlayer != null && incomingPlayer.id != player.id;
       },
       onAccept: (incomingPlayer) {
         widget.onPlayersSwapped(player, incomingPlayer);
+        setState(() {
+          _selectedPlayer = null;
+        });
       },
       builder: (context, candidateData, rejectedData) {
         final isHighlighted = candidateData.isNotEmpty;
-        return Draggable<Player>(
-          data: player,
-          feedback: _buildPlayerAvatar(player, 60, isHighlighted: true),
-          childWhenDragging: _buildPlayerAvatar(player, 60, opacity: 0.3),
-          child: _buildPlayerAvatar(player, 60, isHighlighted: isHighlighted),
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              if (_selectedPlayer == null) {
+                _selectedPlayer = player;
+              } else if (_selectedPlayer!.id == player.id) {
+                _selectedPlayer = null;
+              } else {
+                widget.onPlayersSwapped(_selectedPlayer!, player);
+                _selectedPlayer = null;
+              }
+            });
+          },
+          child: _buildPlayerAvatar(
+            player,
+            60,
+            isHighlighted: _selectedPlayer?.id == player.id || isHighlighted,
+          ),
         );
       },
     );
