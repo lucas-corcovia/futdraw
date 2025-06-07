@@ -115,21 +115,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               });
             },
           ),
-          PopupMenuButton<String>(
+
+          IconButton(
             icon: const Icon(Icons.tune),
-            tooltip: 'Opções de tática',
-            onSelected: (value) {
-              if (value == 'tactic') {
-                _reorganizeTeamByTactic(_tabController.index);
-              }
+            tooltip: 'Reorganizar por Tática',
+            onPressed: () {
+              _reorganizeTeamByTactic(_tabController.index);
             },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(
-                    value: 'tactic',
-                    child: Text('Reorganizar por tática'),
-                  ),
-                ],
           ),
           IconButton(
             icon: const Icon(Icons.share),
@@ -595,56 +587,95 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         team.players
             .where((p) => p.position == PlayerPosition.goalkeeper)
             .toList();
-    final fieldPlayers =
+    final defenders =
         team.players
-            .where((p) => p.position != PlayerPosition.goalkeeper)
+            .where((p) => p.position == PlayerPosition.defender)
+            .toList();
+    final midfielders =
+        team.players
+            .where((p) => p.position == PlayerPosition.midfielder)
+            .toList();
+    final forwards =
+        team.players
+            .where((p) => p.position == PlayerPosition.striker)
             .toList();
 
-    // Exemplo de tática para 6 jogadores de linha: 2 defensores, 3 meias, 1 atacante
     int defendersCount = 2;
     int midfieldersCount = 3;
     int forwardsCount = 1;
+    int totalField =
+        team.players
+            .where((p) => p.position != PlayerPosition.goalkeeper)
+            .length;
 
-    // Ajusta se tiver menos jogadores
-    int totalField = fieldPlayers.length;
-    if (totalField < 6) {
-      defendersCount = (totalField / 3).floor();
-      midfieldersCount = (totalField / 2).floor();
-      forwardsCount = totalField - defendersCount - midfieldersCount;
-      if (defendersCount < 1) defendersCount = 1;
-      if (midfieldersCount < 1) midfieldersCount = 1;
-      if (forwardsCount < 1) forwardsCount = 1;
+    if (totalField == 6) {
+      defendersCount = 2;
+      midfieldersCount = 3;
+      forwardsCount = 1;
+    } else if (totalField == 5) {
+      defendersCount = 2;
+      midfieldersCount = 2;
+      forwardsCount = 1;
+    } else if (totalField == 4) {
+      defendersCount = 1;
+      midfieldersCount = 2;
+      forwardsCount = 1;
     }
 
-    // Ordena por nota para distribuir os melhores
-    fieldPlayers.sort((a, b) => b.nota.compareTo(a.nota));
+    List<Player> allDefenders = List.from(defenders)
+      ..sort((a, b) => b.nota.compareTo(a.nota));
+    List<Player> allMidfielders = List.from(midfielders)
+      ..sort((a, b) => b.nota.compareTo(a.nota));
+    List<Player> allForwards = List.from(forwards)
+      ..sort((a, b) => b.nota.compareTo(a.nota));
 
-    final defenders = fieldPlayers.take(defendersCount).toList();
-    final midfielders =
-        fieldPlayers.skip(defendersCount).take(midfieldersCount).toList();
-    final forwards =
-        fieldPlayers
-            .skip(defendersCount + midfieldersCount)
-            .take(forwardsCount)
-            .toList();
-
-    // Atualiza as posições
-    for (var p in defenders) {
-      p.position = PlayerPosition.defender;
-    }
-    for (var p in midfielders) {
-      p.position = PlayerPosition.midfielder;
-    }
-    for (var p in forwards) {
-      p.position = PlayerPosition.striker;
+    // 1. Move defensores excedentes para meia
+    while (allMidfielders.length < midfieldersCount &&
+        allDefenders.length > defendersCount) {
+      final moved = allDefenders.removeLast();
+      moved.position = PlayerPosition.midfielder;
+      allMidfielders.add(moved);
     }
 
-    // Junta tudo (mantendo goleiros)
+    // 2. Move meias para defensor se faltar defensor
+    while (allDefenders.length < defendersCount && allMidfielders.isNotEmpty) {
+      final moved = allMidfielders.removeAt(0);
+      moved.position = PlayerPosition.defender;
+      allDefenders.add(moved);
+    }
+
+    // 3. Move atacantes para meia se faltar meia
+    while (allMidfielders.length < midfieldersCount && allForwards.isNotEmpty) {
+      final moved = allForwards.removeAt(0);
+      moved.position = PlayerPosition.midfielder;
+      allMidfielders.add(moved);
+    }
+
+    // 4. Move meias para atacante se faltar atacante (mantendo o meio-campo)
+    while (allForwards.length < forwardsCount &&
+        allMidfielders.length > midfieldersCount) {
+      final moved = allMidfielders.removeLast();
+      moved.position = PlayerPosition.striker;
+      allForwards.add(moved);
+    }
+
+    // 5. Se ainda faltar atacante, mova um meia mesmo que o meio-campo fique incompleto
+    while (allForwards.length < forwardsCount && allMidfielders.isNotEmpty) {
+      final moved = allMidfielders.removeLast();
+      moved.position = PlayerPosition.striker;
+      allForwards.add(moved);
+    }
+
+    // Garante que não há mais do que o necessário em cada posição
+    allDefenders = allDefenders.take(defendersCount).toList();
+    allMidfielders = allMidfielders.take(midfieldersCount).toList();
+    allForwards = allForwards.take(forwardsCount).toList();
+
     final newPlayers = [
       ...goalkeepers,
-      ...defenders,
-      ...midfielders,
-      ...forwards,
+      ...allDefenders,
+      ...allMidfielders,
+      ...allForwards,
     ];
 
     setState(() {
