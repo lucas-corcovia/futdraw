@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/widgets/add.group.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/enums/theme_color.dart';
@@ -65,6 +66,34 @@ extension GenerationAlgorithmExtension on GenerationAlgorithm {
         return 'Balanceado';
       case GenerationAlgorithm.snakeDraft:
         return 'Snake Draft';
+    }
+  }
+}
+
+extension FieldTypeExtension on FieldType {
+  int get defaultPlayersPerTeam {
+    switch (this) {
+      case FieldType.quadra:
+        return 5;
+      case FieldType.campo:
+        return 11;
+      case FieldType.society:
+        return 7;
+      case FieldType.livre:
+        return 0;
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case FieldType.quadra:
+        return "Quadra";
+      case FieldType.campo:
+        return "Campo";
+      case FieldType.society:
+        return "Society";
+      case FieldType.livre:
+        return "Livre";
     }
   }
 }

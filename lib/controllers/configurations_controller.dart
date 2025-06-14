@@ -41,7 +41,6 @@ class ConfigurationsController extends ChangeNotifier {
         );
 
         save();
-
         return _configuration;
       }
 
