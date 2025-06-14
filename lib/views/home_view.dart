@@ -44,7 +44,7 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FutDraw - Sorteio de Times'),
+        title: const Text('FutDraw'),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
