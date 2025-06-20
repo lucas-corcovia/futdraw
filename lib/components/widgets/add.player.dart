@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/modal.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/imgbb_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
@@ -92,18 +94,24 @@ class _AddPlayerState extends State<AddPlayer> {
             Center(
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Theme.of(context).colorScheme.onSecondary,
-                    backgroundImage: getProfilePicture(),
-                    child:
-                        _photoPath == null && _imageFile == null
-                            ? Icon(
-                              Icons.person,
-                              size: 60,
-                              color: Theme.of(context).colorScheme.primary,
-                            )
-                            : null,
+                  GestureDetector(
+                    onTap: () {
+                      _deletePlayerPhoto();
+                    },
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.onSecondary,
+                      backgroundImage: getProfilePicture(),
+                      child:
+                          _photoPath == null && _imageFile == null
+                              ? Icon(
+                                Icons.person,
+                                size: 60,
+                                color: Theme.of(context).colorScheme.primary,
+                              )
+                              : null,
+                    ),
                   ),
                   Positioned(
                     bottom: 0,
@@ -362,5 +370,49 @@ class _AddPlayerState extends State<AddPlayer> {
     if (_imageFile != null) return FileImage(_imageFile!);
 
     return _photoPath == null ? null : NetworkImage(_photoPath!);
+  }
+
+  void _deletePlayerPhoto() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Excluir foto'),
+          content: Text('Deseja realmente excluir a foto do jogador?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Excluir'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _photoPath = null;
+                  _imageFile = null;
+                  widget.player?.urlFoto = null;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
