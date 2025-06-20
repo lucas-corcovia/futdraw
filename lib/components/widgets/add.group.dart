@@ -115,14 +115,21 @@ class _AddGroupState extends State<AddGroup> {
                 ),
                 const SizedBox(height: 16),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                  spacing: 7,
+                  runSpacing: 7,
                   children:
                       List.generate(DateTime.daysPerWeek, (index) {
                         var dayConverted = index + 1;
-                        return FilterChip(
+                        var selected = _gameDays.contains(dayConverted);
+                        return ChoiceChip(
                           label: Text(dayConverted.daysInString),
-                          selected: _gameDays.contains(dayConverted),
+                          selected: selected,
+                          labelStyle: TextStyle(
+                            color:
+                                selected
+                                    ? Theme.of(context).colorScheme.onPrimary
+                                    : Theme.of(context).colorScheme.onSurface,
+                          ),
                           onSelected: (selected) {
                             setState(() {
                               if (selected) {
