@@ -1,26 +1,58 @@
 import 'dart:io';
+import 'package:futdraw/migrations/groups/news.columns.groups.dart';
+import 'package:futdraw/models/interfaces/migration.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DBHelper {
   static const String dbName = 'futdraw.db';
+  static const int dbVersion = 2;
+  static Map<int, List<Migration>> migrations = {
+    2: [AlterGroupNewFields()],
+  };
 
-  /// Retorna a instância do banco de dados, criando se necessário
   static Future<Database> getDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, dbName);
     return openDatabase(
       path,
-      version: 1,
-      onCreate: (db, version) async {
-        await _createTables(db);
-      },
+      version: dbVersion,
+      onCreate: _createTables,
+      onUpgrade: _onUpgrade,
+      onDowngrade: _onDowngrade,
     );
   }
 
-  /// Cria as tabelas do banco de dados
-  static Future<void> _createTables(Database db) async {
+  static Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    for (var i = oldVersion + 1; i <= newVersion; i++) {
+      var migrationsInVersion = migrations[i];
+
+      if (migrationsInVersion == null) continue;
+
+      for (var migration in migrationsInVersion) {
+        await migration.up(db);
+      }
+    }
+  }
+
+  static Future _onDowngrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    for (var i = oldVersion; i > newVersion; i--) {
+      var migrationsInVersion = migrations[i];
+
+      if (migrationsInVersion == null) continue;
+
+      for (var migration in migrationsInVersion) {
+        await migration.down(db);
+      }
+    }
+  }
+
+  static Future<void> _createTables(Database db, int version) async {
     await db.execute('''
       CREATE TABLE players(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,18 +77,15 @@ class DBHelper {
   static Future<void> dropDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, dbName);
-    if (await databaseExists(path)) {
-      await deleteDatabase(path);
-    }
+
+    if (!await databaseExists(path)) return;
+
+    await deleteDatabase(path);
   }
 
   /// Inicializa o banco de dados se não existir
   static Future<void> initializeDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, dbName);
-    if (!await databaseExists(path)) {
-      await getDatabase();
-    }
+    await getDatabase();
   }
 
   /// Exporta o banco de dados para a pasta Documents

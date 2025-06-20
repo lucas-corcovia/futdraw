@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/modal.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
@@ -7,6 +7,7 @@ import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
+import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/views/player.list.view.dart';
@@ -15,7 +16,6 @@ import 'package:provider/provider.dart';
 
 class GroupItem extends StatelessWidget {
   const GroupItem({super.key, required this.group});
-
   final Group group;
 
   @override
@@ -56,7 +56,7 @@ class GroupItem extends StatelessWidget {
                       ),
                     ),
                     child:
-                        "" != ""
+                        group.avatarPath != null
                             ? ClipOval(
                               child: Image.memory(
                                 base64Decode(""),
@@ -100,13 +100,13 @@ class GroupItem extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              _getFieldTypeIcon(FieldType.society),
+                              group.fieldType.icon,
                               size: 16,
                               color: Theme.of(context).colorScheme.primary,
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              FieldType.society.displayName,
+                              group.fieldType.displayName,
                               style: Theme.of(
                                 context,
                               ).textTheme.bodyMedium?.copyWith(
@@ -126,32 +126,9 @@ class GroupItem extends StatelessWidget {
                       Icons.more_vert,
                       color: Theme.of(context).colorScheme.primary,
                     ),
-                    onSelected: (value) {
-                      /* switch (value) {
-                        case 'edit':
-                          onEdit();
-                          break;
-                        case 'duplicate':
-                          onDuplicate();
-                          break;
-                        case 'delete':
-                          onDelete();
-                          break;
-                        case 'generate':
-                          onGenerateTeams();
-                          break;
-                        case 'addPlayer':
-                          onAddPlayer();
-                          break;
-                        case 'addMultiple':
-                          onAddMultiplePlayers();
-                          break;
-                      } */
-                    },
                     itemBuilder:
                         (context) => [
                           PopupMenuItem(
-                            value: 'generate',
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
@@ -160,9 +137,19 @@ class GroupItem extends StatelessWidget {
                               ),
                               title: const Text('Gerar Times'),
                             ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => TeamGenerationScreen(
+                                        preselectedGroup: group,
+                                      ),
+                                ),
+                              );
+                            },
                           ),
                           PopupMenuItem(
-                            value: 'addPlayer',
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
@@ -170,10 +157,22 @@ class GroupItem extends StatelessWidget {
                                 color: Theme.of(context).colorScheme.secondary,
                               ),
                               title: const Text('Adicionar Jogador'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddPlayer(group: group),
+                                  ),
+                                ).then(
+                                  (_) async =>
+                                      await context
+                                          .read<GroupController>()
+                                          .getAll(),
+                                );
+                              },
                             ),
                           ),
                           PopupMenuItem(
-                            value: 'addMultiple',
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
@@ -181,27 +180,45 @@ class GroupItem extends StatelessWidget {
                                 color: Theme.of(context).colorScheme.tertiary,
                               ),
                               title: const Text('Adicionar Vários'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) =>
+                                            AddManyPlayers(groupId: group.id),
+                                  ),
+                                ).then(
+                                  (_) async =>
+                                      await context
+                                          .read<GroupController>()
+                                          .getAll(),
+                                );
+                              },
                             ),
                           ),
                           const PopupMenuDivider(),
                           PopupMenuItem(
-                            value: 'edit',
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: const Icon(Icons.edit),
                               title: const Text('Editar Grupo'),
                             ),
+                            onTap: () async {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddGroup(group: group),
+                                ),
+                              ).then(
+                                (_) async =>
+                                    await context
+                                        .read<GroupController>()
+                                        .getAll(),
+                              );
+                            },
                           ),
                           PopupMenuItem(
-                            value: 'duplicate',
-                            child: ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.copy),
-                              title: const Text('Duplicar Grupo'),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
                             child: ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
@@ -215,14 +232,60 @@ class GroupItem extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            onTap: () async {
+                              await context.read<GroupController>().delete(
+                                group.id,
+                              );
+                            },
                           ),
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                            child: ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.copy_all),
+                              title: const Text(
+                                'Copiar jogadores para área de transferência',
+                              ),
+                            ),
+                            onTap: () async {
+                              await context
+                                  .read<PlayerController>()
+                                  .copyPlayersToClipboard(context);
+                            },
+                          ),
+                          if (!isProduction)
+                            PopupMenuItem(
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Icon(Icons.data_object),
+                                title: const Text(
+                                  'Exportar JSON dos jogadores',
+                                ),
+                              ),
+                              onTap: () async {
+                                await context
+                                    .read<PlayerController>()
+                                    .exportPlayersToJson(context, group.id);
+                              },
+                            ),
+                          if (!isProduction)
+                            PopupMenuItem(
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Icon(Icons.data_object),
+                                title: const Text(
+                                  'Importar JSON dos jogadores',
+                                ),
+                              ),
+                              onTap: () async {
+                                await _showImportModal(context);
+                              },
+                            ),
                         ],
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               // Players statistics
               Wrap(
                 runSpacing: 10,
@@ -230,43 +293,43 @@ class GroupItem extends StatelessWidget {
                   _buildStatChip(
                     context,
                     Icons.people,
-                    '${group.playerCount}',
+                    '${group.totalPlayersCount}',
                     'Total',
                     Colors.blue,
                   ),
-                  const SizedBox(width: 8),
-                  _buildStatChip(
-                    context,
-                    Icons.sports,
-                    '10',
-                    'Titulares',
-                    Colors.green,
-                  ),
-                  if (1 > 0) ...[
+                  if (group.playersCount > 0) ...[
+                    const SizedBox(width: 8),
+                    _buildStatChip(
+                      context,
+                      Icons.shield,
+                      '${group.playersCount}',
+                      'Titulares',
+                      Colors.green,
+                    ),
+                  ],
+                  if (group.substituteCount > 0) ...[
                     const SizedBox(width: 8),
                     _buildStatChip(
                       context,
                       Icons.person_outline,
-                      '10',
+                      '${group.substituteCount}',
                       'Reservas',
                       Colors.orange,
                     ),
                   ],
-                  if (1 > 0) ...[
+                  if (group.goalkeppersCount > 0) ...[
                     const SizedBox(width: 8),
                     _buildStatChip(
                       context,
-                      Icons.sports_soccer,
-                      '3',
+                      PlayerPosition.goalkeeper.icon,
+                      '${group.goalkeppersCount}',
                       'Goleiros',
                       Colors.purple,
                     ),
                   ],
                 ],
               ),
-
               const SizedBox(height: 12),
-
               // Next game info
               Row(
                 children: [
@@ -278,7 +341,10 @@ class GroupItem extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      "Terça 24/06 ás 20:30",
+                      proximoJogo(
+                        gameTime: group.gameTime,
+                        gameDays: group.gameDays,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
@@ -292,7 +358,7 @@ class GroupItem extends StatelessWidget {
               const SizedBox(height: 8),
 
               // Location info
-              if (true) ...[
+              if (group.defaultLocation != null) ...[
                 Row(
                   children: [
                     Icon(
@@ -303,7 +369,7 @@ class GroupItem extends StatelessWidget {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        "Top Soccer",
+                        group.defaultLocation!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),
@@ -315,7 +381,6 @@ class GroupItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-
               // Game configuration
               Row(
                 children: [
@@ -326,7 +391,7 @@ class GroupItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    "10",
+                    "${group.gameTimeMinutes}",
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),
@@ -339,12 +404,12 @@ class GroupItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${10} por time',
+                    '${group.playersPerTeam} por time',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
-                  if (true) ...[
+                  if (group.fixedGoalkeepers) ...[
                     const SizedBox(width: 16),
                     Icon(
                       Icons.lock,
@@ -462,16 +527,63 @@ class GroupItem extends StatelessWidget {
     );
   }
 
-  IconData _getFieldTypeIcon(FieldType fieldType) {
-    switch (fieldType) {
-      case FieldType.quadra:
-        return Icons.crop_square;
-      case FieldType.campo:
-        return Icons.grass;
-      case FieldType.society:
-        return Icons.sports_soccer;
-      case FieldType.livre:
-        return Icons.settings;
+  String proximoJogo({
+    required TimeOfDay gameTime,
+    required List<int> gameDays,
+    DateTime? now,
+  }) {
+    now ??= DateTime.now();
+
+    for (int i = 0; i < 7; i++) {
+      final dia = now.add(Duration(days: i));
+
+      if (!gameDays.contains(dia.weekday)) continue;
+
+      final horaDoJogo = DateTime(
+        dia.year,
+        dia.month,
+        dia.day,
+        gameTime.hour,
+        gameTime.minute,
+      );
+
+      final hoje =
+          now.year == dia.year && now.month == dia.month && now.day == dia.day;
+
+      final horaFormatada = formatTimeOfDay(gameTime);
+
+      if (hoje && horaDoJogo.isAfter(now)) {
+        return 'Hoje às $horaFormatada';
+      }
+
+      if (!hoje) {
+        final nomeDiaSemana = nomeDoDia(dia.weekday);
+        final dataFormatada =
+            '${dia.day.toString().padLeft(2, '0')}/${dia.month.toString().padLeft(2, '0')}';
+
+        return '$nomeDiaSemana, $dataFormatada às $horaFormatada';
+      }
     }
+
+    return 'Sem jogo marcado';
+  }
+
+  String formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  String nomeDoDia(int weekday) {
+    const dias = [
+      'Domingo',
+      'Segunda',
+      'Terça',
+      'Quarta',
+      'Quinta',
+      'Sexta',
+      'Sábado',
+    ];
+    return dias[weekday % 7];
   }
 }

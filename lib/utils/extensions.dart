@@ -96,4 +96,40 @@ extension FieldTypeExtension on FieldType {
         return "Livre";
     }
   }
+
+  IconData get icon {
+    switch (this) {
+      case FieldType.quadra:
+        return Icons.square_outlined;
+      case FieldType.campo:
+        return Icons.grass;
+      case FieldType.society:
+        return Icons.sports_soccer;
+      case FieldType.livre:
+        return Icons.settings;
+    }
+  }
+}
+
+extension DaysWeekExtensions on int {
+  String get daysInString {
+    switch (this) {
+      case DateTime.monday:
+        return "Segunda-feira";
+      case DateTime.tuesday:
+        return "Terça-feira";
+      case DateTime.wednesday:
+        return "Quarta-feira";
+      case DateTime.thursday:
+        return "Quinta-feira";
+      case DateTime.friday:
+        return "Sexta-feira";
+      case DateTime.saturday:
+        return "Sábado";
+      case DateTime.sunday:
+        return "Domingo";
+      default:
+        return "";
+    }
+  }
 }

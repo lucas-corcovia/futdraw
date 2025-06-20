@@ -16,28 +16,20 @@ class AddGroup extends StatefulWidget {
 }
 
 class _AddGroupState extends State<AddGroup> {
+  final _formKey = GlobalKey<FormState>();
+
   late bool _isEditing;
   late String _name;
-  late List<String> _gameDays;
-  late String _gameTime;
-  String? _avatarPath;
+  late List<int> _gameDays;
+  late String? _avatarPath;
   late bool _fixedGoalkeepers;
   late int _maxStarters;
-  late String _defaultLocation;
+  late String? _defaultLocation;
   late FieldType _fieldType;
   late int _gameTimeMinutes;
   late int _playersPerTeam;
-  final _formKey = GlobalKey<FormState>();
-
-  final List<String> _weekDays = [
-    'Segunda-feira',
-    'Terça-feira',
-    'Quarta-feira',
-    'Quinta-feira',
-    'Sexta-feira',
-    'Sábado',
-    'Domingo',
-  ];
+  late TimeOfDay? _selectedTime;
+  late TimeOfDay _gameTime;
 
   @override
   void initState() {
@@ -47,18 +39,40 @@ class _AddGroupState extends State<AddGroup> {
     if (_isEditing) {
       final group = widget.group!;
       _name = group.nome;
+      _gameDays = List<int>.from(group.gameDays);
+      _gameTime = group.gameTime;
+      _selectedTime = group.gameTime;
+      _avatarPath = group.avatarPath;
+      _fixedGoalkeepers = group.fixedGoalkeepers;
+      _maxStarters = group.maxStarters;
+      _defaultLocation = group.defaultLocation;
+      _fieldType = group.fieldType;
+      _gameTimeMinutes = group.gameTimeMinutes;
+      _playersPerTeam = group.playersPerTeam;
     } else {
+      _fieldType = FieldType.campo;
+      var hoje = DateTime.now();
       _name = '';
-      _gameDays = [];
-      _gameTime = '';
+      _gameDays = [hoje.day];
+      _gameTime = TimeOfDay(hour: hoje.hour, minute: hoje.minute);
+      _selectedTime = TimeOfDay(hour: hoje.hour, minute: hoje.minute);
       _avatarPath = null;
       _fixedGoalkeepers = false;
-      _maxStarters = 22;
+      _maxStarters = _fieldType.defaultPlayersPerTeam * 2;
       _defaultLocation = '';
-      _fieldType = FieldType.campo;
-      _gameTimeMinutes = 90;
-      _playersPerTeam = FieldType.campo.defaultPlayersPerTeam;
+      _gameTimeMinutes = 15;
+      _playersPerTeam = _fieldType.defaultPlayersPerTeam;
     }
+  }
+
+  bool get teamsCompleted {
+    final requiredPlayers = _playersPerTeam * 2;
+
+    if (_fieldType == FieldType.livre) {
+      return _maxStarters >= requiredPlayers;
+    }
+
+    return _playersPerTeam >= _fieldType.defaultPlayersPerTeam;
   }
 
   @override
@@ -104,38 +118,45 @@ class _AddGroupState extends State<AddGroup> {
                   spacing: 8,
                   runSpacing: 8,
                   children:
-                      _weekDays.map((day) {
-                        final isSelected = _gameDays.contains(day);
+                      List.generate(DateTime.daysPerWeek, (index) {
+                        var dayConverted = index + 1;
                         return FilterChip(
-                          label: Text(day),
-                          selected: isSelected,
+                          label: Text(dayConverted.daysInString),
+                          selected: _gameDays.contains(dayConverted),
                           onSelected: (selected) {
                             setState(() {
                               if (selected) {
-                                _gameDays.add(day);
+                                _gameDays.add(dayConverted);
                               } else {
-                                _gameDays.remove(day);
+                                _gameDays.remove(dayConverted);
                               }
                             });
                           },
                         );
                       }).toList(),
                 ),
-
                 const SizedBox(height: 16),
-                TextFormField(
-                  initialValue: _gameTime,
-                  decoration: const InputDecoration(
-                    labelText: 'Horário do Jogo',
-                    hintText: 'Ex: 19:00 às 21:00',
-                    prefixIcon: Icon(Icons.access_time),
+                GestureDetector(
+                  onTap: _selectTime,
+                  child: AbsorbPointer(
+                    child: TextFormField(
+                      controller: TextEditingController(
+                        text: _formatTimeOfDay(_selectedTime ?? _gameTime),
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Horário do Jogo',
+                        hintText: 'Toque para selecionar',
+                        prefixIcon: const Icon(Icons.access_time),
+                        suffixIcon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      readOnly: true,
+                    ),
                   ),
-                  onChanged: (value) => _gameTime = value.trim(),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Default Location
                 TextFormField(
                   initialValue: _defaultLocation,
                   decoration: const InputDecoration(
@@ -145,10 +166,7 @@ class _AddGroupState extends State<AddGroup> {
                   ),
                   onChanged: (value) => _defaultLocation = value.trim(),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Field Type
                 DropdownButtonFormField<FieldType>(
                   value: _fieldType,
                   decoration: const InputDecoration(
@@ -165,24 +183,26 @@ class _AddGroupState extends State<AddGroup> {
                         );
                       }).toList(),
                   onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _fieldType = value;
-                        //_updatePlayersPerTeam();
-                      });
-                    }
+                    if (value == null) return;
+
+                    setState(() {
+                      _fieldType = value;
+                      var playersPerTeam =
+                          _fieldType == FieldType.livre
+                              ? _playersPerTeam
+                              : _fieldType.defaultPlayersPerTeam;
+
+                      _maxStarters = playersPerTeam * 2;
+                    });
                   },
                 ),
-
-                const SizedBox(height: 16),
-
-                // Players per Team (only for 'Livre' field type)
-                if (_fieldType == FieldType.livre)
+                if (_fieldType == FieldType.livre) ...[
+                  const SizedBox(height: 16),
                   TextFormField(
                     initialValue: _playersPerTeam.toString(),
                     decoration: const InputDecoration(
                       labelText: 'Jogadores por Time',
-                      hintText: 'Inclui o goleiro',
+                      hintText: 'Incluindo o goleiro',
                       prefixIcon: Icon(Icons.people),
                     ),
                     keyboardType: TextInputType.number,
@@ -210,10 +230,8 @@ class _AddGroupState extends State<AddGroup> {
                       }
                     },
                   ),
-
+                ],
                 const SizedBox(height: 16),
-
-                // Game Duration
                 TextFormField(
                   initialValue: _gameTimeMinutes.toString(),
                   decoration: const InputDecoration(
@@ -240,12 +258,11 @@ class _AddGroupState extends State<AddGroup> {
                     }
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Max Starters
                 TextFormField(
-                  initialValue: _maxStarters.toString(),
+                  controller: TextEditingController(
+                    text: _maxStarters.toString(),
+                  ),
                   decoration: const InputDecoration(
                     labelText: 'Limite de Titulares',
                     hintText: 'Jogadores acima deste número viram reservas',
@@ -258,8 +275,8 @@ class _AddGroupState extends State<AddGroup> {
                       return 'Limite é obrigatório';
                     }
                     final limit = int.tryParse(value);
-                    if (limit == null || limit < _playersPerTeam * 2) {
-                      return 'Mínimo ${_playersPerTeam * 2} (2 teams completos)';
+                    if (limit == null || !teamsCompleted) {
+                      return 'Mínimo ${_playersPerTeam * 2} (2 times completos)';
                     }
                     return null;
                   },
@@ -270,10 +287,7 @@ class _AddGroupState extends State<AddGroup> {
                     }
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Fixed Goalkeepers Switch
                 SwitchListTile(
                   title: const Text('Goleiros Fixos'),
                   subtitle: const Text(
@@ -314,17 +328,58 @@ class _AddGroupState extends State<AddGroup> {
     );
   }
 
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedTime = picked;
+        _gameTime = picked;
+      });
+    }
+  }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
   Future<void> _saveGroup() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
+
     final groupController = context.read<GroupController>();
+
+    final updatedGroup = Group(
+      id: widget.group!.id,
+      nome: _name,
+      defaultLocation: _defaultLocation,
+      fieldType: _fieldType,
+      fixedGoalkeepers: _fixedGoalkeepers,
+      gameDays: _gameDays,
+      gameTime: _gameTime,
+      gameTimeMinutes: _gameTimeMinutes,
+      maxStarters: _maxStarters,
+      playersPerTeam: _playersPerTeam,
+      avatarPath: _avatarPath,
+    );
+
     if (_isEditing && widget.group != null) {
-      final updatedGroup = Group(id: widget.group!.id, nome: _name);
       await groupController.update(updatedGroup);
     } else {
-      // Adiciona novo grupo
-      await groupController.add(Group.add(_name));
+      await groupController.add(updatedGroup);
     }
+
     Navigator.pop(context);
   }
 }

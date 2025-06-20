@@ -6,18 +6,33 @@ class GroupRepository {
 
   Future<bool> add(Group group) async {
     final db = await DBHelper.getDatabase();
-    return await db.insert(table, {'nome': group.nome}) > 0;
+    return await db.insert(table, group.toUpdate()) > 0;
   }
 
   Future<List<Group>> getAll() async {
     final db = await DBHelper.getDatabase();
-    final result = await db.rawQuery(
-      '''SELECT g.id, g.nome, COUNT(p.Id) as playersCount, SUM(CASE WHEN p.capitao = 1 THEN 1 ELSE 0 END) AS captainCount
-         FROM $table AS g 
-         LEFT JOIN players AS p ON g.id = p.grupoId
-         GROUP BY g.id
-      ''',
-    );
+    final result = await db.rawQuery('''
+          SELECT 
+            g.id,
+            g.nome,
+            g.avatarPath,
+            g.gameDays,
+            g.fixedGoalkeepers,
+            g.maxStarters,
+            g.defaultLocation,
+            g.fieldType,
+            g.gameTime,
+            g.gameTimeMinutes,
+            g.playersPerTeam,
+            COUNT(p.Id) as totalPlayersCount,
+            SUM(CASE WHEN p.capitao = 1 THEN 1 ELSE 0 END) AS captainCount,
+            SUM(CASE WHEN p.reserva = 1 THEN 1 ELSE 0 END) AS substituteCount,
+            SUM(CASE WHEN p.posicao = 0 THEN 1 ELSE 0 END) AS goalkeppersCount,
+            SUM(CASE WHEN p.reserva = 0 THEN 1 ELSE 0 END) AS playersCount
+          FROM $table AS g 
+          LEFT JOIN players AS p ON g.id = p.grupoId
+          GROUP BY g.id
+      ''');
     return result.map((map) => Group.fromJson(map)).toList();
   }
 
@@ -30,7 +45,7 @@ class GroupRepository {
     final db = await DBHelper.getDatabase();
     final result = await db.update(
       table,
-      {'nome': group.nome},
+      group.toUpdate(),
       where: 'id = ?',
       whereArgs: [group.id],
     );
