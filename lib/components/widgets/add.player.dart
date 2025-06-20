@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:futdraw/components/modal.dart';
-import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/imgbb_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
