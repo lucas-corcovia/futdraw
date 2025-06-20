@@ -39,10 +39,8 @@ class GroupItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with avatar and basic info
               Row(
                 children: [
-                  // Group Avatar
                   Container(
                     width: 60,
                     height: 60,
@@ -58,7 +56,7 @@ class GroupItem extends StatelessWidget {
                         group.avatarPath != null
                             ? ClipOval(
                               child: Image.memory(
-                                base64Decode(""),
+                                base64Decode(group.avatarPath!),
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Icon(
@@ -82,17 +80,19 @@ class GroupItem extends StatelessWidget {
                             ),
                   ),
                   const SizedBox(width: 16),
-
-                  // Group Name and Field Type
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           group.nome,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          maxLines: 1,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
