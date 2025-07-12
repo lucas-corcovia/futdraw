@@ -6,6 +6,7 @@ import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
+import 'package:futdraw/models/consts/app.colors.dart' show CommonsColors;
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/utils/extensions.dart';
@@ -153,7 +154,7 @@ class GroupItem extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
                                 Icons.person_add,
-                                color: Theme.of(context).colorScheme.secondary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               title: const Text('Adicionar Jogador'),
                               onTap: () {
@@ -176,7 +177,7 @@ class GroupItem extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
                                 Icons.group_add,
-                                color: Theme.of(context).colorScheme.tertiary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               title: const Text('Adicionar Vários'),
                               onTap: () {
@@ -222,14 +223,9 @@ class GroupItem extends StatelessWidget {
                               contentPadding: EdgeInsets.zero,
                               leading: Icon(
                                 Icons.delete,
-                                color: Theme.of(context).colorScheme.error,
+                                color: CommonsColors.deleteColor,
                               ),
-                              title: Text(
-                                'Excluir Grupo',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                              ),
+                              title: Text('Excluir Grupo'),
                             ),
                             onTap: () async {
                               await context.read<GroupController>().delete(
@@ -285,7 +281,6 @@ class GroupItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              // Players statistics
               Wrap(
                 runSpacing: 10,
                 children: [
@@ -329,7 +324,6 @@ class GroupItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              // Next game info
               Row(
                 children: [
                   Icon(
@@ -355,8 +349,6 @@ class GroupItem extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Location info
               if (group.defaultLocation != null) ...[
                 Row(
                   children: [
@@ -380,7 +372,6 @@ class GroupItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
               ],
-              // Game configuration
               Row(
                 children: [
                   Icon(

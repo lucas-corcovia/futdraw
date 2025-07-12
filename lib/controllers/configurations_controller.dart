@@ -37,7 +37,7 @@ class ConfigurationsController extends ChangeNotifier {
       if (jsonString == null) {
         _configuration = Configuration(
           generationAlgorithm: GenerationAlgorithm.balanced,
-          themeColor: ThemeColor.green,
+          themeColor: ThemeColor.purple,
         );
 
         save();

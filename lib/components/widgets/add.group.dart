@@ -368,7 +368,7 @@ class _AddGroupState extends State<AddGroup> {
     final groupController = context.read<GroupController>();
 
     final updatedGroup = Group(
-      id: widget.group!.id,
+      id: widget.group?.id ?? 0,
       nome: _name,
       defaultLocation: _defaultLocation,
       fieldType: _fieldType,

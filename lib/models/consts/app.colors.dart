@@ -15,6 +15,7 @@ class CommonsColors {
     green: 0.7569,
     blue: 1.0000,
   );
+  static const Color deleteColor = Color.fromARGB(255, 146, 48, 41);
 }
 
 class ThemeColors {
