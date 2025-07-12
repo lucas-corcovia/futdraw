@@ -22,7 +22,7 @@ class _HomeViewState extends State<HomeView> {
       context: context,
       builder:
           (context) => CustomModal(
-            titulo: 'Como os Times são Formados',
+            titulo: 'Como os Times são formados',
             content: InfoDrawTeams(),
           ),
     );
