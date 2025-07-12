@@ -1,0 +1,11 @@
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\FutDrawApi.exe
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\appsettings.Development.json
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\appsettings.json
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\FutDrawApi.dll
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\FutDrawApi.deps.json
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\FutDrawApi.runtimeconfig.json
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\FutDrawApi.pdb
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\Microsoft.OpenApi.dll
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\Swashbuckle.AspNetCore.Swagger.dll
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerGen.dll
+D:\dev\projects\futdraw\Backend\Api\FutDrawApi\obj\Release\net8.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerUI.dll

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FutDrawApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5f33abbd3030ecfd6d64d992f7c3071f817dfa7e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ad84293290fcbb94903ada09d6fbf320838b1c79")]
 [assembly: System.Reflection.AssemblyProductAttribute("FutDrawApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FutDrawApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
