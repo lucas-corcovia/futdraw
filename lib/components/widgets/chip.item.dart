@@ -1,3 +1,5 @@
+// Deprecated: substituído por _PositionChip em filters.player.list.dart
+// ignore_for_file: unused_element
 import 'package:flutter/material.dart';
 
 class ChipItem extends StatelessWidget {

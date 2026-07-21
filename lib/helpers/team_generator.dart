@@ -8,14 +8,14 @@ class Team {
   final List<Player> players;
   final double averageSkill;
 
-  Team({required this.name, required this.players})
-    : averageSkill =
-          players.isEmpty
-              ? 0.0
-              : players
-                      .where((p) => !p.isGoalkeeper)
-                      .fold(0.0, (sum, player) => sum + player.nota) /
-                  players.length;
+  Team({required this.name, required this.players, double? averageSkill})
+      : averageSkill = averageSkill ??
+            (players.isEmpty
+                ? 0.0
+                : players
+                        .where((p) => !p.isGoalkeeper)
+                        .fold(0.0, (sum, player) => sum + player.nota) /
+                    players.length);
 
   int get goalkeepersCount => players.where((p) => p.isGoalkeeper).length;
   int get captainsCount => players.where((p) => p.ehCapitao).length;

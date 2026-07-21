@@ -207,7 +207,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   Widget _buildFieldView(Team team) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
           // Team header
@@ -331,7 +331,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                           ).textTheme.titleMedium?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onPrimary.withOpacity(0.9),
+                            ).colorScheme.onPrimary.withValues(alpha: 0.9),
                           ),
                         ),
                         Text(
@@ -341,7 +341,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                           ).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onPrimary.withOpacity(0.8),
+                            ).colorScheme.onPrimary.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -474,12 +474,10 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                   child: _buildPlayerCardContent(player),
                 ),
                 child: DragTarget<Player>(
-                  onWillAccept: (incomingPlayer) {
-                    return incomingPlayer != null &&
-                        incomingPlayer.id != player.id;
-                  },
-                  onAccept: (incomingPlayer) {
-                    _swapPlayers(player, incomingPlayer);
+                  onWillAcceptWithDetails: (details) =>
+                      details.data.id != player.id,
+                  onAcceptWithDetails: (details) {
+                    _swapPlayers(player, details.data);
                   },
                   builder: (context, candidateData, rejectedData) {
                     return _buildPlayerCardContent(
@@ -490,12 +488,10 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                 ),
               )
               : DragTarget<Player>(
-                onWillAccept: (incomingPlayer) {
-                  return incomingPlayer != null &&
-                      incomingPlayer.id != player.id;
-                },
-                onAccept: (incomingPlayer) {
-                  _swapPlayers(player, incomingPlayer);
+                onWillAcceptWithDetails: (details) =>
+                    details.data.id != player.id,
+                onAcceptWithDetails: (details) {
+                  _swapPlayers(player, details.data);
                 },
                 builder: (context, candidateData, rejectedData) {
                   return _buildPlayerCardContent(
@@ -510,13 +506,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   Widget _buildPlayerCardContent(Player player, {bool highlighted = false}) {
     final backgroundColor =
         highlighted
-            ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
             : Theme.of(context).colorScheme.surface;
 
     final borderColor =
         highlighted
             ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.outline.withOpacity(0.3);
+            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3);
 
     return Card(
       elevation: highlighted ? 3 : 1,

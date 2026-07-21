@@ -2,12 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:futdraw/components/toast.dart';
+import 'package:futdraw/core/result/result.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:futdraw/repositories/player_repository.dart';
 
 class PlayerController extends ChangeNotifier {
-  final repository = PlayerRepository();
+  final PlayerRepository repository;
+
+  PlayerController(this.repository);
+
   String searched = "";
   List<PlayerPosition> showedPositions = PlayerPosition.values.toList();
   List<Player> players = [];
@@ -27,82 +31,75 @@ class PlayerController extends ChangeNotifier {
     notifyListeners();
   }
 
-  add(BuildContext context, Player player) async {
-    try {
-      await repository.add(player);
+  Future<void> add(BuildContext context, Player player) async {
+    final result = await repository.add(player);
+    if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
-    } catch (e) {
-      Toast.show(context, 'Erro ao adicionar jogador: $e', true);
+    } else {
+      Toast.show(context, 'Erro ao adicionar jogador: ${result.errorMessage}', true);
     }
   }
 
   Future<void> addMany(
     BuildContext context,
     List<Player> players,
-    int groupId,
+    String groupId,
   ) async {
-    try {
-      await repository.addMany(players);
+    final result = await repository.addMany(players, groupId);
+    if (result.isSuccess) {
       await getAllByGroupId(context, groupId);
-    } catch (e) {
-      Toast.show(context, 'Erro ao adicionar jogadores: $e', true);
+    } else {
+      Toast.show(context, 'Erro ao adicionar jogadores: ${result.errorMessage}', true);
     }
   }
 
   Future<List<Player>> getAll(BuildContext context) async {
-    try {
-      var result = await repository.getAll();
-      players = result;
+    final result = await repository.getAll();
+    if (result is AppSuccess<List<Player>>) {
+      players = result.data;
       notifyListeners();
-
-      return result;
-    } catch (e) {
-      Toast.show(context, 'Erro ao obter jogadores: $e', true);
-      return [];
+      return result.data;
     }
+    return [];
   }
 
   Future<List<Player>> getAllByGroupId(
     BuildContext context,
-    int groupId,
+    String groupId,
   ) async {
-    try {
-      var result = await repository.getAllByGroupId(groupId);
-      players = result;
+    final result = await repository.getAllByGroupId(groupId);
+    if (result is AppSuccess<List<Player>>) {
+      players = result.data;
       notifyListeners();
-
-      return result;
-    } catch (e) {
-      Toast.show(context, 'Erro ao obter jogadores: $e', true);
-      return [];
+      return result.data;
     }
+    Toast.show(context, 'Erro ao obter jogadores: ${result.errorMessage}', true);
+    return [];
   }
 
-  delete(BuildContext context, Player player) async {
-    try {
-      await repository.delete(player);
+  Future<void> delete(BuildContext context, Player player) async {
+    final result = await repository.delete(player);
+    if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
-    } catch (e) {
-      Toast.show(context, 'Erro ao excluir jogador: $e', true);
+    } else {
+      Toast.show(context, 'Erro ao excluir jogador: ${result.errorMessage}', true);
     }
   }
 
-  update(BuildContext context, Player player) async {
-    try {
-      await repository.update(player);
+  Future<void> update(BuildContext context, Player player) async {
+    final result = await repository.update(player);
+    if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
-    } catch (e) {
-      Toast.show(context, 'Erro ao atualizar jogador: $e', true);
+    } else {
+      Toast.show(context, 'Erro ao atualizar jogador: ${result.errorMessage}', true);
     }
   }
 
-  Future<Player?> getById(BuildContext context, int id) async {
-    try {
-      return await repository.getById(id);
-    } catch (e) {
-      Toast.show(context, 'Erro ao obter jogador: $e', true);
-      return null;
-    }
+  Future<Player?> getById(BuildContext context, String id) async {
+    final result = await repository.getById(id);
+    if (result is AppSuccess<Player?>) return result.data;
+    Toast.show(context, 'Erro ao obter jogador: ${result.errorMessage}', true);
+    return null;
   }
 
   void toggleFilter(bool selected, PlayerPosition option) {
@@ -134,41 +131,22 @@ class PlayerController extends ChangeNotifier {
   }
 
   Future<void> copyPlayersToClipboard(BuildContext context) async {
-    try {
-      final playersList = await repository.getAll();
-      final buffer = StringBuffer();
-
-      for (final player in playersList) {
-        buffer.writeln(
-          '${player.nome} - Nota: ${player.nota.toStringAsFixed(1)}',
-        );
-      }
-
-      await Clipboard.setData(ClipboardData(text: buffer.toString()));
-      Toast.show(
-        context,
-        'Jogadores copiados para a área de transferência!',
-        false,
+    final buffer = StringBuffer();
+    for (final player in players) {
+      buffer.writeln(
+        '${player.nome} - Nota: ${player.nota.toStringAsFixed(1)}',
       );
-    } catch (e) {
-      Toast.show(context, 'Erro ao copiar jogadores: $e', true);
     }
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    Toast.show(context, 'Jogadores copiados para a área de transferência!', false);
   }
 
-  /// Utilizado apenas um desenvolvimento
-  /// para exportar os jogadores em formato JSON
-  Future<void> exportPlayersToJson(BuildContext context, int groupId) async {
+  Future<void> exportPlayersToJson(BuildContext context, String groupId) async {
     try {
-      final list = await repository.getAllByGroupId(groupId);
-      final json = Player.fromListToJson(list);
-      final jsonString = jsonEncode(json);
-
+      final jsonData = Player.fromListToJson(players);
+      final jsonString = jsonEncode(jsonData);
       await Clipboard.setData(ClipboardData(text: jsonString));
-      Toast.show(
-        context,
-        'JSON gerado e copiado para a área de transferência!',
-        false,
-      );
+      Toast.show(context, 'JSON gerado e copiado para a área de transferência!', false);
     } catch (e) {
       Toast.show(context, 'Erro ao exportar jogadores: $e', true);
     }
@@ -177,17 +155,17 @@ class PlayerController extends ChangeNotifier {
   Future<void> importPlayersToJson(
     BuildContext context,
     String jsonString,
-    int groupId,
+    String groupId,
   ) async {
     try {
       List<dynamic> jsonList = jsonDecode(jsonString);
-      final players = Player.fromJsonToList(jsonList);
+      final importedPlayers = Player.fromJsonToList(jsonList);
 
-      for (var player in players) {
+      for (var player in importedPlayers) {
         player.grupoId = groupId;
       }
 
-      await addMany(context, players, groupId);
+      await addMany(context, importedPlayers, groupId);
     } catch (e) {
       Toast.show(context, 'Erro ao importar jogadores: $e', true);
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
+import 'package:futdraw/models/consts/app.colors.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/enums/theme_color.dart';
@@ -47,16 +48,26 @@ extension PlayerPositionExtension on PlayerPosition {
 extension ThemeColorExtension on ThemeColor {
   String get label {
     switch (this) {
-      case ThemeColor.blue:
-        return 'Azul';
-      case ThemeColor.green:
-        return 'Verde';
-      case ThemeColor.purple:
-        return 'Roxo';
-      case ThemeColor.red:
-        return 'Vermelho';
+      case ThemeColor.esmeralda:
+        return 'Esmeralda';
+      case ThemeColor.oceano:
+        return 'Oceano';
+      case ThemeColor.violeta:
+        return 'Violeta';
+      case ThemeColor.carmesim:
+        return 'Carmesim';
+      case ThemeColor.ambar:
+        return 'Âmbar';
+      case ThemeColor.petroleo:
+        return 'Petróleo';
+      case ThemeColor.rosa:
+        return 'Rosa';
+      case ThemeColor.laranja:
+        return 'Laranja';
     }
   }
+
+  Color get seed => ThemeColors.seedColors[this]!;
 }
 
 extension GenerationAlgorithmExtension on GenerationAlgorithm {
@@ -67,6 +78,15 @@ extension GenerationAlgorithmExtension on GenerationAlgorithm {
       case GenerationAlgorithm.snakeDraft:
         return 'Snake Draft';
     }
+  }
+}
+
+extension FieldTypeStringExtension on String {
+  FieldType toFieldType() {
+    return FieldType.values.firstWhere(
+      (t) => t.name == this,
+      orElse: () => FieldType.campo,
+    );
   }
 }
 

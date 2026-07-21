@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
-import 'package:futdraw/repositories/player_repository.dart';
 
 class ReservePlayerController extends ChangeNotifier {
-  final repository = PlayerRepository();
   String searched = "";
   List<PlayerPosition> showedPositions = PlayerPosition.values.toList();
   List<Player> players = [];
@@ -25,14 +24,16 @@ class ReservePlayerController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getAllByGroupId(BuildContext context, int groupId) async {
-    try {
-      var result = await repository.getAllByGroupId(groupId);
-      players = result;
-      notifyListeners();
-    } catch (e) {
-      // Trate o erro conforme necessário
-    }
+  Future<void> getAllByGroupId(BuildContext context, String groupId) async {
+    final result =
+        await ServiceLocator().playerRepository.getAllByGroupId(groupId);
+    result.when(
+      success: (data) {
+        players = data;
+        notifyListeners();
+      },
+      error: (_) {},
+    );
   }
 
   void toggleFilter(bool selected, PlayerPosition option) {

@@ -13,86 +13,55 @@ class ConfigurationsController extends ChangeNotifier {
   Configuration get configuration =>
       _configuration ??= Configuration(
         generationAlgorithm: GenerationAlgorithm.balanced,
-        themeColor: ThemeColor.green,
+        themeColor: ThemeColor.esmeralda,
+        isDarkMode: true,
       );
 
-  void save() async {
-    final prefs = await SharedPreferences.getInstance();
-    final result = prefs.getString(_key);
-
-    if (result != null) {
-      prefs.remove(_key);
-    }
-
-    final json = configuration.toJson();
-    final jsonString = jsonEncode(json);
-
-    await prefs.setString(_key, jsonString);
-  }
-
-  Future<Configuration?> get() async {
+  // Carrega a configuração salva. Deve ser chamado uma vez no startup com a
+  // mesma instância que será registrada no Provider.
+  Future<void> init() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_key);
       if (jsonString == null) {
         _configuration = Configuration(
           generationAlgorithm: GenerationAlgorithm.balanced,
-          themeColor: ThemeColor.green,
+          themeColor: ThemeColor.esmeralda,
+          isDarkMode: true,
         );
-
-        save();
-        return _configuration;
+        await save();
+      } else {
+        _configuration = Configuration.fromJson(jsonDecode(jsonString));
       }
-
-      final json = jsonDecode(jsonString);
-      return Configuration.fromJson(json);
-    } catch (e) {
-      return null;
+    } catch (_) {
+      _configuration = Configuration(
+        generationAlgorithm: GenerationAlgorithm.balanced,
+        themeColor: ThemeColor.esmeralda,
+        isDarkMode: true,
+      );
     }
   }
 
+  Future<void> save() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, jsonEncode(configuration.toJson()));
+  }
+
   void setTheme(ThemeColor value) {
-    _configuration!.themeColor = value;
+    configuration.themeColor = value;
     save();
     notifyListeners();
   }
 
   void setAlgorithm(GenerationAlgorithm value) {
-    _configuration!.generationAlgorithm = value;
+    configuration.generationAlgorithm = value;
+    save();
+    notifyListeners();
+  }
+
+  void toggleDarkMode() {
+    configuration.isDarkMode = !configuration.isDarkMode;
     save();
     notifyListeners();
   }
 }
-
-// import 'package:futdraw/models/configuration.dart';
-// import 'package:futdraw/repositories/configurations_repository.dart';
-
-// class ConfigurationsController {
-//   final ConfigurationsRepository repository = ConfigurationsRepository();
-//   Configuration? configuration;
-
-//   static final ConfigurationsController _instance =
-//       ConfigurationsController._internal();
-//   factory ConfigurationsController() => _instance;
-//   ConfigurationsController._internal();
-
-//   Future<Configuration?> get() async {
-//     configuration ??= await repository.get();
-//     return configuration;
-//   }
-
-//   Future<void> update(Configuration config) async {
-//     await repository.update(config);
-//     configuration = config;
-//   }
-
-//   Future<void> initialize() async {
-//     try {
-//       await get();
-//     } catch (e) {
-//       await repository.insert();
-//     }
-
-//     await get();
-//   }
-// }

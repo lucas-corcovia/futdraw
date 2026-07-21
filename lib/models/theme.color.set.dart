@@ -1,19 +1,3 @@
-import 'package:flutter/material.dart';
-
-class ThemeColorSet {
-  final Color primary;
-  final Color secondary;
-  final Color label;
-  final Color thumb;
-  final Color overlay;
-  final Color selected;
-
-  const ThemeColorSet({
-    required this.primary,
-    required this.secondary,
-    required this.label,
-    required this.thumb,
-    required this.overlay,
-    required this.selected,
-  });
-}
+// Este arquivo está obsoleto e mantido apenas para histórico.
+// O sistema de cores migrou para ColorScheme.fromSeed (Material 3).
+// Veja: lib/models/consts/app.colors.dart e lib/utils/theme.selector.dart

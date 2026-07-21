@@ -1,39 +1,59 @@
-import 'package:futdraw/helpers/db_helper.dart';
+import 'package:futdraw/core/result/result.dart';
+import 'package:futdraw/data/models/requests/group_request.dart';
+import 'package:futdraw/data/remote/group_remote_datasource.dart';
 import 'package:futdraw/models/group.dart';
 
 class GroupRepository {
-  static const String table = 'groups';
+  final GroupRemoteDataSource _dataSource;
 
-  Future<bool> add(Group group) async {
-    final db = await DBHelper.getDatabase();
-    return await db.insert(table, {'nome': group.nome}) > 0;
-  }
+  GroupRepository(this._dataSource);
 
-  Future<List<Group>> getAll() async {
-    final db = await DBHelper.getDatabase();
-    final result = await db.rawQuery(
-      '''SELECT g.id, g.nome, COUNT(p.Id) as playersCount, SUM(CASE WHEN p.capitao = 1 THEN 1 ELSE 0 END) AS captainCount
-         FROM $table AS g 
-         LEFT JOIN players AS p ON g.id = p.grupoId
-         GROUP BY g.id
-      ''',
+  Future<AppResult<List<Group>>> getAll() async {
+    final result = await _dataSource.getAll();
+    return result.when(
+      success: (data) => AppResult.success(data.map((r) => r.toModel()).toList()),
+      error: AppResult.error,
     );
-    return result.map((map) => Group.fromJson(map)).toList();
   }
 
-  Future<bool> delete(int id) async {
-    final db = await DBHelper.getDatabase();
-    return await db.delete(table, where: 'id = ?', whereArgs: [id]) > 0;
-  }
-
-  Future<bool> update(Group group) async {
-    final db = await DBHelper.getDatabase();
-    final result = await db.update(
-      table,
-      {'nome': group.nome},
-      where: 'id = ?',
-      whereArgs: [group.id],
+  Future<AppResult<Group>> getById(String id) async {
+    final result = await _dataSource.getById(id);
+    return result.when(
+      success: (data) => AppResult.success(data.toModel()),
+      error: AppResult.error,
     );
-    return result > 0;
   }
+
+  Future<AppResult<Group>> add(Group group) async {
+    final result = await _dataSource.add(_toRequest(group));
+    return result.when(
+      success: (data) => AppResult.success(data.toModel()),
+      error: AppResult.error,
+    );
+  }
+
+  Future<AppResult<Group>> update(Group group) async {
+    final result = await _dataSource.update(group.id, _toRequest(group));
+    return result.when(
+      success: (data) => AppResult.success(data.toModel()),
+      error: AppResult.error,
+    );
+  }
+
+  Future<AppResult<void>> delete(String id) async {
+    return _dataSource.delete(id);
+  }
+
+  GroupRequest _toRequest(Group group) => GroupRequest(
+    nome: group.nome,
+    diasDeJogo: group.diasDeJogo,
+    horarioJogo: group.horarioJogo,
+    localPadrao: group.localPadrao,
+    tipoCampo: group.tipoCampo,
+    jogadoresPorTime: group.jogadoresPorTime,
+    duracaoJogoMinutos: group.duracaoJogoMinutos,
+    limiteTitulares: group.limiteTitulares,
+    goleirosFixos: group.goleirosFixos,
+    urlAvatar: group.urlAvatar,
+  );
 }

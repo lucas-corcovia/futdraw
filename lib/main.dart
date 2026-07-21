@@ -1,39 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/auth_controller.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
-import 'package:futdraw/helpers/db_helper.dart';
+import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/utils/theme.selector.dart';
+import 'package:futdraw/views/auth/login_view.dart';
 import 'package:futdraw/views/home_view.dart';
-import 'package:provider/provider.dart' as statemanagement;
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await DBHelper.initializeDatabase();
-  await ConfigurationsController().get();
+  await ServiceLocator.initialize();
+
+  // Instância única: carrega config salva antes de montar o widget tree
+  final configurationsController = ConfigurationsController();
+  await configurationsController.init();
+
+  final sl = ServiceLocator();
 
   runApp(
-    statemanagement.MultiProvider(
+    MultiProvider(
       providers: [
-        statemanagement.ChangeNotifierProvider(
-          create: (_) => PlayerController(),
+        ChangeNotifierProvider(
+          create: (_) => PlayerController(sl.playerRepository),
         ),
-        statemanagement.ChangeNotifierProvider(
-          create: (_) => GroupController(),
+        ChangeNotifierProvider(
+          create: (_) => GroupController(sl.groupRepository),
         ),
-        statemanagement.ChangeNotifierProvider(
-          create: (_) => ConfigurationsController(),
+        // Reutiliza a instância já inicializada (não cria uma nova limpa)
+        ChangeNotifierProvider.value(value: configurationsController),
+        ChangeNotifierProvider(
+          create: (_) => AuthController(sl.authDataSource, sl.authService),
         ),
-        // Adicione mais providers aqui, se necessário
       ],
-      child: FutDrawApp(),
+      child: FutDrawApp(isLoggedIn: sl.authService.isLoggedIn),
     ),
   );
 }
 
 class FutDrawApp extends StatelessWidget {
-  const FutDrawApp({super.key});
+  final bool isLoggedIn;
+
+  const FutDrawApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +50,12 @@ class FutDrawApp extends StatelessWidget {
       builder: (context, controller, _) {
         return MaterialApp(
           title: 'FutDraw',
-          theme: ThemeSelector.get(controller.configuration.themeColor),
-          home: const HomeView(),
+          theme: ThemeSelector.build(controller.configuration.themeColor, false),
+          darkTheme: ThemeSelector.build(controller.configuration.themeColor, true),
+          themeMode: controller.configuration.isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
+          home: isLoggedIn ? const HomeView() : const LoginView(),
         );
       },
     );

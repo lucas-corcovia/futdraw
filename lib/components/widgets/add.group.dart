@@ -47,6 +47,15 @@ class _AddGroupState extends State<AddGroup> {
     if (_isEditing) {
       final group = widget.group!;
       _name = group.nome;
+      _gameDays = List<String>.from(group.diasDeJogo);
+      _gameTime = group.horarioJogo ?? '';
+      _avatarPath = group.urlAvatar;
+      _fixedGoalkeepers = group.goleirosFixos;
+      _maxStarters = group.limiteTitulares;
+      _defaultLocation = group.localPadrao ?? '';
+      _fieldType = group.tipoCampo.toFieldType();
+      _gameTimeMinutes = group.duracaoJogoMinutos;
+      _playersPerTeam = group.jogadoresPorTime;
     } else {
       _name = '';
       _gameDays = [];
@@ -66,6 +75,16 @@ class _AddGroupState extends State<AddGroup> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Grupo' : 'Adicionar Grupo'),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: ElevatedButton.icon(
+            onPressed: _saveGroup,
+            icon: const Icon(Icons.check_circle_outline_rounded),
+            label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar Grupo'),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -168,7 +187,10 @@ class _AddGroupState extends State<AddGroup> {
                     if (value != null) {
                       setState(() {
                         _fieldType = value;
-                        //_updatePlayersPerTeam();
+                        if (value != FieldType.livre) {
+                          _playersPerTeam = value.defaultPlayersPerTeam;
+                          _maxStarters = _playersPerTeam * 2;
+                        }
                       });
                     }
                   },
@@ -286,26 +308,6 @@ class _AddGroupState extends State<AddGroup> {
                     });
                   },
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: _saveGroup,
-                  icon: Icon(
-                    Icons.save,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  label: Text(
-                    _isEditing ? 'Salvar alterações' : 'Adicionar',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -318,12 +320,29 @@ class _AddGroupState extends State<AddGroup> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
     final groupController = context.read<GroupController>();
-    if (_isEditing && widget.group != null) {
-      final updatedGroup = Group(id: widget.group!.id, nome: _name);
-      await groupController.update(updatedGroup);
+
+    final jogadoresPorTime = _fieldType == FieldType.livre
+        ? _playersPerTeam
+        : _fieldType.defaultPlayersPerTeam;
+
+    final group = Group(
+      id: _isEditing ? widget.group!.id : '',
+      nome: _name,
+      diasDeJogo: _gameDays,
+      horarioJogo: _gameTime.trim().isEmpty ? null : _gameTime.trim(),
+      localPadrao: _defaultLocation.trim().isEmpty ? null : _defaultLocation.trim(),
+      tipoCampo: _fieldType.name,
+      jogadoresPorTime: jogadoresPorTime,
+      duracaoJogoMinutos: _gameTimeMinutes,
+      limiteTitulares: _maxStarters,
+      goleirosFixos: _fixedGoalkeepers,
+      urlAvatar: _avatarPath,
+    );
+
+    if (_isEditing) {
+      await groupController.update(context, group);
     } else {
-      // Adiciona novo grupo
-      await groupController.add(Group.add(_name));
+      await groupController.add(context, group);
     }
     Navigator.pop(context);
   }

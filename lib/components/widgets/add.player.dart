@@ -24,8 +24,8 @@ class _AddPlayerState extends State<AddPlayer> {
   final _formKey = GlobalKey<FormState>();
   final _imgController = ImgBBController();
 
-  late int _id;
-  late int _groupId;
+  late String _id;
+  late String _groupId;
   late String _name;
   late double _skillRating;
   PlayerPosition _position = PlayerPosition.midfielder;
@@ -56,7 +56,7 @@ class _AddPlayerState extends State<AddPlayer> {
       return;
     }
 
-    _id = 0;
+    _id = '';
     _groupId = widget.group.id;
     _name = "";
     _skillRating = 5.0;
@@ -72,6 +72,16 @@ class _AddPlayerState extends State<AddPlayer> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_isEditing ? 'Editar Jogador' : 'Novo Jogador'),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: ElevatedButton.icon(
+              onPressed: _savePlayer,
+              icon: const Icon(Icons.check_circle_outline_rounded),
+              label: const Text('Salvar Jogador'),
+            ),
+          ),
         ),
         body:
             _isLoading
@@ -305,18 +315,6 @@ class _AddPlayerState extends State<AddPlayer> {
                     _isSubstitute
                         ? Theme.of(context).colorScheme.tertiary
                         : Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              icon: Icon(
-                Icons.save,
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-              onPressed: _savePlayer,
-              label: Text(
-                'Salvar',
-                style: Theme.of(context).textTheme.bodyLarge,
               ),
             ),
           ],

@@ -4,13 +4,19 @@ import 'package:futdraw/models/enums/theme_color.dart';
 class Configuration {
   GenerationAlgorithm generationAlgorithm;
   ThemeColor themeColor;
+  bool isDarkMode;
 
-  Configuration({required this.generationAlgorithm, required this.themeColor});
+  Configuration({
+    required this.generationAlgorithm,
+    required this.themeColor,
+    required this.isDarkMode,
+  });
 
   factory Configuration.fromJson(Map<String, dynamic> json) {
     return Configuration(
-      generationAlgorithm: getGenerationAlgorithm(json),
-      themeColor: getThemeColor(json),
+      generationAlgorithm: _parseAlgorithm(json),
+      themeColor: _parseThemeColor(json),
+      isDarkMode: (json['isDarkMode'] as bool?) ?? true,
     );
   }
 
@@ -18,27 +24,23 @@ class Configuration {
     return {
       'generationAlgorithm': generationAlgorithm.index,
       'themeColor': themeColor.index,
+      'isDarkMode': isDarkMode,
     };
   }
 
-  static GenerationAlgorithm getGenerationAlgorithm(Map<String, dynamic> json) {
-    return GenerationAlgorithm.values[json['generationAlgorithm']];
-  }
-
-  static ThemeColor getThemeColor(Map<String, dynamic> json) {
-    return ThemeColor.values[json['themeColor']];
-  }
-
-  static String getColorThemeName(ThemeColor themeColor) {
-    switch (themeColor) {
-      case ThemeColor.green:
-        return 'Verde';
-      case ThemeColor.blue:
-        return 'Azul';
-      case ThemeColor.red:
-        return 'Vermelho';
-      case ThemeColor.purple:
-        return 'Roxo';
+  static GenerationAlgorithm _parseAlgorithm(Map<String, dynamic> json) {
+    final index = json['generationAlgorithm'] as int? ?? 0;
+    if (index >= 0 && index < GenerationAlgorithm.values.length) {
+      return GenerationAlgorithm.values[index];
     }
+    return GenerationAlgorithm.balanced;
+  }
+
+  static ThemeColor _parseThemeColor(Map<String, dynamic> json) {
+    final index = json['themeColor'] as int? ?? 0;
+    if (index >= 0 && index < ThemeColor.values.length) {
+      return ThemeColor.values[index];
+    }
+    return ThemeColor.esmeralda;
   }
 }

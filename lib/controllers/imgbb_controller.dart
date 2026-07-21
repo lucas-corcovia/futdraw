@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/toast.dart';
-import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/repositories/imgbb_repository.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImgBBController {
   final imgBBRepository = ImgBBRepository();
-  final playerController = PlayerController();
 
   Future<String?> uploadAndSaveImage(
     BuildContext context,
@@ -28,7 +26,7 @@ class ImgBBController {
   Future<File?> selectImage(
     BuildContext context,
     ImageSource imageSource,
-    int playerId,
+    String playerId,
   ) async {
     final ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: imageSource);

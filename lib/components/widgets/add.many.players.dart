@@ -5,7 +5,7 @@ import 'package:futdraw/models/player.dart';
 import 'package:provider/provider.dart';
 
 class AddManyPlayers extends StatefulWidget {
-  final int groupId;
+  final String groupId;
   const AddManyPlayers({super.key, required this.groupId});
 
   @override
@@ -23,6 +23,16 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Adicionar Vários Jogadores')),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: ElevatedButton.icon(
+            onPressed: _saveManyPlayers,
+            icon: const Icon(Icons.group_add_rounded),
+            label: const Text('Adicionar Todos'),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -162,15 +172,6 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                             : Theme.of(context).colorScheme.outline,
                   ),
                 ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: _saveManyPlayers,
-
-                  child: Text(
-                    'Adicionar Todos',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ),
               ],
             ),
           ),
@@ -192,7 +193,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
         names
             .map(
               (name) => Player(
-                id: 0,
+                id: '',
                 grupoId: widget.groupId,
                 nome: name,
                 nota: _skillRating,

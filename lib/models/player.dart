@@ -1,8 +1,8 @@
 import 'package:futdraw/models/enums/player.position.dart';
 
 class Player {
-  int id;
-  int grupoId;
+  String id;
+  String grupoId;
   String nome;
   double nota;
   String? urlFoto;
@@ -23,8 +23,8 @@ class Player {
 
   factory Player.getInstance() {
     return Player(
-      id: 0,
-      grupoId: 0,
+      id: '',
+      grupoId: '',
       nome: '',
       nota: 0,
       ehCapitao: false,
@@ -36,15 +36,17 @@ class Player {
 
   factory Player.fromMap(Map<String, dynamic> map) {
     return Player(
-      id: map['id'],
-      grupoId: map['grupoId'],
-      nome: map['nome'],
-      nota: map['nota'],
-      ehCapitao: map['capitao'] == 1 ? true : false,
-      reserva: map['reserva'] == 1 ? true : false,
-      urlFoto: map['urlFoto'],
+      id: map['id']?.toString() ?? map['jogadorId']?.toString() ?? '',
+      grupoId: map['grupoId']?.toString() ?? '',
+      nome: map['nome'] as String? ?? '',
+      nota: (map['nota'] as num?)?.toDouble() ?? 0.0,
+      ehCapitao: map['ehCapitao'] as bool? ?? (map['capitao'] == 1),
+      reserva: map['reserva'] is bool
+          ? map['reserva'] as bool
+          : map['reserva'] == 1,
+      urlFoto: map['urlFoto'] as String?,
       position: PlayerPosition.values.firstWhere(
-        (e) => e.index == map['posicao'] as int?,
+        (e) => e.index == (map['posicao'] as int? ?? 2),
         orElse: () => PlayerPosition.midfielder,
       ),
     );
@@ -57,8 +59,8 @@ class Player {
   }
 
   Player copyWith({
-    int? id,
-    int? grupoId,
+    String? id,
+    String? grupoId,
     String? nome,
     double? nota,
     String? urlFoto,
@@ -85,8 +87,8 @@ class Player {
       'nome': nome,
       'nota': nota,
       'urlFoto': urlFoto,
-      'capitao': ehCapitao ? 1 : 0,
-      'reserva': reserva ? 1 : 0,
+      'ehCapitao': ehCapitao,
+      'reserva': reserva,
       'posicao': position.index,
     };
   }

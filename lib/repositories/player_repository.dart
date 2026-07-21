@@ -1,84 +1,56 @@
-import 'package:futdraw/helpers/db_helper.dart';
+import 'package:futdraw/core/result/result.dart';
+import 'package:futdraw/data/models/requests/player_request.dart';
+import 'package:futdraw/data/remote/player_remote_datasource.dart';
 import 'package:futdraw/models/player.dart';
 
 class PlayerRepository {
-  static const String table = 'players';
+  final PlayerRemoteDataSource _dataSource;
 
-  Future<void> add(Player player) async {
-    final db = await DBHelper.getDatabase();
-    await db.insert(table, {
-      'nome': player.nome,
-      'nota': player.nota,
-      'capitao': player.ehCapitao ? 1 : 0,
-      'reserva': player.reserva ? 1 : 0,
-      'urlFoto': player.urlFoto,
-      'grupoId': player.grupoId,
-      'posicao': player.position.index,
-    });
-  }
+  PlayerRepository(this._dataSource);
 
-  Future<void> addMany(List<Player> players) async {
-    final db = await DBHelper.getDatabase();
-    final batch = db.batch();
-    for (final player in players) {
-      batch.insert(table, {
-        'nome': player.nome,
-        'nota': player.nota,
-        'capitao': player.ehCapitao ? 1 : 0,
-        'reserva': player.reserva ? 1 : 0,
-        'urlFoto': player.urlFoto,
-        'grupoId': player.grupoId,
-        'posicao': player.position.index,
-      });
-    }
-    await batch.commit(noResult: true);
-  }
+  PlayerRequest _toRequest(Player player) => PlayerRequest(
+    nome: player.nome,
+    nota: player.nota,
+    urlFoto: player.urlFoto,
+    posicao: player.position.index,
+    ehCapitao: player.ehCapitao,
+    reserva: player.reserva,
+  );
 
-  Future<List<Player>> getAll() async {
-    final db = await DBHelper.getDatabase();
-    final result = await db.query(table);
-    return result.map((map) => Player.fromMap(map)).toList();
-  }
-
-  Future<Player?> getById(int id) async {
-    final db = await DBHelper.getDatabase();
-    final result = await db.query(table, where: 'id = ?', whereArgs: [id]);
-
-    return result.isNotEmpty ? Player.fromMap(result.first) : null;
-  }
-
-  Future<List<Player>> getAllByGroupId(int groupId) async {
-    final db = await DBHelper.getDatabase();
-    final result = await db.query(
-      table,
-      where: 'grupoId = ?',
-      whereArgs: [groupId],
+  Future<AppResult<List<Player>>> getAllByGroupId(String groupId) async {
+    final result = await _dataSource.getAllByGrupoId(groupId);
+    return result.when(
+      success: (data) =>
+          AppResult.success(data.map((r) => r.toModel(groupId)).toList()),
+      error: AppResult.error,
     );
-
-    return result.map((map) => Player.fromMap(map)).toList();
   }
 
-  Future<void> delete(Player player) async {
-    final db = await DBHelper.getDatabase();
-    await db.delete(table, where: 'id = ?', whereArgs: [player.id]);
+  Future<AppResult<List<Player>>> getAll() async {
+    return AppResult.success([]);
   }
 
-  Future<void> update(Player player) async {
-    final db = await DBHelper.getDatabase();
+  Future<AppResult<void>> add(Player player) async {
+    final result = await _dataSource.add(player.grupoId, _toRequest(player));
+    return result.when(success: (_) => AppResult.success(null), error: AppResult.error);
+  }
 
-    await db.update(
-      table,
-      {
-        'nome': player.nome,
-        'nota': player.nota,
-        'capitao': player.ehCapitao ? 1 : 0,
-        'reserva': player.reserva ? 1 : 0,
-        'urlFoto': player.urlFoto,
-        'grupoId': player.grupoId,
-        'posicao': player.position.index,
-      },
-      where: 'id = ?',
-      whereArgs: [player.id],
-    );
+  Future<AppResult<void>> addMany(List<Player> players, String grupoId) async {
+    final requests = players.map(_toRequest).toList();
+    final result = await _dataSource.addMany(grupoId, requests);
+    return result.when(success: (_) => AppResult.success(null), error: AppResult.error);
+  }
+
+  Future<AppResult<void>> update(Player player) async {
+    final result = await _dataSource.update(player.id, _toRequest(player));
+    return result.when(success: (_) => AppResult.success(null), error: AppResult.error);
+  }
+
+  Future<AppResult<void>> delete(Player player) async {
+    return _dataSource.delete(player.id);
+  }
+
+  Future<AppResult<Player?>> getById(String id) async {
+    return AppResult.success(null);
   }
 }

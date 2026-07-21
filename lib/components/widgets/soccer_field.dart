@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:futdraw/models/consts/app.colors.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
@@ -26,6 +25,14 @@ class _SoccerFieldState extends State<SoccerField> {
   List<Player> _forwards = [];
   bool isFreeEditMode = false;
   Player? _selectedPlayer;
+  final Map<String, Offset> _freePositions = {};
+
+  // GlobalKey garante referência correta ao RenderBox do campo
+  final GlobalKey _fieldKey = GlobalKey();
+
+  static const double _avatarSize = 60.0;
+  static const double _feedbackScale = 1.25;
+  static const double _feedbackSize = _avatarSize * _feedbackScale;
 
   @override
   void initState() {
@@ -68,6 +75,7 @@ class _SoccerFieldState extends State<SoccerField> {
         final fieldWidth = constraints.maxWidth;
 
         return Stack(
+          key: _fieldKey,
           children: [
             // Soccer field background
             Container(
@@ -78,21 +86,20 @@ class _SoccerFieldState extends State<SoccerField> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF0E8B42), // Base green
-                    Color(0xFF0D7A3C), // Slightly darker green
-                    Color(0xFF0E8B42), // Back to base green
+                    Color(0xFF0E8B42),
+                    Color(0xFF0D7A3C),
+                    Color(0xFF0E8B42),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
+                    color: Colors.black.withValues(alpha: 0.25),
                     blurRadius: 12,
                     offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              // Add grass pattern effect
               child: CustomPaint(
                 painter: GrassPatternPainter(),
                 size: Size(fieldWidth, fieldHeight),
@@ -113,19 +120,19 @@ class _SoccerFieldState extends State<SoccerField> {
                 onPressed: () {
                   setState(() {
                     if (!isFreeEditMode) {
-                      // Ao ativar o modo livre, salve as posições atuais dos jogadores
                       _initializeFreePositions(fieldWidth, fieldHeight);
                     }
                     isFreeEditMode = !isFreeEditMode;
                   });
                 },
-                child: Icon(isFreeEditMode ? Icons.lock_open : Icons.lock),
                 tooltip:
                     isFreeEditMode
                         ? 'Bloquear edição livre'
                         : 'Liberar edição livre',
+                child: Icon(isFreeEditMode ? Icons.lock_open : Icons.lock),
               ),
             ),
+
             if (!isFreeEditMode)
               ..._positionGoalkeepers(fieldWidth, fieldHeight),
             if (!isFreeEditMode) ..._positionDefenders(fieldWidth, fieldHeight),
@@ -142,7 +149,6 @@ class _SoccerFieldState extends State<SoccerField> {
   List<Widget> _positionGoalkeepers(double width, double height) {
     final List<Widget> positioned = [];
     final int count = _goalkeepers.length;
-
     if (count == 0) return positioned;
 
     final double yPosition = height * 0.85;
@@ -151,20 +157,18 @@ class _SoccerFieldState extends State<SoccerField> {
     for (int i = 0; i < count; i++) {
       positioned.add(
         Positioned(
-          left: spacing * (i + 1) - 30,
-          top: yPosition - 30,
-          child: _buildDraggablePlayer(_goalkeepers[i], 'GK'),
+          left: spacing * (i + 1) - _avatarSize / 2,
+          top: yPosition - _avatarSize / 2,
+          child: _buildSwappablePlayer(_goalkeepers[i]),
         ),
       );
     }
-
     return positioned;
   }
 
   List<Widget> _positionDefenders(double width, double height) {
     final List<Widget> positioned = [];
     final int count = _defenders.length;
-
     if (count == 0) return positioned;
 
     final double yPosition = height * 0.65;
@@ -173,20 +177,18 @@ class _SoccerFieldState extends State<SoccerField> {
     for (int i = 0; i < count; i++) {
       positioned.add(
         Positioned(
-          left: spacing * (i + 1) - 30,
-          top: yPosition - 30,
-          child: _buildDraggablePlayer(_defenders[i], 'DEF'),
+          left: spacing * (i + 1) - _avatarSize / 2,
+          top: yPosition - _avatarSize / 2,
+          child: _buildSwappablePlayer(_defenders[i]),
         ),
       );
     }
-
     return positioned;
   }
 
   List<Widget> _positionMidfielders(double width, double height) {
     final List<Widget> positioned = [];
     final int count = _midfielders.length;
-
     if (count == 0) return positioned;
 
     final double yPosition = height * 0.40;
@@ -195,20 +197,18 @@ class _SoccerFieldState extends State<SoccerField> {
     for (int i = 0; i < count; i++) {
       positioned.add(
         Positioned(
-          left: spacing * (i + 1) - 30,
-          top: yPosition - 30,
-          child: _buildDraggablePlayer(_midfielders[i], 'MID'),
+          left: spacing * (i + 1) - _avatarSize / 2,
+          top: yPosition - _avatarSize / 2,
+          child: _buildSwappablePlayer(_midfielders[i]),
         ),
       );
     }
-
     return positioned;
   }
 
   List<Widget> _positionForwards(double width, double height) {
     final List<Widget> positioned = [];
     final int count = _forwards.length;
-
     if (count == 0) return positioned;
 
     final double yPosition = height * 0.15;
@@ -217,79 +217,104 @@ class _SoccerFieldState extends State<SoccerField> {
     for (int i = 0; i < count; i++) {
       positioned.add(
         Positioned(
-          left: spacing * (i + 1) - 30,
-          top: yPosition - 30,
-          child: _buildDraggablePlayer(_forwards[i], 'FWD'),
+          left: spacing * (i + 1) - _avatarSize / 2,
+          top: yPosition - _avatarSize / 2,
+          child: _buildSwappablePlayer(_forwards[i]),
         ),
       );
     }
-
     return positioned;
   }
 
-  Widget _buildDraggablePlayer(Player player, String position) {
-    if (isFreeEditMode) {
-      // No modo livre, não usa DragTarget, apenas Draggable
-      return Container(); // Não desenha nada nas posições fixas
-    }
+  // Jogador arrastável no modo swap: DragTarget + LongPressDraggable aninhados
+  Widget _buildSwappablePlayer(Player player) {
     return DragTarget<Player>(
-      onWillAccept: (incomingPlayer) {
-        // Permite trocar com qualquer jogador, exceto ele mesmo
-        return incomingPlayer != null && incomingPlayer.id != player.id;
-      },
-      onAccept: (incomingPlayer) {
-        widget.onPlayersSwapped(player, incomingPlayer);
-        setState(() {
-          _selectedPlayer = null;
-        });
+      onWillAcceptWithDetails:
+          (details) => details.data.id != player.id,
+      onAcceptWithDetails: (details) {
+        HapticFeedback.lightImpact();
+        widget.onPlayersSwapped(player, details.data);
+        setState(() => _selectedPlayer = null);
       },
       builder: (context, candidateData, rejectedData) {
-        final isHighlighted = candidateData.isNotEmpty;
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              if (_selectedPlayer == null) {
-                _selectedPlayer = player;
-              } else if (_selectedPlayer!.id == player.id) {
-                _selectedPlayer = null;
-              } else {
-                widget.onPlayersSwapped(_selectedPlayer!, player);
-                _selectedPlayer = null;
-              }
-            });
+        final isTarget = candidateData.isNotEmpty;
+        final isSelected = _selectedPlayer?.id == player.id;
+
+        return LongPressDraggable<Player>(
+          data: player,
+          // 200ms é responsivo sem acionar drags acidentais
+          delay: const Duration(milliseconds: 200),
+          onDragStarted: () {
+            HapticFeedback.mediumImpact();
+            setState(() => _selectedPlayer = null);
           },
-          child: _buildPlayerAvatar(
+          feedback: _buildDragFeedback(player),
+          childWhenDragging: _buildPlayerAvatar(
             player,
-            60,
-            isHighlighted: _selectedPlayer?.id == player.id || isHighlighted,
+            _avatarSize,
+            opacity: 0.35,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              setState(() {
+                if (_selectedPlayer == null) {
+                  _selectedPlayer = player;
+                } else if (_selectedPlayer!.id == player.id) {
+                  _selectedPlayer = null;
+                } else {
+                  HapticFeedback.lightImpact();
+                  widget.onPlayersSwapped(_selectedPlayer!, player);
+                  _selectedPlayer = null;
+                }
+              });
+            },
+            child: _buildPlayerAvatar(
+              player,
+              _avatarSize,
+              isHighlighted: isSelected || isTarget,
+            ),
           ),
         );
       },
     );
   }
 
-  // Inicializa as posições livres com as posições fixas dos jogadores
+  // Feedback flutuante ao arrastar: avatar ligeiramente maior com sombra elevada
+  Widget _buildDragFeedback(Player player) {
+    return Material(
+      color: Colors.transparent,
+      child: Transform.scale(
+        scale: _feedbackScale,
+        child: _buildPlayerAvatar(player, _avatarSize, isHighlighted: true),
+      ),
+    );
+  }
+
   void _initializeFreePositions(double width, double height) {
     _freePositions.clear();
-    // Goleiros
+
     final gkY = height * 0.85;
     final gkSpacing = width / (_goalkeepers.length + 1);
     for (int i = 0; i < _goalkeepers.length; i++) {
       _freePositions[_goalkeepers[i].id] = Offset(gkSpacing * (i + 1), gkY);
     }
-    // Defensores
+
     final defY = height * 0.65;
     final defSpacing = width / (_defenders.length + 1);
     for (int i = 0; i < _defenders.length; i++) {
       _freePositions[_defenders[i].id] = Offset(defSpacing * (i + 1), defY);
     }
-    // Meias
+
     final midY = height * 0.40;
     final midSpacing = width / (_midfielders.length + 1);
     for (int i = 0; i < _midfielders.length; i++) {
-      _freePositions[_midfielders[i].id] = Offset(midSpacing * (i + 1), midY);
+      _freePositions[_midfielders[i].id] = Offset(
+        midSpacing * (i + 1),
+        midY,
+      );
     }
-    // Atacantes
+
     final fwdY = height * 0.15;
     final fwdSpacing = width / (_forwards.length + 1);
     for (int i = 0; i < _forwards.length; i++) {
@@ -297,32 +322,47 @@ class _SoccerFieldState extends State<SoccerField> {
     }
   }
 
-  // Adicione um mapa para armazenar as posições livres dos jogadores
-  Map<int, Offset> _freePositions = {};
-
-  // Método para construir jogadores em posições livres
   List<Widget> _buildFreePlayers(double width, double height) {
+    const half = _avatarSize / 2;
+
     return widget.players.map((player) {
       final pos = _freePositions[player.id] ?? Offset(width / 2, height / 2);
-      return Positioned(
-        left: pos.dx - 30,
-        top: pos.dy - 30,
+
+      return AnimatedPositioned(
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        left: pos.dx - half,
+        top: pos.dy - half,
         child: Draggable<Player>(
           data: player,
-          feedback: _buildPlayerAvatar(player, 60, isHighlighted: true),
-          childWhenDragging: _buildPlayerAvatar(player, 60, opacity: 0.3),
-          child: _buildPlayerAvatar(player, 60),
+          onDragStarted: () => HapticFeedback.mediumImpact(),
+          feedback: _buildDragFeedback(player),
+          childWhenDragging: _buildPlayerAvatar(
+            player,
+            _avatarSize,
+            opacity: 0.3,
+          ),
+          child: _buildPlayerAvatar(player, _avatarSize),
           onDragEnd: (details) {
-            setState(() {
-              // Use o contexto do campo para calcular a posição relativa
-              final RenderBox? box = context.findRenderObject() as RenderBox?;
-              if (box != null) {
-                final Offset localOffset = box.globalToLocal(
-                  details.offset + Offset(30, 30),
-                );
-                _freePositions[player.id] = localOffset;
-              }
-            });
+            final RenderBox? box =
+                _fieldKey.currentContext?.findRenderObject() as RenderBox?;
+            if (box == null) return;
+
+            // details.offset = canto superior esquerdo do feedback widget em coords globais
+            // feedback tem escala 1.25, então seu tamanho real = _feedbackSize
+            // centro do feedback em coords globais:
+            const feedbackHalf = _feedbackSize / 2;
+            final centerGlobal =
+                details.offset + const Offset(feedbackHalf, feedbackHalf);
+            final localCenter = box.globalToLocal(centerGlobal);
+
+            // Impede que o jogador saia dos limites do campo
+            final clamped = Offset(
+              localCenter.dx.clamp(half, width - half),
+              localCenter.dy.clamp(half, height - half),
+            );
+
+            setState(() => _freePositions[player.id] = clamped);
           },
         ),
       );
@@ -340,7 +380,8 @@ class _SoccerFieldState extends State<SoccerField> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
             width: size,
             height: size,
             decoration: BoxDecoration(
@@ -348,20 +389,24 @@ class _SoccerFieldState extends State<SoccerField> {
               border: Border.all(
                 color:
                     isHighlighted
-                        ? Theme.of(context).colorScheme.tertiary
+                        ? Colors.white
                         : player.ehCapitao
                         ? Theme.of(context).colorScheme.tertiary
                         : _getPositionColor(player.position),
-                width: 3,
+                width: isHighlighted ? 4 : 3,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  blurRadius: 6,
+                  color:
+                      isHighlighted
+                          ? Colors.white.withValues(alpha: 0.5)
+                          : Colors.black.withValues(alpha: 0.4),
+                  blurRadius: isHighlighted ? 12 : 6,
+                  spreadRadius: isHighlighted ? 2 : 0,
                   offset: const Offset(0, 3),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, -1),
                 ),
@@ -441,9 +486,9 @@ class _SoccerFieldState extends State<SoccerField> {
               color: Colors.white,
               shadows: [
                 Shadow(
-                  color: Colors.black.withAlpha(100),
+                  color: Colors.black.withAlpha(160),
                   offset: const Offset(1, 1),
-                  blurRadius: 2,
+                  blurRadius: 3,
                 ),
               ],
             ),
@@ -485,11 +530,10 @@ class GrassPatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.white.withOpacity(0.05)
+          ..color = Colors.white.withValues(alpha: 0.05)
           ..strokeWidth = 1.5
           ..isAntiAlias = true;
 
-    // Create vertical stripes for a soccer field effect
     final double stripeWidth = size.width / 12;
     for (int i = 0; i < 12; i += 2) {
       canvas.drawRect(
@@ -506,11 +550,12 @@ class GrassPatternPainter extends CustomPainter {
 class FieldPainter extends CustomPainter {
   @override
   bool shouldRebuildSemantics(CustomPainter oldDelegate) => false;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.white.withOpacity(0.8)
+          ..color = Colors.white.withValues(alpha: 0.8)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0
           ..isAntiAlias = true
@@ -533,22 +578,19 @@ class FieldPainter extends CustomPainter {
     // Center dot
     final dotPaint =
         Paint()
-          ..color = Colors.white.withOpacity(0.7)
+          ..color = Colors.white.withValues(alpha: 0.7)
           ..style = PaintingStyle.fill;
     canvas.drawCircle(Offset(size.width / 2, size.height / 2), 3.0, dotPaint);
 
-    // Penalty areas
     final penaltyWidth = size.width * 0.5;
     final penaltyHeight = size.height * 0.2;
     final penaltyLeft = (size.width - penaltyWidth) / 2;
 
-    // Top penalty area
     canvas.drawRect(
       Rect.fromLTWH(penaltyLeft, 0, penaltyWidth, penaltyHeight),
       paint,
     );
 
-    // Bottom penalty area
     canvas.drawRect(
       Rect.fromLTWH(
         penaltyLeft,
@@ -559,15 +601,12 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
-    // Goal areas
     final goalWidth = size.width * 0.3;
     final goalHeight = size.height * 0.08;
     final goalLeft = (size.width - goalWidth) / 2;
 
-    // Top goal area
     canvas.drawRect(Rect.fromLTWH(goalLeft, 0, goalWidth, goalHeight), paint);
 
-    // Bottom goal area
     canvas.drawRect(
       Rect.fromLTWH(goalLeft, size.height - goalHeight, goalWidth, goalHeight),
       paint,
@@ -585,9 +624,8 @@ class FieldPainter extends CustomPainter {
     // Corner arcs
     final radius = size.width * 0.05;
     const startAngle = 0.0;
-    const sweepAngle = 1.57; // 90 degrees in radians
+    const sweepAngle = 1.57;
 
-    // Top-left corner
     canvas.drawArc(
       Rect.fromLTWH(0, 0, radius * 2, radius * 2),
       startAngle,
@@ -596,7 +634,6 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
-    // Top-right corner
     canvas.drawArc(
       Rect.fromLTWH(size.width - radius * 2, 0, radius * 2, radius * 2),
       startAngle + 1.57,
@@ -605,7 +642,6 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
-    // Bottom-right corner
     canvas.drawArc(
       Rect.fromLTWH(
         size.width - radius * 2,
@@ -619,7 +655,6 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
-    // Bottom-left corner
     canvas.drawArc(
       Rect.fromLTWH(0, size.height - radius * 2, radius * 2, radius * 2),
       startAngle + 4.71,
@@ -630,7 +665,5 @@ class FieldPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

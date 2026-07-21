@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
-import 'package:futdraw/controllers/player_controller.dart';
-import 'package:futdraw/helpers/team_generator.dart';
+import 'package:futdraw/core/di/service_locator.dart';
+import 'package:futdraw/data/models/requests/sortear_request.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/views/teams_display_view.dart';
 import 'package:provider/provider.dart';
@@ -23,90 +23,44 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
   bool _isLoading = false;
   int _numberOfTeams = 2;
 
-  late Group? _selectedGroup;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedGroup = widget.preselectedGroup;
-  }
-
   void _generateTeams() async {
     if (_isLoading) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final grupoId = widget.preselectedGroup?.id;
+    if (grupoId == null || grupoId.isEmpty) return;
 
-    var players = await context.read<PlayerController>().getAllByGroupId(
-      context,
-      widget.preselectedGroup!.id,
+    setState(() => _isLoading = true);
+
+    final algorithm = context
+        .read<ConfigurationsController>()
+        .configuration
+        .generationAlgorithm;
+
+    final result = await ServiceLocator().sorteioDataSource.sortear(
+      grupoId,
+      SortearRequest(
+        numeroTimes: _numberOfTeams,
+        algoritmo: algorithm.index,
+      ),
     );
 
-    players = players.where((p) => !p.reserva).toList();
+    if (!mounted) return;
 
-    if (players.length < _numberOfTeams) {
-      setState(() {
-        _isLoading = false;
-      });
+    setState(() => _isLoading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não há jogadores suficientes para gerar os times'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    var captainsCount = players.where((p) => p.ehCapitao).toList().length;
-
-    if (captainsCount > 0 && captainsCount != _numberOfTeams) {
-      Toast.show(
-        context,
-        'O número de capitães deve ser o mesmo do número de times!',
-        true,
-        duration: 5,
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
-    var teamsGenerator = TeamGenerator(
-      algorithm:
-          context
-              .read<ConfigurationsController>()
-              .configuration
-              .generationAlgorithm,
-      players: players,
-      group: _selectedGroup,
-      numberOfTeams: _numberOfTeams,
+    result.when(
+      success: (teams) {
+        if (teams.isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TeamsDisplayScreen(teams: teams),
+            ),
+          );
+        }
+      },
+      error: (message) => Toast.show(context, message, true, duration: 5),
     );
-
-    var teams = teamsGenerator.generate();
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (teams.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TeamsDisplayScreen(teams: teams),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro ao gerar times'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -122,7 +76,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -156,7 +109,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Number of Teams
                       Card(
                         elevation: 1,
                         shape: RoundedRectangleBorder(
@@ -215,8 +167,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                                   ],
                                 ),
                               ),
-
-                              // Team number selection chips
                               const SizedBox(height: 16),
                               Wrap(
                                 spacing: 8,
@@ -255,7 +205,6 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                       ),
 
                       const SizedBox(height: 32),
-                      // Generate Button
                       ElevatedButton.icon(
                         onPressed: _generateTeams,
                         icon: const Icon(Icons.shuffle),
