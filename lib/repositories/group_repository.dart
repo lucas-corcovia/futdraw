@@ -55,5 +55,9 @@ class GroupRepository {
     limiteTitulares: group.limiteTitulares,
     goleirosFixos: group.goleirosFixos,
     urlAvatar: group.urlAvatar,
+    taticaGoleiros: group.taticaGoleiros,
+    taticaDefensores: group.taticaDefensores,
+    taticaMeias: group.taticaMeias,
+    taticaAtacantes: group.taticaAtacantes,
   );
 }

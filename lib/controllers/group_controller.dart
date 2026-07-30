@@ -26,6 +26,7 @@ class GroupController extends ChangeNotifier {
     final result = await repository.add(group);
     if (result.isSuccess) {
       await getAll();
+      Toast.show(context, 'Grupo adicionado com sucesso!', false);
     } else {
       Toast.show(context, result.errorMessage!, true);
     }
@@ -35,6 +36,7 @@ class GroupController extends ChangeNotifier {
     final result = await repository.delete(id);
     if (result.isSuccess) {
       await getAll();
+      Toast.show(context, 'Grupo excluído com sucesso!', false);
     } else {
       Toast.show(context, result.errorMessage!, true);
     }
@@ -44,6 +46,7 @@ class GroupController extends ChangeNotifier {
     final result = await repository.update(group);
     if (result.isSuccess) {
       await getAll();
+      Toast.show(context, 'Grupo atualizado com sucesso!', false);
     } else {
       Toast.show(context, result.errorMessage!, true);
     }

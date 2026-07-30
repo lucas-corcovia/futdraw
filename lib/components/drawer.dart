@@ -39,6 +39,7 @@ class DrawerComponent extends StatelessWidget {
                         ),
                         const _SectionLabel(label: 'CONFIGURAÇÕES'),
                         _AlgorithmSelector(controller: controller),
+                        _GerarPosicaoToggle(controller: controller),
                       ],
                     ),
                   ),
@@ -302,6 +303,26 @@ class _AlgorithmSelector extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _GerarPosicaoToggle extends StatelessWidget {
+  final ConfigurationsController controller;
+
+  const _GerarPosicaoToggle({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: SwitchListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Gerar por posição'),
+        subtitle: const Text('Redistribui posições conforme a tática do grupo'),
+        value: controller.configuration.gerarIndependenteDaPosicao,
+        onChanged: controller.setGerarIndependenteDaPosicao,
       ),
     );
   }

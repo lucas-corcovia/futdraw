@@ -35,6 +35,7 @@ class PlayerController extends ChangeNotifier {
     final result = await repository.add(player);
     if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
+      Toast.show(context, 'Jogador adicionado com sucesso!', false);
     } else {
       Toast.show(context, 'Erro ao adicionar jogador: ${result.errorMessage}', true);
     }
@@ -48,6 +49,7 @@ class PlayerController extends ChangeNotifier {
     final result = await repository.addMany(players, groupId);
     if (result.isSuccess) {
       await getAllByGroupId(context, groupId);
+      Toast.show(context, 'Jogadores adicionados com sucesso!', false);
     } else {
       Toast.show(context, 'Erro ao adicionar jogadores: ${result.errorMessage}', true);
     }
@@ -81,6 +83,7 @@ class PlayerController extends ChangeNotifier {
     final result = await repository.delete(player);
     if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
+      Toast.show(context, 'Jogador excluído com sucesso!', false);
     } else {
       Toast.show(context, 'Erro ao excluir jogador: ${result.errorMessage}', true);
     }
@@ -90,6 +93,7 @@ class PlayerController extends ChangeNotifier {
     final result = await repository.update(player);
     if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
+      Toast.show(context, 'Jogador atualizado com sucesso!', false);
     } else {
       Toast.show(context, 'Erro ao atualizar jogador: ${result.errorMessage}', true);
     }

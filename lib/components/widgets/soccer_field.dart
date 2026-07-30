@@ -27,7 +27,6 @@ class _SoccerFieldState extends State<SoccerField> {
   Player? _selectedPlayer;
   final Map<String, Offset> _freePositions = {};
 
-  // GlobalKey garante referência correta ao RenderBox do campo
   final GlobalKey _fieldKey = GlobalKey();
 
   static const double _avatarSize = 60.0;
@@ -77,41 +76,65 @@ class _SoccerFieldState extends State<SoccerField> {
         return Stack(
           key: _fieldKey,
           children: [
-            // Soccer field background
+            // Layer 1+2: Base de grama com gradiente radial + listras de corte
             Container(
               width: fieldWidth,
               height: fieldHeight,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                gradient: const RadialGradient(
+                  center: Alignment(0, -0.05),
+                  radius: 1.0,
                   colors: [
-                    Color(0xFF0E8B42),
-                    Color(0xFF0D7A3C),
-                    Color(0xFF0E8B42),
+                    Color(0xFF2EC066), // centro iluminado (holofote)
+                    Color(0xFF178A40), // meio campo
+                    Color(0xFF0A4F24), // bordas escuras
                   ],
+                  stops: [0.0, 0.55, 1.0],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
+                    color: Colors.black.withValues(alpha: 0.45),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFF0A4F24).withValues(alpha: 0.4),
+                    blurRadius: 30,
+                    spreadRadius: -4,
+                    offset: const Offset(0, 12),
                   ),
                 ],
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: CustomPaint(
+                  painter: MowStripePainter(),
+                  size: Size(fieldWidth, fieldHeight),
+                ),
+              ),
+            ),
+
+            // Layer 3: Linhas do campo
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
               child: CustomPaint(
-                painter: GrassPatternPainter(),
+                painter: FieldPainter(),
                 size: Size(fieldWidth, fieldHeight),
               ),
             ),
 
-            // Field lines
-            CustomPaint(
-              size: Size(fieldWidth, fieldHeight),
-              painter: FieldPainter(),
+            // Layer 4: Vinheta — sombra nas bordas simulando estádio
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: CustomPaint(
+                painter: VignettePainter(),
+                size: Size(fieldWidth, fieldHeight),
+              ),
             ),
 
+            // Botão de modo de edição livre
             Positioned(
               top: 16,
               right: 16,
@@ -226,7 +249,6 @@ class _SoccerFieldState extends State<SoccerField> {
     return positioned;
   }
 
-  // Jogador arrastável no modo swap: DragTarget + LongPressDraggable aninhados
   Widget _buildSwappablePlayer(Player player) {
     return DragTarget<Player>(
       onWillAcceptWithDetails:
@@ -242,7 +264,6 @@ class _SoccerFieldState extends State<SoccerField> {
 
         return LongPressDraggable<Player>(
           data: player,
-          // 200ms é responsivo sem acionar drags acidentais
           delay: const Duration(milliseconds: 200),
           onDragStarted: () {
             HapticFeedback.mediumImpact();
@@ -280,7 +301,6 @@ class _SoccerFieldState extends State<SoccerField> {
     );
   }
 
-  // Feedback flutuante ao arrastar: avatar ligeiramente maior com sombra elevada
   Widget _buildDragFeedback(Player player) {
     return Material(
       color: Colors.transparent,
@@ -348,15 +368,11 @@ class _SoccerFieldState extends State<SoccerField> {
                 _fieldKey.currentContext?.findRenderObject() as RenderBox?;
             if (box == null) return;
 
-            // details.offset = canto superior esquerdo do feedback widget em coords globais
-            // feedback tem escala 1.25, então seu tamanho real = _feedbackSize
-            // centro do feedback em coords globais:
             const feedbackHalf = _feedbackSize / 2;
             final centerGlobal =
                 details.offset + const Offset(feedbackHalf, feedbackHalf);
             final localCenter = box.globalToLocal(centerGlobal);
 
-            // Impede que o jogador saia dos limites do campo
             final clamped = Offset(
               localCenter.dx.clamp(half, width - half),
               localCenter.dy.clamp(half, height - half),
@@ -525,72 +541,81 @@ class _SoccerFieldState extends State<SoccerField> {
   }
 }
 
-class GrassPatternPainter extends CustomPainter {
+// ─────────────────────────────────────────────────────────────────────────────
+// PAINTERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Listras horizontais de corte alternando claro/escuro (padrão de estádio).
+class MowStripePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.05)
-          ..strokeWidth = 1.5
-          ..isAntiAlias = true;
+    const int stripes = 10;
+    final double stripeHeight = size.height / stripes;
 
-    final double stripeWidth = size.width / 12;
-    for (int i = 0; i < 12; i += 2) {
+    for (int i = 0; i < stripes; i++) {
+      final paint =
+          Paint()
+            ..color =
+                i.isEven
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : Colors.black.withValues(alpha: 0.10);
       canvas.drawRect(
-        Rect.fromLTWH(i * stripeWidth, 0, stripeWidth, size.height),
+        Rect.fromLTWH(0, i * stripeHeight, size.width, stripeHeight),
         paint,
       );
     }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+/// Marcações do campo: linha do meio, círculo central, grandes áreas,
+/// áreas de gol, arcos de pênalti, manchões e cantos.
 class FieldPainter extends CustomPainter {
-  @override
-  bool shouldRebuildSemantics(CustomPainter oldDelegate) => false;
-
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.8)
+          ..color = Colors.white.withValues(alpha: 0.90)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0
+          ..strokeWidth = 2.5
           ..isAntiAlias = true
           ..strokeCap = StrokeCap.round;
 
-    // Center line
+    final dotPaint =
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.85)
+          ..style = PaintingStyle.fill;
+
+    // ── Linha do meio ──────────────────────────────────────────────────────
     canvas.drawLine(
       Offset(0, size.height / 2),
       Offset(size.width, size.height / 2),
       paint,
     );
 
-    // Center circle
+    // ── Círculo central ────────────────────────────────────────────────────
     canvas.drawCircle(
       Offset(size.width / 2, size.height / 2),
       size.width / 8,
       paint,
     );
 
-    // Center dot
-    final dotPaint =
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.7)
-          ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 3.0, dotPaint);
+    // Ponto central
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), 3.5, dotPaint);
 
+    // ── Grandes áreas ──────────────────────────────────────────────────────
     final penaltyWidth = size.width * 0.5;
     final penaltyHeight = size.height * 0.2;
     final penaltyLeft = (size.width - penaltyWidth) / 2;
 
+    // Grande área superior
     canvas.drawRect(
       Rect.fromLTWH(penaltyLeft, 0, penaltyWidth, penaltyHeight),
       paint,
     );
-
+    // Grande área inferior
     canvas.drawRect(
       Rect.fromLTWH(
         penaltyLeft,
@@ -601,18 +626,56 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
+    // ── Áreas de gol ───────────────────────────────────────────────────────
     final goalWidth = size.width * 0.3;
     final goalHeight = size.height * 0.08;
     final goalLeft = (size.width - goalWidth) / 2;
 
-    canvas.drawRect(Rect.fromLTWH(goalLeft, 0, goalWidth, goalHeight), paint);
-
+    canvas.drawRect(
+      Rect.fromLTWH(goalLeft, 0, goalWidth, goalHeight),
+      paint,
+    );
     canvas.drawRect(
       Rect.fromLTWH(goalLeft, size.height - goalHeight, goalWidth, goalHeight),
       paint,
     );
 
-    // Field outline
+    // ── Manchões de pênalti ────────────────────────────────────────────────
+    final penaltySpotTopY = penaltyHeight * 0.62;
+    final penaltySpotBottomY = size.height - penaltySpotTopY;
+    final penaltySpotX = size.width / 2;
+
+    canvas.drawCircle(Offset(penaltySpotX, penaltySpotTopY), 4.0, dotPaint);
+    canvas.drawCircle(Offset(penaltySpotX, penaltySpotBottomY), 4.0, dotPaint);
+
+    // ── Arcos de pênalti (D) ───────────────────────────────────────────────
+    final arcRadius = size.height * 0.12;
+
+    // Arco superior: apenas a porção ABAIXO da grande área superior
+    canvas.save();
+    canvas.clipRect(
+      Rect.fromLTWH(0, penaltyHeight, size.width, size.height - penaltyHeight),
+    );
+    canvas.drawCircle(
+      Offset(penaltySpotX, penaltySpotTopY),
+      arcRadius,
+      paint,
+    );
+    canvas.restore();
+
+    // Arco inferior: apenas a porção ACIMA da grande área inferior
+    canvas.save();
+    canvas.clipRect(
+      Rect.fromLTWH(0, 0, size.width, size.height - penaltyHeight),
+    );
+    canvas.drawCircle(
+      Offset(penaltySpotX, penaltySpotBottomY),
+      arcRadius,
+      paint,
+    );
+    canvas.restore();
+
+    // ── Contorno do campo ──────────────────────────────────────────────────
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
@@ -621,46 +684,79 @@ class FieldPainter extends CustomPainter {
       paint,
     );
 
-    // Corner arcs
-    final radius = size.width * 0.05;
-    const startAngle = 0.0;
-    const sweepAngle = 1.57;
+    // ── Cantos ─────────────────────────────────────────────────────────────
+    final cornerRadius = size.width * 0.05;
+    const sweep = 1.5708; // π/2
 
     canvas.drawArc(
-      Rect.fromLTWH(0, 0, radius * 2, radius * 2),
-      startAngle,
-      sweepAngle,
+      Rect.fromLTWH(0, 0, cornerRadius * 2, cornerRadius * 2),
+      0,
+      sweep,
       false,
       paint,
     );
-
-    canvas.drawArc(
-      Rect.fromLTWH(size.width - radius * 2, 0, radius * 2, radius * 2),
-      startAngle + 1.57,
-      sweepAngle,
-      false,
-      paint,
-    );
-
     canvas.drawArc(
       Rect.fromLTWH(
-        size.width - radius * 2,
-        size.height - radius * 2,
-        radius * 2,
-        radius * 2,
+        size.width - cornerRadius * 2,
+        0,
+        cornerRadius * 2,
+        cornerRadius * 2,
       ),
-      startAngle + 3.14,
-      sweepAngle,
+      sweep,
+      sweep,
       false,
       paint,
     );
-
     canvas.drawArc(
-      Rect.fromLTWH(0, size.height - radius * 2, radius * 2, radius * 2),
-      startAngle + 4.71,
-      sweepAngle,
+      Rect.fromLTWH(
+        size.width - cornerRadius * 2,
+        size.height - cornerRadius * 2,
+        cornerRadius * 2,
+        cornerRadius * 2,
+      ),
+      sweep * 2,
+      sweep,
       false,
       paint,
+    );
+    canvas.drawArc(
+      Rect.fromLTWH(
+        0,
+        size.height - cornerRadius * 2,
+        cornerRadius * 2,
+        cornerRadius * 2,
+      ),
+      sweep * 3,
+      sweep,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+
+  @override
+  bool shouldRebuildSemantics(CustomPainter oldDelegate) => false;
+}
+
+/// Vinheta: overlay escuro nas bordas simulando iluminação de estádio.
+class VignettePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final gradient = RadialGradient(
+      center: Alignment.center,
+      radius: 0.88,
+      colors: [
+        Colors.transparent,
+        Colors.black.withValues(alpha: 0.28),
+      ],
+      stops: const [0.5, 1.0],
+    );
+    canvas.drawRect(
+      rect,
+      Paint()..shader = gradient.createShader(rect),
     );
   }
 

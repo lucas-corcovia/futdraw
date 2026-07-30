@@ -64,4 +64,10 @@ class ConfigurationsController extends ChangeNotifier {
     save();
     notifyListeners();
   }
+
+  void setGerarIndependenteDaPosicao(bool value) {
+    configuration.gerarIndependenteDaPosicao = value;
+    save();
+    notifyListeners();
+  }
 }

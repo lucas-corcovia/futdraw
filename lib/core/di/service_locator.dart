@@ -3,6 +3,7 @@ import 'package:futdraw/core/network/dio_client.dart';
 import 'package:futdraw/data/remote/auth_remote_datasource.dart';
 import 'package:futdraw/data/remote/group_remote_datasource.dart';
 import 'package:futdraw/data/remote/player_remote_datasource.dart';
+import 'package:futdraw/data/remote/sorteio_ia_remote_datasource.dart';
 import 'package:futdraw/data/remote/sorteio_remote_datasource.dart';
 import 'package:futdraw/repositories/group_repository.dart';
 import 'package:futdraw/repositories/player_repository.dart';
@@ -20,6 +21,7 @@ class ServiceLocator {
   late GroupRemoteDataSource groupDataSource;
   late PlayerRemoteDataSource playerDataSource;
   late SorteioRemoteDataSource sorteioDataSource;
+  late SorteioIARemoteDataSource sorteioIADataSource;
   late GroupRepository groupRepository;
   late PlayerRepository playerRepository;
 
@@ -33,6 +35,7 @@ class ServiceLocator {
     sl.groupDataSource = GroupRemoteDataSource(sl.dio);
     sl.playerDataSource = PlayerRemoteDataSource(sl.dio);
     sl.sorteioDataSource = SorteioRemoteDataSource(sl.dio);
+    sl.sorteioIADataSource = SorteioIARemoteDataSource(sl.dio);
     sl.groupRepository = GroupRepository(sl.groupDataSource);
     sl.playerRepository = PlayerRepository(sl.playerDataSource);
   }

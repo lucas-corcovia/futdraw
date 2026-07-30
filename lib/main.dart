@@ -5,8 +5,7 @@ import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/utils/theme.selector.dart';
-import 'package:futdraw/views/auth/login_view.dart';
-import 'package:futdraw/views/home_view.dart';
+import 'package:futdraw/views/splash_screen.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -55,7 +54,7 @@ class FutDrawApp extends StatelessWidget {
           themeMode: controller.configuration.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
-          home: isLoggedIn ? const HomeView() : const LoginView(),
+          home: SplashScreen(isLoggedIn: isLoggedIn),
         );
       },
     );

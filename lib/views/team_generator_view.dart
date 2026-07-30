@@ -4,6 +4,7 @@ import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/sortear_request.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/views/ai_team_sort_view.dart';
 import 'package:futdraw/views/teams_display_view.dart';
 import 'package:provider/provider.dart';
 
@@ -31,16 +32,14 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
 
     setState(() => _isLoading = true);
 
-    final algorithm = context
-        .read<ConfigurationsController>()
-        .configuration
-        .generationAlgorithm;
+    final config = context.read<ConfigurationsController>().configuration;
 
     final result = await ServiceLocator().sorteioDataSource.sortear(
       grupoId,
       SortearRequest(
         numeroTimes: _numberOfTeams,
-        algoritmo: algorithm.index,
+        algoritmo: config.generationAlgorithm.index,
+        gerarIndependenteDaPosicao: config.gerarIndependenteDaPosicao,
       ),
     );
 
@@ -175,24 +174,25 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                                   _maxTeams - _minTeams + 1,
                                   (index) {
                                     final number = _minTeams + index;
+                                    final isSelected = _numberOfTeams == number;
                                     return ChoiceChip(
                                       label: Text('$number'),
-                                      selected: _numberOfTeams == number,
+                                      selected: isSelected,
+                                      selectedColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      checkmarkColor:
+                                          Theme.of(context).colorScheme.onPrimary,
                                       labelStyle: TextStyle(
-                                        color:
-                                            _numberOfTeams == number
-                                                ? Theme.of(
-                                                  context,
-                                                ).colorScheme.onPrimary
-                                                : Theme.of(
-                                                  context,
-                                                ).colorScheme.onSurface,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.onPrimary
+                                            : Theme.of(context).colorScheme.onSurface,
                                       ),
                                       onSelected: (selected) {
                                         if (selected) {
-                                          setState(() {
-                                            _numberOfTeams = number;
-                                          });
+                                          setState(() => _numberOfTeams = number);
                                         }
                                       },
                                     );
@@ -208,8 +208,23 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                       ElevatedButton.icon(
                         onPressed: _generateTeams,
                         icon: const Icon(Icons.shuffle),
+                        label: const Text('Sortear Times'),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          final group = widget.preselectedGroup;
+                          if (group == null) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AITeamSortView(group: group),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.auto_awesome_rounded),
                         label: Text(
-                          'Sortear Times',
+                          'Sortear com IA',
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ),

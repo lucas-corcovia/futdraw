@@ -24,10 +24,54 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<AppResult<AuthResponse>> register(RegisterRequest request) async {
+  Future<AppResult<String>> register(RegisterRequest request) async {
     try {
       final response = await _dio.post(
         ApiConstants.registrar,
+        data: request.toJson(),
+      );
+      final mensagem =
+          (response.data as Map<String, dynamic>)['mensagem'] as String;
+      return AppResult.success(mensagem);
+    } on DioException catch (e) {
+      return AppResult.error(AppException.fromDio(e).message);
+    }
+  }
+
+  Future<AppResult<AuthResponse>> confirmarEmail(
+      ConfirmarEmailRequest request) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.confirmarEmail,
+        data: request.toJson(),
+      );
+      return AppResult.success(
+        AuthResponse.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return AppResult.error(AppException.fromDio(e).message);
+    }
+  }
+
+  Future<AppResult<String>> reenviarCodigo(
+      ReenviarCodigoRequest request) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.reenviarCodigo,
+        data: request.toJson(),
+      );
+      final mensagem =
+          (response.data as Map<String, dynamic>)['mensagem'] as String;
+      return AppResult.success(mensagem);
+    } on DioException catch (e) {
+      return AppResult.error(AppException.fromDio(e).message);
+    }
+  }
+
+  Future<AppResult<AuthResponse>> googleLogin(GoogleLoginRequest request) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.googleLogin,
         data: request.toJson(),
       );
       return AppResult.success(

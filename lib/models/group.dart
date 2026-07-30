@@ -15,6 +15,10 @@ class Group {
   int limiteTitulares;
   bool goleirosFixos;
   String? urlAvatar;
+  int? taticaGoleiros;
+  int? taticaDefensores;
+  int? taticaMeias;
+  int? taticaAtacantes;
 
   Group({
     required this.id,
@@ -31,6 +35,10 @@ class Group {
     this.limiteTitulares = 22,
     this.goleirosFixos = false,
     this.urlAvatar,
+    this.taticaGoleiros,
+    this.taticaDefensores,
+    this.taticaMeias,
+    this.taticaAtacantes,
   });
 
   factory Group.fromJson(Map<String, dynamic> json) {
@@ -48,6 +56,10 @@ class Group {
       limiteTitulares: json['limiteTitulares'] as int? ?? 22,
       goleirosFixos: json['goleirosFixos'] as bool? ?? false,
       urlAvatar: json['urlAvatar'] as String?,
+      taticaGoleiros: json['taticaGoleiros'] as int?,
+      taticaDefensores: json['taticaDefensores'] as int?,
+      taticaMeias: json['taticaMeias'] as int?,
+      taticaAtacantes: json['taticaAtacantes'] as int?,
     );
   }
 }

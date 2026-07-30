@@ -5,11 +5,13 @@ class Configuration {
   GenerationAlgorithm generationAlgorithm;
   ThemeColor themeColor;
   bool isDarkMode;
+  bool gerarIndependenteDaPosicao;
 
   Configuration({
     required this.generationAlgorithm,
     required this.themeColor,
     required this.isDarkMode,
+    this.gerarIndependenteDaPosicao = false,
   });
 
   factory Configuration.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Configuration {
       generationAlgorithm: _parseAlgorithm(json),
       themeColor: _parseThemeColor(json),
       isDarkMode: (json['isDarkMode'] as bool?) ?? true,
+      gerarIndependenteDaPosicao: (json['gerarIndependenteDaPosicao'] as bool?) ?? false,
     );
   }
 
@@ -25,6 +28,7 @@ class Configuration {
       'generationAlgorithm': generationAlgorithm.index,
       'themeColor': themeColor.index,
       'isDarkMode': isDarkMode,
+      'gerarIndependenteDaPosicao': gerarIndependenteDaPosicao,
     };
   }
 

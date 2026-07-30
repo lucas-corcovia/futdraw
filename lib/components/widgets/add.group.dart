@@ -1,11 +1,193 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/utils/extensions.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 
 enum FieldType { quadra, campo, society, livre }
+
+class _TaticaSection extends StatelessWidget {
+  final int playersPerTeam;
+  final int goleiros;
+  final int defensores;
+  final int meias;
+  final int atacantes;
+  final void Function(int gol, int def, int mei, int ata) onChanged;
+
+  const _TaticaSection({
+    required this.playersPerTeam,
+    required this.goleiros,
+    required this.defensores,
+    required this.meias,
+    required this.atacantes,
+    required this.onChanged,
+  });
+
+  int get _total => goleiros + defensores + meias + atacantes;
+
+  @override
+  Widget build(BuildContext context) {
+    final isValid = _total == playersPerTeam;
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.sports_soccer, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Tática Padrão',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isValid
+                        ? scheme.primaryContainer
+                        : scheme.errorContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$_total / $playersPerTeam',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: isValid
+                          ? scheme.onPrimaryContainer
+                          : scheme.onErrorContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (!isValid) ...[
+              const SizedBox(height: 6),
+              Text(
+                'A soma deve ser igual a $playersPerTeam jogadores por time',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: scheme.error,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(child: _Counter(
+                  label: 'GOL',
+                  value: goleiros,
+                  onDecrement: () => onChanged(goleiros - 1, defensores, meias, atacantes),
+                  onIncrement: () => onChanged(goleiros + 1, defensores, meias, atacantes),
+                )),
+                Expanded(child: _Counter(
+                  label: 'DEF',
+                  value: defensores,
+                  onDecrement: () => onChanged(goleiros, defensores - 1, meias, atacantes),
+                  onIncrement: () => onChanged(goleiros, defensores + 1, meias, atacantes),
+                )),
+                Expanded(child: _Counter(
+                  label: 'MEI',
+                  value: meias,
+                  onDecrement: () => onChanged(goleiros, defensores, meias - 1, atacantes),
+                  onIncrement: () => onChanged(goleiros, defensores, meias + 1, atacantes),
+                )),
+                Expanded(child: _Counter(
+                  label: 'ATA',
+                  value: atacantes,
+                  onDecrement: () => onChanged(goleiros, defensores, meias, atacantes - 1),
+                  onIncrement: () => onChanged(goleiros, defensores, meias, atacantes + 1),
+                )),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CounterButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _CounterButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = onTap != null
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+}
+
+class _Counter extends StatelessWidget {
+  final String label;
+  final int value;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  const _Counter({
+    required this.label,
+    required this.value,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _CounterButton(
+              icon: Icons.remove_circle_outline,
+              onTap: value > 0 ? onDecrement : null,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '$value',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 6),
+            _CounterButton(
+              icon: Icons.add_circle_outline,
+              onTap: onIncrement,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 class AddGroup extends StatefulWidget {
   const AddGroup({super.key, this.group});
@@ -27,6 +209,10 @@ class _AddGroupState extends State<AddGroup> {
   late FieldType _fieldType;
   late int _gameTimeMinutes;
   late int _playersPerTeam;
+  late int _taticaGoleiros;
+  late int _taticaDefensores;
+  late int _taticaMeias;
+  late int _taticaAtacantes;
   final _formKey = GlobalKey<FormState>();
 
   final List<String> _weekDays = [
@@ -56,6 +242,11 @@ class _AddGroupState extends State<AddGroup> {
       _fieldType = group.tipoCampo.toFieldType();
       _gameTimeMinutes = group.duracaoJogoMinutos;
       _playersPerTeam = group.jogadoresPorTime;
+      final defaults = _defaultTatica(_fieldType);
+      _taticaGoleiros = group.taticaGoleiros ?? defaults[0];
+      _taticaDefensores = group.taticaDefensores ?? defaults[1];
+      _taticaMeias = group.taticaMeias ?? defaults[2];
+      _taticaAtacantes = group.taticaAtacantes ?? defaults[3];
     } else {
       _name = '';
       _gameDays = [];
@@ -67,12 +258,36 @@ class _AddGroupState extends State<AddGroup> {
       _fieldType = FieldType.campo;
       _gameTimeMinutes = 90;
       _playersPerTeam = FieldType.campo.defaultPlayersPerTeam;
+      final defaults = _defaultTatica(FieldType.campo);
+      _taticaGoleiros = defaults[0];
+      _taticaDefensores = defaults[1];
+      _taticaMeias = defaults[2];
+      _taticaAtacantes = defaults[3];
     }
+  }
+
+  List<int> _defaultTatica(FieldType type) {
+    switch (type) {
+      case FieldType.quadra:   return [1, 1, 2, 1];
+      case FieldType.society:  return [1, 2, 3, 1];
+      case FieldType.campo:    return [1, 4, 4, 2];
+      case FieldType.livre:    return [0, 0, 0, 0];
+    }
+  }
+
+  void _aplicarTaticaPadrao(FieldType tipo) {
+    final defaults = _defaultTatica(tipo);
+    _taticaGoleiros = defaults[0];
+    _taticaDefensores = defaults[1];
+    _taticaMeias = defaults[2];
+    _taticaAtacantes = defaults[3];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return LoaderOverlay(
+      overlayColor: const Color.fromRGBO(0, 0, 0, 0.6),
+      child: Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar Grupo' : 'Adicionar Grupo'),
       ),
@@ -191,10 +406,28 @@ class _AddGroupState extends State<AddGroup> {
                           _playersPerTeam = value.defaultPlayersPerTeam;
                           _maxStarters = _playersPerTeam * 2;
                         }
+                        _aplicarTaticaPadrao(value);
                       });
                     }
                   },
                 ),
+
+                if (_fieldType != FieldType.livre) ...[
+                  const SizedBox(height: 16),
+                  _TaticaSection(
+                    playersPerTeam: _playersPerTeam,
+                    goleiros: _taticaGoleiros,
+                    defensores: _taticaDefensores,
+                    meias: _taticaMeias,
+                    atacantes: _taticaAtacantes,
+                    onChanged: (gol, def, mei, ata) => setState(() {
+                      _taticaGoleiros = gol;
+                      _taticaDefensores = def;
+                      _taticaMeias = mei;
+                      _taticaAtacantes = ata;
+                    }),
+                  ),
+                ],
 
                 const SizedBox(height: 16),
 
@@ -313,12 +546,15 @@ class _AddGroupState extends State<AddGroup> {
           ),
         ),
       ),
+      ),
     );
   }
 
   Future<void> _saveGroup() async {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
+    context.loaderOverlay.show();
+
     final groupController = context.read<GroupController>();
 
     final jogadoresPorTime = _fieldType == FieldType.livre
@@ -337,6 +573,10 @@ class _AddGroupState extends State<AddGroup> {
       limiteTitulares: _maxStarters,
       goleirosFixos: _fixedGoalkeepers,
       urlAvatar: _avatarPath,
+      taticaGoleiros: _fieldType != FieldType.livre ? _taticaGoleiros : null,
+      taticaDefensores: _fieldType != FieldType.livre ? _taticaDefensores : null,
+      taticaMeias: _fieldType != FieldType.livre ? _taticaMeias : null,
+      taticaAtacantes: _fieldType != FieldType.livre ? _taticaAtacantes : null,
     );
 
     if (_isEditing) {
@@ -344,6 +584,7 @@ class _AddGroupState extends State<AddGroup> {
     } else {
       await groupController.add(context, group);
     }
+    context.loaderOverlay.hide();
     Navigator.pop(context);
   }
 }

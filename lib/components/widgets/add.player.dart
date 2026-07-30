@@ -328,7 +328,6 @@ class _AddPlayerState extends State<AddPlayer> {
     context.loaderOverlay.show();
 
     _formKey.currentState!.save();
-    await Future.delayed(const Duration(milliseconds: 2000));
     if (!_isEditing) {
       await context.read<PlayerController>().add(context, await _buildPlayer());
     } else {

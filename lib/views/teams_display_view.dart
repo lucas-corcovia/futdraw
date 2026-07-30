@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/soccer_field.dart';
+import 'package:futdraw/core/di/service_locator.dart';
+import 'package:futdraw/data/models/requests/salvar_sorteio_request.dart';
 import 'package:futdraw/helpers/team_generator.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
@@ -10,8 +12,17 @@ import 'package:screenshot/screenshot.dart';
 
 class TeamsDisplayScreen extends StatefulWidget {
   final List<Team> teams;
+  final String? grupoId;
+  final String? instrucoes;
+  final bool usouIA;
 
-  const TeamsDisplayScreen({super.key, required this.teams});
+  const TeamsDisplayScreen({
+    super.key,
+    required this.teams,
+    this.grupoId,
+    this.instrucoes,
+    this.usouIA = false,
+  });
 
   @override
   State<TeamsDisplayScreen> createState() => _TeamsDisplayScreenState();
@@ -22,13 +33,79 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   late TabController _tabController;
   late List<Team> _teams;
   bool _showField = true;
+  bool _isSaving = false;
+  bool _isSaved = false;
   final ScreenshotController _screenshotController = ScreenshotController();
+
+  // Cross-team swap mode
+  bool _crossSwapMode = false;
+  Player? _selectedCrossPlayer;
+  int? _selectedCrossPlayerTeamIndex;
 
   @override
   void initState() {
     super.initState();
     _teams = List.from(widget.teams);
     _tabController = TabController(length: _teams.length, vsync: this);
+  }
+
+  Future<void> _saveTeams() async {
+    final grupoId = widget.grupoId;
+    if (grupoId == null || _isSaving || _isSaved) return;
+
+    setState(() => _isSaving = true);
+
+    final request = SalvarSorteioRequest(
+      instrucoes: widget.instrucoes,
+      usouIA: widget.usouIA,
+      times: _teams.map((team) => TimeSalvarItem(
+        nome: team.name,
+        jogadores: team.players.map((p) => JogadorSalvarItem(
+          jogadorId: p.id,
+          nome: p.nome,
+          nota: p.nota,
+          posicao: p.position.index,
+          ehCapitao: p.ehCapitao,
+        )).toList(),
+      )).toList(),
+    );
+
+    final result = await ServiceLocator().sorteioIADataSource.salvarSorteio(
+      grupoId,
+      request,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSaving = false);
+
+    result.when(
+      success: (_) {
+        setState(() => _isSaved = true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Sorteio salvo com sucesso!'),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      },
+      error: (message) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+    );
   }
 
   void _swapPlayers(Player playerA, Player playerB) {
@@ -65,14 +142,12 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           playerAIndex != -1 &&
           playerBIndex != -1) {
         if (teamAIndex == teamBIndex) {
-          // Troca dentro do mesmo time
           final List<Player> newPlayers = List.from(teamA.players);
           final temp = newPlayers[playerAIndex];
           newPlayers[playerAIndex] = newPlayers[playerBIndex];
           newPlayers[playerBIndex] = temp;
           _teams[teamAIndex] = Team(name: teamA.name, players: newPlayers);
         } else {
-          // Troca entre times diferentes
           final List<Player> newTeamAPlayers = List.from(teamA.players);
           final List<Player> newTeamBPlayers = List.from(teamB.players);
 
@@ -86,7 +161,39 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     });
   }
 
-  // Check if the player can be dragged (not a goalkeeper)
+  void _onCrossSwapTap(Player tapped, int tappedTeamIndex) {
+    if (_selectedCrossPlayer == null) {
+      setState(() {
+        _selectedCrossPlayer = tapped;
+        _selectedCrossPlayerTeamIndex = tappedTeamIndex;
+      });
+      return;
+    }
+
+    if (_selectedCrossPlayer!.id == tapped.id) {
+      setState(() {
+        _selectedCrossPlayer = null;
+        _selectedCrossPlayerTeamIndex = null;
+      });
+      return;
+    }
+
+    if (_selectedCrossPlayerTeamIndex == tappedTeamIndex) {
+      // Mesmo time — troca a seleção para o novo jogador
+      setState(() {
+        _selectedCrossPlayer = tapped;
+      });
+      return;
+    }
+
+    // Times diferentes — executa o swap
+    _swapPlayers(_selectedCrossPlayer!, tapped);
+    setState(() {
+      _selectedCrossPlayer = null;
+      _selectedCrossPlayerTeamIndex = null;
+    });
+  }
+
   bool _canDragPlayer(Player player) {
     return !player.isGoalkeeper;
   }
@@ -100,22 +207,45 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           controller: _tabController,
           indicatorColor: Theme.of(context).colorScheme.onPrimary,
           labelColor: Theme.of(context).colorScheme.onPrimary,
-          labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           unselectedLabelColor: Theme.of(context).colorScheme.outline,
           isScrollable: true,
           tabs: _teams.map((team) => Tab(text: team.name)).toList(),
         ),
         actions: [
           IconButton(
+            icon: Icon(
+              Icons.swap_horiz,
+              color: _crossSwapMode
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+            ),
+            tooltip: _crossSwapMode
+                ? 'Sair do modo de troca entre times'
+                : 'Trocar jogadores entre times',
+            onPressed: () {
+              setState(() {
+                _crossSwapMode = !_crossSwapMode;
+                _selectedCrossPlayer = null;
+                _selectedCrossPlayerTeamIndex = null;
+              });
+            },
+          ),
+          IconButton(
             icon: Icon(_showField ? Icons.list : Icons.sports_soccer),
             tooltip: _showField ? 'Mostrar Lista' : 'Mostrar Campo',
             onPressed: () {
               setState(() {
                 _showField = !_showField;
+                // Sair do modo cross-swap ao mudar para campo
+                if (_showField) {
+                  _crossSwapMode = false;
+                  _selectedCrossPlayer = null;
+                  _selectedCrossPlayerTeamIndex = null;
+                }
               });
             },
           ),
-
           IconButton(
             icon: const Icon(Icons.tune),
             tooltip: 'Reorganizar por Tática',
@@ -123,6 +253,26 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               _reorganizeTeamByTactic(_tabController.index);
             },
           ),
+          if (widget.grupoId != null && !_isSaved)
+            _isSaving
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.bookmark_add_rounded),
+                    tooltip: 'Salvar Sorteio',
+                    onPressed: _saveTeams,
+                  ),
+          if (_isSaved)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Icon(Icons.bookmark_rounded, size: 24),
+            ),
           IconButton(
             icon: const Icon(Icons.share),
             tooltip: 'Compartilhar Times',
@@ -130,37 +280,82 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           ),
         ],
       ),
-      body: Screenshot(
-        controller: _screenshotController,
-        child: TabBarView(
-          controller: _tabController,
-          children:
-              _teams.map((team) {
-                return _showField
-                    ? _buildFieldView(team)
-                    : _buildTeamView(team);
-              }).toList(),
-        ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Screenshot(
+              controller: _screenshotController,
+              child: TabBarView(
+                controller: _tabController,
+                children: _teams.asMap().entries.map((entry) {
+                  return _showField
+                      ? _buildFieldView(entry.value)
+                      : _buildTeamView(entry.value, entry.key);
+                }).toList(),
+              ),
+            ),
+          ),
+          if (_crossSwapMode && !_showField) _buildCrossSwapBanner(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCrossSwapBanner() {
+    final hasSelection = _selectedCrossPlayer != null;
+    final teamName = hasSelection
+        ? _teams[_selectedCrossPlayerTeamIndex!].name
+        : null;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: Row(
+        children: [
+          Icon(
+            hasSelection ? Icons.person_pin : Icons.touch_app,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              hasSelection
+                  ? '${_selectedCrossPlayer!.nome} ($teamName) — toque em outro jogador para trocar'
+                  : 'Toque em um jogador para selecionar',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                fontWeight:
+                    hasSelection ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+          if (hasSelection)
+            IconButton(
+              icon: const Icon(Icons.close),
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+              onPressed: () => setState(() {
+                _selectedCrossPlayer = null;
+                _selectedCrossPlayerTeamIndex = null;
+              }),
+            ),
+        ],
       ),
     );
   }
 
   Future<void> _exportTeamsImage() async {
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      // Set pixel ratio for higher quality
       final Uint8List? capturedImage = await _screenshotController.capture(
         delay: const Duration(milliseconds: 10),
-        pixelRatio: 3.0, // Higher resolution
+        pixelRatio: 3.0,
       );
 
-      // Dismiss loading dialog
       if (context.mounted) {
         Navigator.pop(context);
       }
@@ -177,7 +372,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       await _shareImageMobile(capturedImage);
     } catch (e) {
       if (context.mounted) {
-        Navigator.of(context).pop(); // Dismiss loading dialog if still showing
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Erro ao exportar imagem: $e')));
@@ -210,7 +405,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       color: Theme.of(context).colorScheme.surface,
       child: Column(
         children: [
-          // Team header
           Container(
             padding: const EdgeInsets.all(16.0),
             color: Theme.of(context).colorScheme.primary,
@@ -250,8 +444,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               ],
             ),
           ),
-
-          // Soccer field
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -261,8 +453,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               ),
             ),
           ),
-
-          // Instructions footer
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
@@ -277,7 +467,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     );
   }
 
-  Widget _buildTeamView(Team team) {
+  Widget _buildTeamView(Team team, int teamIndex) {
     final goalkeepers =
         team.players
             .where((p) => p.position == PlayerPosition.goalkeeper)
@@ -300,7 +490,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Team Header
           Row(
             children: [
               Expanded(
@@ -353,46 +542,47 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           ),
           const SizedBox(height: 24),
 
-          // Team Lineup
           Text('Escalação', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
-            'Arraste os jogadores para alterar posições entre times',
+            _crossSwapMode
+                ? 'Toque em um jogador para selecioná-lo e trocar entre times'
+                : 'Arraste os jogadores para alterar posições entre times',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
           const SizedBox(height: 16),
 
-          // Goalkeepers Section
           if (goalkeepers.isNotEmpty) ...[
             _buildPositionSection(
               'Goleiros',
               goalkeepers,
               Icons.sports_handball,
+              teamIndex,
             ),
             const SizedBox(height: 16),
           ],
 
-          // Defenders Section
           if (defenders.isNotEmpty) ...[
-            _buildPositionSection('Defensores', defenders, Icons.shield),
+            _buildPositionSection(
+                'Defensores', defenders, Icons.shield, teamIndex),
             const SizedBox(height: 16),
           ],
 
-          // Midfielders Section
           if (midfielders.isNotEmpty) ...[
             _buildPositionSection(
               'Meio-Campistas',
               midfielders,
               Icons.change_circle,
+              teamIndex,
             ),
             const SizedBox(height: 16),
           ],
 
-          // Forwards Section
           if (forwards.isNotEmpty) ...[
-            _buildPositionSection('Atacantes', forwards, Icons.sports_soccer),
+            _buildPositionSection(
+                'Atacantes', forwards, Icons.sports_soccer, teamIndex),
             const SizedBox(height: 16),
           ],
         ],
@@ -404,6 +594,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     String title,
     List<Player> players,
     IconData icon,
+    int teamIndex,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,73 +612,73 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           ],
         ),
         const SizedBox(height: 8),
-        ...players.map((player) => _buildPlayerCard(player)),
+        ...players.map((player) => _buildPlayerCard(player, teamIndex)),
       ],
     );
   }
 
-  Widget _buildPlayerCard(Player player) {
+  Widget _buildPlayerCard(Player player, int teamIndex) {
+    // Modo cross-swap: interação via tap simples em todos os jogadores
+    if (_crossSwapMode) {
+      final isSelected = _selectedCrossPlayer?.id == player.id;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: GestureDetector(
+          onTap: () => _onCrossSwapTap(player, teamIndex),
+          child: _buildPlayerCardContent(
+            player,
+            crossSelected: isSelected,
+          ),
+        ),
+      );
+    }
+
+    // Modo normal: drag-and-drop dentro do mesmo time
     final canDrag = _canDragPlayer(player);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child:
-          canDrag
-              ? LongPressDraggable<Player>(
-                data: player,
-                feedback: Material(
-                  elevation: 4,
-                  color: Colors.transparent,
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
+      child: canDrag
+          ? LongPressDraggable<Player>(
+              data: player,
+              feedback: Material(
+                elevation: 4,
+                color: Colors.transparent,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
                     ),
-                    child: ListTile(
-                      leading:
-                          player.urlFoto != null
-                              ? CircleAvatar(
-                                backgroundImage: NetworkImage(player.urlFoto!),
-                              )
-                              : CircleAvatar(
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.secondary,
-                                foregroundColor:
-                                    Theme.of(context).colorScheme.onSecondary,
-                                child: Text(player.nome[0].toUpperCase()),
-                              ),
-                      title: Text(player.nome),
-                      subtitle: Text(
-                        '${player.position} • ${player.nota.toStringAsFixed(1)}',
-                      ),
+                  ),
+                  child: ListTile(
+                    leading: player.urlFoto != null
+                        ? CircleAvatar(
+                            backgroundImage: NetworkImage(player.urlFoto!),
+                          )
+                        : CircleAvatar(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onSecondary,
+                            child: Text(player.nome[0].toUpperCase()),
+                          ),
+                    title: Text(player.nome),
+                    subtitle: Text(
+                      '${player.position} • ${player.nota.toStringAsFixed(1)}',
                     ),
                   ),
                 ),
-                childWhenDragging: Opacity(
-                  opacity: 0.3,
-                  child: _buildPlayerCardContent(player),
-                ),
-                child: DragTarget<Player>(
-                  onWillAcceptWithDetails: (details) =>
-                      details.data.id != player.id,
-                  onAcceptWithDetails: (details) {
-                    _swapPlayers(player, details.data);
-                  },
-                  builder: (context, candidateData, rejectedData) {
-                    return _buildPlayerCardContent(
-                      player,
-                      highlighted: candidateData.isNotEmpty,
-                    );
-                  },
-                ),
-              )
-              : DragTarget<Player>(
+              ),
+              childWhenDragging: Opacity(
+                opacity: 0.3,
+                child: _buildPlayerCardContent(player),
+              ),
+              child: DragTarget<Player>(
                 onWillAcceptWithDetails: (details) =>
                     details.data.id != player.id,
                 onAcceptWithDetails: (details) {
@@ -500,41 +691,69 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                   );
                 },
               ),
+            )
+          : DragTarget<Player>(
+              onWillAcceptWithDetails: (details) =>
+                  details.data.id != player.id,
+              onAcceptWithDetails: (details) {
+                _swapPlayers(player, details.data);
+              },
+              builder: (context, candidateData, rejectedData) {
+                return _buildPlayerCardContent(
+                  player,
+                  highlighted: candidateData.isNotEmpty,
+                );
+              },
+            ),
     );
   }
 
-  Widget _buildPlayerCardContent(Player player, {bool highlighted = false}) {
-    final backgroundColor =
-        highlighted
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-            : Theme.of(context).colorScheme.surface;
+  Widget _buildPlayerCardContent(
+    Player player, {
+    bool highlighted = false,
+    bool crossSelected = false,
+  }) {
+    final Color backgroundColor;
+    final Color borderColor;
+    final double borderWidth;
 
-    final borderColor =
-        highlighted
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3);
+    if (crossSelected) {
+      backgroundColor =
+          Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4);
+      borderColor = Theme.of(context).colorScheme.primary;
+      borderWidth = 2.5;
+    } else if (highlighted) {
+      backgroundColor =
+          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1);
+      borderColor = Theme.of(context).colorScheme.primary;
+      borderWidth = 2;
+    } else {
+      backgroundColor = Theme.of(context).colorScheme.surface;
+      borderColor =
+          Theme.of(context).colorScheme.outline.withValues(alpha: 0.3);
+      borderWidth = 1;
+    }
 
     return Card(
-      elevation: highlighted ? 3 : 1,
+      elevation: (highlighted || crossSelected) ? 3 : 1,
       color: backgroundColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor, width: highlighted ? 2 : 1),
+        side: BorderSide(color: borderColor, width: borderWidth),
       ),
       child: ListTile(
-        leading:
-            player.urlFoto != null
-                ? Hero(
-                  tag: 'player_avatar_${player.id}',
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(player.urlFoto!),
-                  ),
-                )
-                : CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
-                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                  child: Text(player.nome[0].toUpperCase()),
+        leading: player.urlFoto != null
+            ? Hero(
+                tag: 'player_avatar_${player.id}',
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(player.urlFoto!),
                 ),
+              )
+            : CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                child: Text(player.nome[0].toUpperCase()),
+              ),
         title: Text(
           player.nome,
           style: TextStyle(
@@ -547,7 +766,24 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (player.ehCapitao)
+            if (crossSelected)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'TROCAR',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            else if (player.ehCapitao)
               Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: Tooltip(
@@ -625,7 +861,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     List<Player> allForwards = List.from(forwards)
       ..sort((a, b) => b.nota.compareTo(a.nota));
 
-    // 1. Move defensores excedentes para meia
     while (allMidfielders.length < midfieldersCount &&
         allDefenders.length > defendersCount) {
       final moved = allDefenders.removeLast();
@@ -633,21 +868,18 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       allMidfielders.add(moved);
     }
 
-    // 2. Move meias para defensor se faltar defensor
     while (allDefenders.length < defendersCount && allMidfielders.isNotEmpty) {
       final moved = allMidfielders.removeAt(0);
       moved.position = PlayerPosition.defender;
       allDefenders.add(moved);
     }
 
-    // 3. Move atacantes para meia se faltar meia
     while (allMidfielders.length < midfieldersCount && allForwards.isNotEmpty) {
       final moved = allForwards.removeAt(0);
       moved.position = PlayerPosition.midfielder;
       allMidfielders.add(moved);
     }
 
-    // 4. Move meias para atacante se faltar atacante (mantendo o meio-campo)
     while (allForwards.length < forwardsCount &&
         allMidfielders.length > midfieldersCount) {
       final moved = allMidfielders.removeLast();
@@ -655,14 +887,12 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       allForwards.add(moved);
     }
 
-    // 5. Se ainda faltar atacante, mova um meia mesmo que o meio-campo fique incompleto
     while (allForwards.length < forwardsCount && allMidfielders.isNotEmpty) {
       final moved = allMidfielders.removeLast();
       moved.position = PlayerPosition.striker;
       allForwards.add(moved);
     }
 
-    // Garante que não há mais do que o necessário em cada posição
     allDefenders = allDefenders.take(defendersCount).toList();
     allMidfielders = allMidfielders.take(midfieldersCount).toList();
     allForwards = allForwards.take(forwardsCount).toList();

@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/auth_controller.dart';
+import 'package:futdraw/views/auth/verificar_email_view.dart';
 import 'package:futdraw/views/home_view.dart';
 import 'package:provider/provider.dart';
 
@@ -38,9 +39,11 @@ class _RegisterViewState extends State<RegisterView> {
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomeView()),
-        (_) => false,
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              VerificarEmailView(email: _emailController.text.trim()),
+        ),
       );
     }
   }
@@ -155,23 +158,57 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 Consumer<AuthController>(
                   builder: (context, controller, _) {
-                    return ElevatedButton(
-                      onPressed: controller.status == AuthStatus.loading
-                          ? null
-                          : _register,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    final isLoading =
+                        controller.status == AuthStatus.loading;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton(
+                          onPressed: isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Criar Conta'),
                         ),
-                      ),
-                      child: controller.status == AuthStatus.loading
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                          : const Text('Criar Conta'),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.g_mobiledata, size: 24),
+                          label: const Text('Cadastrar com Google'),
+                          style: OutlinedButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  final success = await context
+                                      .read<AuthController>()
+                                      .loginWithGoogle();
+                                  if (success && mounted) {
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (_) => const HomeView(),
+                                      ),
+                                      (_) => false,
+                                    );
+                                  }
+                                },
+                        ),
+                      ],
                     );
                   },
                 ),

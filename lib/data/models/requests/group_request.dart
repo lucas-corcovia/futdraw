@@ -9,6 +9,10 @@ class GroupRequest {
   final int limiteTitulares;
   final bool goleirosFixos;
   final String? urlAvatar;
+  final int? taticaGoleiros;
+  final int? taticaDefensores;
+  final int? taticaMeias;
+  final int? taticaAtacantes;
 
   const GroupRequest({
     required this.nome,
@@ -21,6 +25,10 @@ class GroupRequest {
     this.limiteTitulares = 22,
     this.goleirosFixos = false,
     this.urlAvatar,
+    this.taticaGoleiros,
+    this.taticaDefensores,
+    this.taticaMeias,
+    this.taticaAtacantes,
   });
 
   Map<String, dynamic> toJson() => {
@@ -34,5 +42,9 @@ class GroupRequest {
     'limiteTitulares': limiteTitulares,
     'goleirosFixos': goleirosFixos,
     if (urlAvatar != null) 'urlAvatar': urlAvatar,
+    if (taticaGoleiros != null) 'taticaGoleiros': taticaGoleiros,
+    if (taticaDefensores != null) 'taticaDefensores': taticaDefensores,
+    if (taticaMeias != null) 'taticaMeias': taticaMeias,
+    if (taticaAtacantes != null) 'taticaAtacantes': taticaAtacantes,
   };
 }
