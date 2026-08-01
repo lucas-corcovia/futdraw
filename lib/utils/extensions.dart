@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:futdraw/components/widgets/add.group.dart';
+import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/consts/app.colors.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/enums/player.position.dart';

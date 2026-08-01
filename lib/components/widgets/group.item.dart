@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/add.group.dart';
+import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/components/widgets/add.many.players.dart';
 import 'package:futdraw/components/widgets/add.player.dart';
 import 'package:futdraw/controllers/group_controller.dart';

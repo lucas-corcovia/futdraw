@@ -56,19 +56,14 @@ class _HomeViewState extends State<HomeView> {
       drawer: DrawerComponent(),
       body:
           _isLoading ? Center(child: CircularProgressIndicator()) : GroupList(),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddGroup()),
-              );
-            },
-            child: Center(child: Icon(Icons.add)),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddGroup()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

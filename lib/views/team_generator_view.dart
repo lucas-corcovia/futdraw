@@ -3,7 +3,9 @@ import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/sortear_request.dart';
+import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/views/ai_team_sort_view.dart';
 import 'package:futdraw/views/teams_display_view.dart';
 import 'package:provider/provider.dart';
@@ -53,7 +55,10 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TeamsDisplayScreen(teams: teams),
+              builder: (context) => TeamsDisplayScreen(
+                teams: teams,
+                fieldType: widget.preselectedGroup?.tipoCampo.toFieldType() ?? FieldType.campo,
+              ),
             ),
           );
         }

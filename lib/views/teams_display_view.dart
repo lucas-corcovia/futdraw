@@ -5,6 +5,7 @@ import 'package:futdraw/components/widgets/soccer_field.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/salvar_sorteio_request.dart';
 import 'package:futdraw/helpers/team_generator.dart';
+import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:futdraw/utils/file.utils.dart';
@@ -15,6 +16,7 @@ class TeamsDisplayScreen extends StatefulWidget {
   final String? grupoId;
   final String? instrucoes;
   final bool usouIA;
+  final FieldType fieldType;
 
   const TeamsDisplayScreen({
     super.key,
@@ -22,6 +24,7 @@ class TeamsDisplayScreen extends StatefulWidget {
     this.grupoId,
     this.instrucoes,
     this.usouIA = false,
+    this.fieldType = FieldType.campo,
   });
 
   @override
@@ -450,6 +453,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               child: SoccerField(
                 players: team.players,
                 onPlayersSwapped: _swapPlayers,
+                fieldType: widget.fieldType,
               ),
             ),
           ),

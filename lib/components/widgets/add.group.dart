@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-
-enum FieldType { quadra, campo, society, livre }
 
 class _TaticaSection extends StatelessWidget {
   final int playersPerTeam;
