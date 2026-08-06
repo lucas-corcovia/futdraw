@@ -21,4 +21,23 @@ abstract final class ApiConstants {
 
   static const String jogadores = '/api/jogadores';
   static String jogadorById(String id) => '/api/jogadores/$id';
+
+  // Membros
+  static String grupoMembros(String id) => '/api/grupos/$id/membros';
+  static String grupoMembroPapel(String id) => '/api/grupos/membros/$id/papel';
+  static String membroById(String id) => '/api/grupos/membros/$id';
+  static String reivindicarJogador(String grupoId, String jogadorId) =>
+      '/api/grupos/$grupoId/jogadores/$jogadorId/reivindicar';
+
+  // Partidas
+  static String grupoPartidas(String id) => '/api/grupos/$id/partidas';
+  static String partidaById(String id) => '/api/partidas/$id';
+  static String partidaPresencas(String id) => '/api/partidas/$id/presencas';
+  static String partidaPresenca(String id) => '/api/partidas/$id/presenca';
+  static String partidaResultado(String id) => '/api/partidas/$id/resultado';
+
+  // Ranking / Estatísticas
+  static String grupoRanking(String id) => '/api/grupos/$id/ranking';
+  static String jogadorEstatisticas(String id) =>
+      '/api/jogadores/$id/estatisticas';
 }

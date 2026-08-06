@@ -1,0 +1,54 @@
+import 'package:futdraw/models/player_stats.dart';
+
+class PlayerStatsResponse {
+  final String jogadorId;
+  final String nome;
+  final int jogos;
+  final int vitorias;
+  final int empates;
+  final int derrotas;
+  final double aproveitamento;
+  final int gols;
+  final int assistencias;
+  final int sequenciaAtual;
+
+  const PlayerStatsResponse({
+    required this.jogadorId,
+    required this.nome,
+    required this.jogos,
+    required this.vitorias,
+    required this.empates,
+    required this.derrotas,
+    required this.aproveitamento,
+    required this.gols,
+    required this.assistencias,
+    required this.sequenciaAtual,
+  });
+
+  factory PlayerStatsResponse.fromJson(Map<String, dynamic> json) =>
+      PlayerStatsResponse(
+        jogadorId: json['jogadorId'] as String,
+        nome: json['nome'] as String,
+        jogos: json['jogos'] as int? ?? 0,
+        vitorias: json['vitorias'] as int? ?? 0,
+        empates: json['empates'] as int? ?? 0,
+        derrotas: json['derrotas'] as int? ?? 0,
+        aproveitamento: (json['aproveitamento'] as num?)?.toDouble() ?? 0.0,
+        gols: json['gols'] as int? ?? 0,
+        assistencias: json['assistencias'] as int? ?? 0,
+        sequenciaAtual: json['sequenciaAtual'] as int? ?? 0,
+      );
+
+  PlayerStats toModel() => PlayerStats(
+    jogadorId: jogadorId,
+    nome: nome,
+    jogos: jogos,
+    vitorias: vitorias,
+    empates: empates,
+    derrotas: derrotas,
+    aproveitamento: aproveitamento,
+    gols: gols,
+    assistencias: assistencias,
+    sequenciaAtual: sequenciaAtual,
+  );
+}

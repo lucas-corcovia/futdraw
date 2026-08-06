@@ -12,8 +12,13 @@ import 'package:provider/provider.dart';
 
 class TeamGenerationScreen extends StatefulWidget {
   final Group? preselectedGroup;
+  final String? partidaId;
 
-  const TeamGenerationScreen({super.key, this.preselectedGroup});
+  const TeamGenerationScreen({
+    super.key,
+    this.preselectedGroup,
+    this.partidaId,
+  });
 
   @override
   State<TeamGenerationScreen> createState() => _TeamGenerationScreenState();

@@ -7,6 +7,9 @@ import 'package:futdraw/controllers/group_controller.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:futdraw/views/matches_view.dart';
+import 'package:futdraw/views/members_view.dart';
+import 'package:futdraw/views/ranking_view.dart';
 import 'package:futdraw/views/team_generator_view.dart';
 import 'package:provider/provider.dart';
 
@@ -99,6 +102,41 @@ class _PlayerListScreenState extends State<PlayerListScreen>
               );
             },
             tooltip: 'Gerar Times',
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MatchesView(group: widget.group),
+              ),
+            ),
+            tooltip: 'Partidas',
+          ),
+          IconButton(
+            icon: const Icon(Icons.leaderboard),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => RankingView(group: widget.group),
+              ),
+            ),
+            tooltip: 'Ranking',
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'membros') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MembrosView(group: widget.group),
+                  ),
+                );
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'membros', child: Text('Membros')),
+            ],
           ),
         ],
         bottom: TabBar(
