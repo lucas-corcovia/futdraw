@@ -255,7 +255,7 @@ class PlayerCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, color: iconColor ?? Colors.white, size: 22),
+          Icon(icon, color: iconColor ?? Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
           const SizedBox(height: 4),
           Text(
             value,
@@ -277,15 +277,11 @@ class PlayerCard extends StatelessWidget {
   }
 
   Color _getSkillColor(BuildContext context, double skill) {
-    if (skill >= 8.5) {
-      return Colors.yellowAccent;
-    } else if (skill >= 6.5) {
-      return Colors.blueAccent;
-    } else if (skill >= 4.0) {
-      return Colors.greenAccent;
-    } else {
-      return Colors.redAccent;
-    }
+    final cs = Theme.of(context).colorScheme;
+    if (skill >= 8.5) return cs.tertiary;
+    if (skill >= 6.5) return cs.primary;
+    if (skill >= 4.0) return cs.secondary;
+    return cs.error;
   }
 
   void _showDeleteDialog(BuildContext context) {

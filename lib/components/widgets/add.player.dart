@@ -76,7 +76,7 @@ class _AddPlayerState extends State<AddPlayer> {
         bottomNavigationBar: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: ElevatedButton.icon(
+            child: FilledButton.icon(
               onPressed: _savePlayer,
               icon: const Icon(Icons.check_circle_outline_rounded),
               label: const Text('Salvar Jogador'),
@@ -103,9 +103,9 @@ class _AddPlayerState extends State<AddPlayer> {
               child: Stack(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      _deletePlayerPhoto();
-                    },
+                    onTap: (_photoPath != null || _imageFile != null)
+                        ? _deletePlayerPhoto
+                        : null,
                     child: CircleAvatar(
                       radius: 60,
                       backgroundColor:
@@ -262,9 +262,9 @@ class _AddPlayerState extends State<AddPlayer> {
                     ),
                   ),
                   child: Slider(
-                    min: 0.0,
+                    min: 1.0,
                     max: 10.0,
-                    divisions: 100,
+                    divisions: 90,
                     value: _skillRating,
                     onChanged: (value) {
                       setState(() {
@@ -328,17 +328,18 @@ class _AddPlayerState extends State<AddPlayer> {
     context.loaderOverlay.show();
 
     _formKey.currentState!.save();
+    final bool success;
     if (!_isEditing) {
-      await context.read<PlayerController>().add(context, await _buildPlayer());
+      success = await context.read<PlayerController>().add(context, await _buildPlayer());
     } else {
-      await context.read<PlayerController>().update(
+      success = await context.read<PlayerController>().update(
         context,
         await _buildPlayer(),
       );
     }
     context.loaderOverlay.hide();
 
-    Navigator.pop(context);
+    if (success && mounted) Navigator.pop(context);
   }
 
   Future<Player> _buildPlayer() async {
@@ -373,7 +374,7 @@ class _AddPlayerState extends State<AddPlayer> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Excluir foto'),
-          content: Text('Deseja realmente excluir a foto do jogador?'),
+          content: const Text('Isso removerá a foto de perfil.'),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

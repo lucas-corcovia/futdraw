@@ -163,15 +163,8 @@ class _RegisterViewState extends State<RegisterView> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        ElevatedButton(
+                        FilledButton(
                           onPressed: isLoading ? null : _register,
-                          style: ElevatedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           child: isLoading
                               ? const SizedBox(
                                   width: 20,

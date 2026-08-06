@@ -64,7 +64,7 @@ class _ImportDatabaseDialogState extends State<ImportDatabaseDialog> {
           onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: Text('Fechar', style: Theme.of(context).textTheme.bodyLarge),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: _isLoading ? null : _importDatabase,
           child: Text(
             'Selecionar Arquivo',

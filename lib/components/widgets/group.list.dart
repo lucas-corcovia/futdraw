@@ -14,8 +14,10 @@ class GroupList extends StatefulWidget {
 class _GroupListState extends State<GroupList> {
   @override
   void initState() {
-    context.read<GroupController>().getAll();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<GroupController>().getAll();
+    });
   }
 
   @override

@@ -73,12 +73,8 @@ class _PlayerListScreenState extends State<PlayerListScreen>
       appBar: AppBar(
         title: Text(widget.group.nome),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            context.read<GroupController>().getAll().then((_) {
-              Navigator.pop(context);
-            });
-          },
+          icon: const BackButtonIcon(),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
@@ -290,7 +286,7 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
                           child: GestureDetector(
-                            onLongPress: () async {
+                            onTap: () async {
                               final confirm = await showModalBottomSheet<bool>(
                                 context: context,
                                 builder:
@@ -300,7 +296,7 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
-                                            'Deseja realmente substituir o titular por ${res.nome}?',
+                                            'Substituir titular por ${res.nome}?',
                                             style:
                                                 Theme.of(
                                                   context,
@@ -309,8 +305,6 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                                           ),
                                           const SizedBox(height: 24),
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
                                             children: [
                                               Expanded(
                                                 child: OutlinedButton(
@@ -318,25 +312,17 @@ class _PlayerListScreenState extends State<PlayerListScreen>
                                                       () => Navigator.of(
                                                         ctx,
                                                       ).pop(false),
-                                                  child: Text(
-                                                    'Cancelar',
-                                                    style: TextStyle(
-                                                      color:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .onPrimary,
-                                                    ),
-                                                  ),
+                                                  child: const Text('Cancelar'),
                                                 ),
                                               ),
-                                              const SizedBox(width: 15),
+                                              const SizedBox(width: 12),
                                               Expanded(
                                                 child: FilledButton(
                                                   onPressed:
                                                       () => Navigator.of(
                                                         ctx,
                                                       ).pop(true),
-                                                  child: const Text('Sim'),
+                                                  child: const Text('Substituir'),
                                                 ),
                                               ),
                                             ],

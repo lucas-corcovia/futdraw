@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/sortear_ia_request.dart';
 import 'package:futdraw/models/group.dart';
@@ -52,7 +51,7 @@ class _AITeamSortViewState extends State<AITeamSortView> {
         if (teams.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('A IA não conseguiu gerar times. Tente novamente.'),
+              content: const Text('A IA não conseguiu realizar o sorteio. Verifique sua conexão e tente novamente.'),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
             ),
@@ -111,11 +110,11 @@ class _AITeamSortViewState extends State<AITeamSortView> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: ElevatedButton.icon(
+          child: FilledButton.icon(
             onPressed: _generateTeams,
             icon: const Icon(Icons.auto_awesome_rounded),
-            label: const Text('Gerar Times com IA'),
-            style: ElevatedButton.styleFrom(
+            label: const Text('Sortear com IA'),
+            style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),

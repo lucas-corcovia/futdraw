@@ -24,10 +24,8 @@ class ThemeSelector {
           color: scheme.onSurface,
         ),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: scheme.primary,
-          foregroundColor: scheme.onPrimary,
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

@@ -130,14 +130,9 @@ class _VerificarEmailViewState extends State<VerificarEmailView> {
                 ),
                 const SizedBox(height: 8),
                 Consumer<AuthController>(
-                  builder: (_, controller, __) => ElevatedButton(
+                  builder: (_, controller, __) => FilledButton(
                     onPressed:
                         controller.status == AuthStatus.loading ? null : _confirmar,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
                     child: controller.status == AuthStatus.loading
                         ? const SizedBox(
                             width: 20,

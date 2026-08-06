@@ -210,7 +210,7 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                       ),
 
                       const SizedBox(height: 32),
-                      ElevatedButton.icon(
+                      FilledButton.icon(
                         onPressed: _generateTeams,
                         icon: const Icon(Icons.shuffle),
                         label: const Text('Sortear Times'),

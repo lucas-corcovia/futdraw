@@ -56,7 +56,7 @@ class _ExportDatabaseDialogState extends State<ExportDatabaseDialog> {
           onPressed: _isLoading ? null : () => Navigator.pop(context),
           child: const Text('Fechar'),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: _isLoading ? null : _exportDatabase,
           child: Text('Exportar', style: Theme.of(context).textTheme.bodyLarge),
         ),

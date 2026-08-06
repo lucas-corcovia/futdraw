@@ -45,11 +45,51 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   Player? _selectedCrossPlayer;
   int? _selectedCrossPlayerTeamIndex;
 
+  // Phase-1 (0–500 ms): field fades + scales in.
+  // Phase-2 (600–900 ms): action chrome fades in — management UI is deferred
+  // so the first thing users see is the stadium, not a toolbar.
+  late AnimationController _revealController;
+  late Animation<double> _fieldReveal;
+  late Animation<double> _chromeReveal;
+
+  // List-view stagger: starts complete (1.0) so cards are visible by default;
+  // resets to 0 and replays each time the user switches to list view.
+  late AnimationController _listEntranceController;
+
   @override
   void initState() {
     super.initState();
     _teams = List.from(widget.teams);
     _tabController = TabController(length: _teams.length, vsync: this);
+
+    _revealController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _fieldReveal = CurvedAnimation(
+      parent: _revealController,
+      curve: const Interval(0.0, 0.56, curve: Curves.easeOut),
+    );
+    _chromeReveal = CurvedAnimation(
+      parent: _revealController,
+      curve: const Interval(0.67, 1.0, curve: Curves.easeOut),
+    );
+
+    _listEntranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+      value: 1.0,
+    );
+
+    _revealController.forward();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _revealController.dispose();
+    _listEntranceController.dispose();
+    super.dispose();
   }
 
   Future<void> _saveTeams() async {
@@ -90,7 +130,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               children: [
                 Icon(Icons.check_circle_rounded, color: Colors.white),
                 SizedBox(width: 8),
-                Text('Sorteio salvo com sucesso!'),
+                Text('Sorteio salvo'),
               ],
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
@@ -182,14 +222,12 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     }
 
     if (_selectedCrossPlayerTeamIndex == tappedTeamIndex) {
-      // Mesmo time — troca a seleção para o novo jogador
       setState(() {
         _selectedCrossPlayer = tapped;
       });
       return;
     }
 
-    // Times diferentes — executa o swap
     _swapPlayers(_selectedCrossPlayer!, tapped);
     setState(() {
       _selectedCrossPlayer = null;
@@ -215,74 +253,65 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           isScrollable: true,
           tabs: _teams.map((team) => Tab(text: team.name)).toList(),
         ),
+        // Phase-2 chrome: view toggle + overflow menu (2 icons vs the previous 5).
+        // Share is promoted to a FAB. Swap/tune/save live in the labeled sheet.
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.swap_horiz,
-              color: _crossSwapMode
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-            ),
-            tooltip: _crossSwapMode
-                ? 'Sair do modo de troca entre times'
-                : 'Trocar jogadores entre times',
-            onPressed: () {
-              setState(() {
-                _crossSwapMode = !_crossSwapMode;
-                _selectedCrossPlayer = null;
-                _selectedCrossPlayerTeamIndex = null;
-              });
-            },
-          ),
-          IconButton(
-            icon: Icon(_showField ? Icons.list : Icons.sports_soccer),
-            tooltip: _showField ? 'Mostrar Lista' : 'Mostrar Campo',
-            onPressed: () {
-              setState(() {
-                _showField = !_showField;
-                // Sair do modo cross-swap ao mudar para campo
-                if (_showField) {
-                  _crossSwapMode = false;
-                  _selectedCrossPlayer = null;
-                  _selectedCrossPlayerTeamIndex = null;
-                }
-              });
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'Reorganizar por Tática',
-            onPressed: () {
-              _reorganizeTeamByTactic(_tabController.index);
-            },
-          ),
-          if (widget.grupoId != null && !_isSaved)
-            _isSaving
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+          FadeTransition(
+            opacity: _chromeReveal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Saved badge — passive status, not a button
+                if (_isSaved)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Tooltip(
+                      message: 'Sorteio salvo',
+                      child: Icon(
+                        Icons.bookmark_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.bookmark_add_rounded),
-                    tooltip: 'Salvar Sorteio',
-                    onPressed: _saveTeams,
                   ),
-          if (_isSaved)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Icon(Icons.bookmark_rounded, size: 24),
+                IconButton(
+                  icon: Icon(_showField ? Icons.list : Icons.sports_soccer),
+                  tooltip: _showField ? 'Mostrar Lista' : 'Mostrar Campo',
+                  onPressed: () {
+                    final wasField = _showField;
+                    setState(() {
+                      _showField = !_showField;
+                      if (_showField) {
+                        _crossSwapMode = false;
+                        _selectedCrossPlayer = null;
+                        _selectedCrossPlayerTeamIndex = null;
+                      }
+                    });
+                    if (wasField) {
+                      _listEntranceController.forward(from: 0);
+                    }
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  tooltip: 'Mais opções',
+                  onPressed: _showActionsSheet,
+                ),
+              ],
             ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            tooltip: 'Compartilhar Times',
-            onPressed: _exportTeamsImage,
           ),
         ],
       ),
+      // Share FAB — primary outcome action; hidden during cross-swap so the
+      // banner and FAB don't compete for the same bottom-right corner.
+      floatingActionButton: (_crossSwapMode && !_showField)
+          ? null
+          : FloatingActionButton.small(
+              heroTag: 'fab_share_team',
+              onPressed: _exportTeamsImage,
+              tooltip: 'Compartilhar Time Atual',
+              child: const Icon(Icons.share),
+            ),
       body: Column(
         children: [
           Expanded(
@@ -306,9 +335,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   Widget _buildCrossSwapBanner() {
     final hasSelection = _selectedCrossPlayer != null;
-    final teamName = hasSelection
-        ? _teams[_selectedCrossPlayerTeamIndex!].name
-        : null;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -323,7 +349,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           Expanded(
             child: Text(
               hasSelection
-                  ? '${_selectedCrossPlayer!.nome} ($teamName) — toque em outro jogador para trocar'
+                  ? '${_selectedCrossPlayer!.nome} selecionado · toque em outro jogador para trocar'
                   : 'Toque em um jogador para selecionar',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -403,70 +429,109 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     }
   }
 
+  // Field view: phase-1 reveal — scale from 0.97 to 1.0 + fade.
+  // The drag hint is held back until phase 2 so the first frame is clean.
   Widget _buildFieldView(Team team) {
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            color: Theme.of(context).colorScheme.primary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.sports_soccer,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  team.name,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Média: ${team.averageSkill.toStringAsFixed(1)}',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+    return FadeTransition(
+      opacity: _fieldReveal,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.97, end: 1.0).animate(_fieldReveal),
+        child: Stack(
+          children: [
+            Positioned.fill(
               child: SoccerField(
                 players: team.players,
                 onPlayersSwapped: _swapPlayers,
                 fieldType: widget.fieldType,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Arraste jogadores da mesma posição para trocar',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+
+            // Stadium-light header scrim — visible with the field in phase 1
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 36),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xBB000000), Colors.transparent],
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.sports_soccer, color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        team.name,
+                        style: const TextStyle(
+                          fontFamily: 'Kanit',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: Text(
+                          'Média ${team.averageSkill.toStringAsFixed(1)}',
+                          style: const TextStyle(
+                            fontFamily: 'Kanit',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+
+            // Drag hint deferred to phase 2 — instructional copy should not
+            // compete with the reveal moment.
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: FadeTransition(
+                  opacity: _chromeReveal,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Arraste jogadores da mesma posição para trocar',
+                        style: TextStyle(
+                          fontFamily: 'Kanit',
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -488,6 +553,25 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         team.players
             .where((p) => p.position == PlayerPosition.striker)
             .toList();
+
+    // Build position sections with a running card index so the stagger is
+    // continuous across all position groups, not reset per-section.
+    final List<Widget> sections = [];
+    int cardIdx = 0;
+
+    void addSection(String title, List<Player> players, IconData icon) {
+      if (players.isEmpty) return;
+      sections.add(
+        _buildPositionSection(title, players, icon, teamIndex, startIndex: cardIdx),
+      );
+      sections.add(const SizedBox(height: 16));
+      cardIdx += players.length;
+    }
+
+    addSection('Goleiros', goalkeepers, Icons.sports_handball);
+    addSection('Defensores', defenders, Icons.shield);
+    addSection('Meio-Campistas', midfielders, Icons.change_circle);
+    addSection('Atacantes', forwards, Icons.sports_soccer);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -518,7 +602,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Média de Habilidade: ${team.averageSkill.toStringAsFixed(1)}',
+                          'Média: ${team.averageSkill.toStringAsFixed(1)}',
                           style: Theme.of(
                             context,
                           ).textTheme.titleMedium?.copyWith(
@@ -550,45 +634,15 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           const SizedBox(height: 8),
           Text(
             _crossSwapMode
-                ? 'Toque em um jogador para selecioná-lo e trocar entre times'
-                : 'Arraste os jogadores para alterar posições entre times',
+                ? 'Toque em um jogador para começar a troca'
+                : 'Segure e arraste para trocar posições na equipe',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
           const SizedBox(height: 16),
 
-          if (goalkeepers.isNotEmpty) ...[
-            _buildPositionSection(
-              'Goleiros',
-              goalkeepers,
-              Icons.sports_handball,
-              teamIndex,
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          if (defenders.isNotEmpty) ...[
-            _buildPositionSection(
-                'Defensores', defenders, Icons.shield, teamIndex),
-            const SizedBox(height: 16),
-          ],
-
-          if (midfielders.isNotEmpty) ...[
-            _buildPositionSection(
-              'Meio-Campistas',
-              midfielders,
-              Icons.change_circle,
-              teamIndex,
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          if (forwards.isNotEmpty) ...[
-            _buildPositionSection(
-                'Atacantes', forwards, Icons.sports_soccer, teamIndex),
-            const SizedBox(height: 16),
-          ],
+          ...sections,
         ],
       ),
     );
@@ -598,8 +652,9 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     String title,
     List<Player> players,
     IconData icon,
-    int teamIndex,
-  ) {
+    int teamIndex, {
+    int startIndex = 0,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -616,73 +671,97 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           ],
         ),
         const SizedBox(height: 8),
-        ...players.map((player) => _buildPlayerCard(player, teamIndex)),
+        ...players.asMap().entries.map(
+          (e) => _buildPlayerCard(e.value, teamIndex, cardIndex: startIndex + e.key),
+        ),
       ],
     );
   }
 
-  Widget _buildPlayerCard(Player player, int teamIndex) {
-    // Modo cross-swap: interação via tap simples em todos os jogadores
+  Widget _buildPlayerCard(Player player, int teamIndex, {int cardIndex = 0}) {
+    // Stagger: each card's reveal starts 80 ms after the previous.
+    // Capped at 0.64 (8 cards × 0.08) so late items don't wait forever.
+    final delay = (cardIndex * 0.08).clamp(0.0, 0.64);
+    final staggerCurve = CurvedAnimation(
+      parent: _listEntranceController,
+      curve: Interval(
+        delay,
+        (delay + 0.36).clamp(0.0, 1.0),
+        curve: Curves.easeOut,
+      ),
+    );
+
+    Widget cardContent;
+
     if (_crossSwapMode) {
       final isSelected = _selectedCrossPlayer?.id == player.id;
-      return Padding(
+      cardContent = Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: GestureDetector(
           onTap: () => _onCrossSwapTap(player, teamIndex),
-          child: _buildPlayerCardContent(
-            player,
-            crossSelected: isSelected,
-          ),
+          child: _buildPlayerCardContent(player, crossSelected: isSelected),
         ),
       );
-    }
+    } else {
+      final canDrag = _canDragPlayer(player);
 
-    // Modo normal: drag-and-drop dentro do mesmo time
-    final canDrag = _canDragPlayer(player);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: canDrag
-          ? LongPressDraggable<Player>(
-              data: player,
-              feedback: Material(
-                elevation: 4,
-                color: Colors.transparent,
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
+      cardContent = Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: canDrag
+            ? LongPressDraggable<Player>(
+                data: player,
+                feedback: Material(
+                  elevation: 4,
+                  color: Colors.transparent,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
                     ),
-                  ),
-                  child: ListTile(
-                    leading: player.urlFoto != null
-                        ? CircleAvatar(
-                            backgroundImage: NetworkImage(player.urlFoto!),
-                          )
-                        : CircleAvatar(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onSecondary,
-                            child: Text(player.nome[0].toUpperCase()),
-                          ),
-                    title: Text(player.nome),
-                    subtitle: Text(
-                      '${player.position} • ${player.nota.toStringAsFixed(1)}',
+                    child: ListTile(
+                      leading: player.urlFoto != null
+                          ? CircleAvatar(
+                              backgroundImage: NetworkImage(player.urlFoto!),
+                            )
+                          : CircleAvatar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.secondary,
+                              foregroundColor:
+                                  Theme.of(context).colorScheme.onSecondary,
+                              child: Text(player.nome[0].toUpperCase()),
+                            ),
+                      title: Text(player.nome),
+                      subtitle: Text(
+                        '${player.position} • ${player.nota.toStringAsFixed(1)}',
+                      ),
                     ),
                   ),
                 ),
-              ),
-              childWhenDragging: Opacity(
-                opacity: 0.3,
-                child: _buildPlayerCardContent(player),
-              ),
-              child: DragTarget<Player>(
+                childWhenDragging: Opacity(
+                  opacity: 0.3,
+                  child: _buildPlayerCardContent(player),
+                ),
+                child: DragTarget<Player>(
+                  onWillAcceptWithDetails: (details) =>
+                      details.data.id != player.id,
+                  onAcceptWithDetails: (details) {
+                    _swapPlayers(player, details.data);
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    return _buildPlayerCardContent(
+                      player,
+                      highlighted: candidateData.isNotEmpty,
+                    );
+                  },
+                ),
+              )
+            : DragTarget<Player>(
                 onWillAcceptWithDetails: (details) =>
                     details.data.id != player.id,
                 onAcceptWithDetails: (details) {
@@ -695,20 +774,22 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                   );
                 },
               ),
-            )
-          : DragTarget<Player>(
-              onWillAcceptWithDetails: (details) =>
-                  details.data.id != player.id,
-              onAcceptWithDetails: (details) {
-                _swapPlayers(player, details.data);
-              },
-              builder: (context, candidateData, rejectedData) {
-                return _buildPlayerCardContent(
-                  player,
-                  highlighted: candidateData.isNotEmpty,
-                );
-              },
-            ),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _listEntranceController,
+      builder: (ctx, child) {
+        final t = staggerCurve.value;
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 12.0 * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+      child: cardContent,
     );
   }
 
@@ -748,7 +829,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       child: ListTile(
         leading: player.urlFoto != null
             ? Hero(
-                tag: 'player_avatar_${player.id}',
+                tag: 'team_player_${player.id}',
                 child: CircleAvatar(
                   backgroundImage: NetworkImage(player.urlFoto!),
                 ),
@@ -815,6 +896,129 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       case PlayerPosition.striker:
         return 'Atacante';
     }
+  }
+
+  void _showActionsSheet() {
+    final teamIndex = _tabController.index;
+    final teamName = _teams[teamIndex].name;
+
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Theme.of(ctx).colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+
+                  // Cross-swap toggle
+                  ListTile(
+                    leading: Icon(
+                      Icons.swap_horiz,
+                      color: _crossSwapMode
+                          ? Theme.of(ctx).colorScheme.primary
+                          : null,
+                    ),
+                    title: const Text('Trocar entre times'),
+                    subtitle: _crossSwapMode
+                        ? const Text('Ativo · selecione um jogador para trocar')
+                        : null,
+                    trailing: _crossSwapMode
+                        ? Icon(
+                            Icons.check_circle_rounded,
+                            color: Theme.of(ctx).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      final wasActive = _crossSwapMode;
+                      setState(() {
+                        _crossSwapMode = !_crossSwapMode;
+                        _selectedCrossPlayer = null;
+                        _selectedCrossPlayerTeamIndex = null;
+                        // Auto-switch to list view when activating swap —
+                        // field view has no cross-swap affordance.
+                        if (!wasActive && _showField) {
+                          _showField = false;
+                          _listEntranceController.forward(from: 0);
+                        }
+                      });
+                      setSheetState(() {});
+                      Navigator.pop(sheetCtx);
+                    },
+                  ),
+
+                  // Reorganize by tactic
+                  ListTile(
+                    leading: const Icon(Icons.tune),
+                    title: const Text('Reorganizar por Tática'),
+                    subtitle: Text(teamName),
+                    onTap: () {
+                      Navigator.pop(sheetCtx);
+                      _reorganizeTeamByTactic(teamIndex);
+                    },
+                  ),
+
+                  if (widget.grupoId != null) ...[
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+
+                    // Save draw
+                    if (_isSaving)
+                      ListTile(
+                        leading: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(ctx).colorScheme.primary,
+                          ),
+                        ),
+                        title: const Text('Salvando...'),
+                      )
+                    else if (_isSaved)
+                      ListTile(
+                        leading: Icon(
+                          Icons.bookmark_rounded,
+                          color: Theme.of(ctx).colorScheme.primary,
+                        ),
+                        title: const Text('Sorteio salvo'),
+                        trailing: Icon(
+                          Icons.check_circle_rounded,
+                          color: Theme.of(ctx).colorScheme.primary,
+                        ),
+                      )
+                    else
+                      ListTile(
+                        leading: const Icon(Icons.bookmark_add_rounded),
+                        title: const Text('Salvar Sorteio'),
+                        onTap: () {
+                          Navigator.pop(sheetCtx);
+                          _saveTeams();
+                        },
+                      ),
+                  ],
+
+                  const SizedBox(height: 8),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _reorganizeTeamByTactic(int teamIndex) {
@@ -911,5 +1115,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     setState(() {
       _teams[teamIndex] = Team(name: team.name, players: newPlayers);
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Posições redistribuídas'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 }

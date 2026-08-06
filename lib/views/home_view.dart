@@ -49,13 +49,13 @@ class _HomeViewState extends State<HomeView> {
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: _showTeamLogicInfo,
-            tooltip: 'Informações',
+            tooltip: 'Como os Times são Formados',
           ),
         ],
       ),
-      drawer: DrawerComponent(),
+      drawer: const DrawerComponent(),
       body:
-          _isLoading ? Center(child: CircularProgressIndicator()) : GroupList(),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : const GroupList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(

@@ -31,13 +31,15 @@ class PlayerController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> add(BuildContext context, Player player) async {
+  Future<bool> add(BuildContext context, Player player) async {
     final result = await repository.add(player);
     if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
       Toast.show(context, 'Jogador adicionado com sucesso!', false);
+      return true;
     } else {
       Toast.show(context, 'Erro ao adicionar jogador: ${result.errorMessage}', true);
+      return false;
     }
   }
 
@@ -89,13 +91,15 @@ class PlayerController extends ChangeNotifier {
     }
   }
 
-  Future<void> update(BuildContext context, Player player) async {
+  Future<bool> update(BuildContext context, Player player) async {
     final result = await repository.update(player);
     if (result.isSuccess) {
       await getAllByGroupId(context, player.grupoId);
       Toast.show(context, 'Jogador atualizado com sucesso!', false);
+      return true;
     } else {
       Toast.show(context, 'Erro ao atualizar jogador: ${result.errorMessage}', true);
+      return false;
     }
   }
 

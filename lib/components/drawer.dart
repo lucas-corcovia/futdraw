@@ -286,7 +286,7 @@ class _AlgorithmSelector extends StatelessWidget {
           ),
           ButtonSegment(
             value: GenerationAlgorithm.snakeDraft,
-            label: Text('Snake Draft'),
+            label: Text('Alternado'),
             icon: Icon(Icons.swap_vert, size: 16),
           ),
         ],
@@ -321,8 +321,8 @@ class _GerarPosicaoToggle extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text('Gerar por posição'),
         subtitle: const Text('Redistribui posições conforme a tática do grupo'),
-        value: controller.configuration.gerarIndependenteDaPosicao,
-        onChanged: controller.setGerarIndependenteDaPosicao,
+        value: !controller.configuration.gerarIndependenteDaPosicao,
+        onChanged: (v) => controller.setGerarIndependenteDaPosicao(!v),
       ),
     );
   }
@@ -339,7 +339,7 @@ class _LogoutTile extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tileColor: Theme.of(
           context,
-        ).colorScheme.errorContainer.withValues(alpha: 0.3),
+        ).colorScheme.errorContainer.withValues(alpha: 0.55),
         leading: Icon(
           Icons.logout_rounded,
           color: Theme.of(context).colorScheme.error,

@@ -293,7 +293,7 @@ class _AddGroupState extends State<AddGroup> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: ElevatedButton.icon(
+          child: FilledButton.icon(
             onPressed: _saveGroup,
             icon: const Icon(Icons.check_circle_outline_rounded),
             label: Text(_isEditing ? 'Salvar Alterações' : 'Adicionar Grupo'),

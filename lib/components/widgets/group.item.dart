@@ -354,7 +354,7 @@ class GroupItem extends StatelessWidget {
     if (days.isEmpty && time.isEmpty) return '';
     if (days.isEmpty) return time;
     if (time.isEmpty) return days;
-    return '$days ás $time';
+    return '$days às $time';
   }
 
   Future<void> _confirmDelete(BuildContext context) async {

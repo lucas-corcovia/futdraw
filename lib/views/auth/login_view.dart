@@ -50,20 +50,23 @@ class _LoginViewState extends State<LoginView> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                Image.asset('assets/images/logo.png', height: 100),
-                const SizedBox(height: 24),
+                Image.asset('assets/images/logo.png', height: 160),
+                const SizedBox(height: 16),
                 Text(
                   'FutDraw',
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    fontFamily: 'PervitinaDex',
+                    fontSize: 44,
+                    letterSpacing: 3,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   'Entre na sua conta',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.outline,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -138,15 +141,8 @@ class _LoginViewState extends State<LoginView> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              ElevatedButton(
+                              FilledButton(
                                 onPressed: isLoading ? null : _login,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
                                 child: isLoading
                                     ? const SizedBox(
                                         width: 20,

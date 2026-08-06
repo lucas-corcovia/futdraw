@@ -26,7 +26,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: ElevatedButton.icon(
+          child: FilledButton.icon(
             onPressed: _saveManyPlayers,
             icon: const Icon(Icons.group_add_rounded),
             label: const Text('Adicionar Todos'),
