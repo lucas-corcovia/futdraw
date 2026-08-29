@@ -19,6 +19,17 @@ class _LoginViewState extends State<LoginView> {
   bool _obscureSenha = true;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final lastEmail = context.read<AuthController>().lastEmail;
+      if (lastEmail != null && lastEmail.isNotEmpty) {
+        _emailController.text = lastEmail;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _senhaController.dispose();

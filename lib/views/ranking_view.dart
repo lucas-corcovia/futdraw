@@ -1,8 +1,15 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/toast.dart';
+import 'package:futdraw/components/widgets/pro_paywall_sheet.dart';
+import 'package:futdraw/controllers/auth_controller.dart';
 import 'package:futdraw/controllers/ranking_controller.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/ranking_item.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 enum _PeriodoFiltro { mes, temporada, tudo }
@@ -25,6 +32,34 @@ class _RankingViewState extends State<RankingView> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
+  Future<void> _exportCsv() async {
+    final isPro = context.read<AuthController>().isPro;
+    if (!isPro) {
+      ProPaywallSheet.show(context);
+      return;
+    }
+
+    final ranking = context.read<RankingController>().ranking;
+    if (ranking.isEmpty) {
+      Toast.show(context, 'Nenhum dado para exportar', true);
+      return;
+    }
+
+    final buf = StringBuffer();
+    buf.writeln('Posição,Nome,Jogos,Vitórias,Empates,Derrotas,Aproveitamento,Gols,Assistências,Saldo de Gols');
+    for (var i = 0; i < ranking.length; i++) {
+      final r = ranking[i];
+      final aprov = (r.aproveitamento * 100).toStringAsFixed(1);
+      buf.writeln('${i + 1},${r.nome},${r.jogos},${r.vitorias},${r.empates},${r.derrotas},$aprov%,${r.gols},${r.assistencias},${r.saldoGols}');
+    }
+
+    final dir = await getTemporaryDirectory();
+    final periodo = _filtro == _PeriodoFiltro.temporada ? 'temporada' : _filtro == _PeriodoFiltro.mes ? 'mes' : 'tudo';
+    final file = File('${dir.path}/ranking_${widget.group.nome}_$periodo.csv');
+    await file.writeAsString(buf.toString());
+    await OpenFile.open(file.path);
+  }
+
   Future<void> _load() async {
     final now = DateTime.now();
     DateTime? desde;
@@ -44,7 +79,16 @@ class _RankingViewState extends State<RankingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ranking — ${widget.group.nome}')),
+      appBar: AppBar(
+        title: Text('Ranking — ${widget.group.nome}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            tooltip: 'Exportar CSV (Pro)',
+            onPressed: _exportCsv,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(

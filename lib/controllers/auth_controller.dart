@@ -10,13 +10,31 @@ class AuthController extends ChangeNotifier {
   final AuthRemoteDataSource _dataSource;
   final AuthService _authService;
 
-  AuthController(this._dataSource, this._authService);
+  AuthController(this._dataSource, this._authService) {
+    _authService.sessionExpiredNotifier.addListener(_onSessionExpired);
+  }
 
   AuthStatus status = AuthStatus.idle;
   String? errorMessage;
 
   bool get isLoggedIn => _authService.isLoggedIn;
   String? get userName => _authService.userName;
+  String? get lastEmail => _authService.lastEmail;
+  bool get isPro => _authService.isPro;
+
+  void _onSessionExpired() {
+    if (_authService.sessionExpiredNotifier.value) {
+      status = AuthStatus.idle;
+      errorMessage = null;
+      notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _authService.sessionExpiredNotifier.removeListener(_onSessionExpired);
+    super.dispose();
+  }
 
   Future<bool> login(String email, String senha) async {
     status = AuthStatus.loading;
@@ -31,6 +49,7 @@ class AuthController extends ChangeNotifier {
           token: data.token,
           nome: data.nome,
           email: data.email,
+          isPro: data.isPro,
         );
         status = AuthStatus.success;
         notifyListeners();
@@ -84,6 +103,7 @@ class AuthController extends ChangeNotifier {
           token: data.token,
           nome: data.nome,
           email: data.email,
+          isPro: data.isPro,
         );
         status = AuthStatus.success;
         notifyListeners();

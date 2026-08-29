@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "brainstorm-ideas-existing": {
+      "source": "phuryn/pm-skills",
+      "sourceType": "github",
+      "skillPath": "pm-product-discovery/skills/brainstorm-ideas-existing/SKILL.md",
+      "computedHash": "318189ed1869045ba8bded1a250d010c993ba5acbee7a5a52d3e4d9094024178"
+    }
+  }
+}

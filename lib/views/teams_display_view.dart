@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:futdraw/components/widgets/escalacao_share_widget.dart';
 import 'package:futdraw/components/widgets/soccer_field.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/salvar_sorteio_request.dart';
@@ -425,6 +426,44 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Erro ao compartilhar: $e')));
+      }
+    }
+  }
+
+  Future<void> _shareEscalacao() async {
+    try {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      final Uint8List? bytes = await _screenshotController.captureFromWidget(
+        EscalacaoShareWidget(teams: _teams),
+        pixelRatio: 3.0,
+        context: context,
+      );
+
+      if (context.mounted) Navigator.pop(context);
+
+      if (bytes == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Erro ao gerar escalação')),
+          );
+        }
+        return;
+      }
+
+      final fileName = FileUtils.generateUniqueFileName('escalacao', 'png');
+      await FileUtils.shareFileMobile(bytes, fileName, 'image/png', text: 'Escalação FutDraw');
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erro ao compartilhar escalação: $e')));
       }
     }
   }
@@ -969,6 +1008,17 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                     onTap: () {
                       Navigator.pop(sheetCtx);
                       _reorganizeTeamByTactic(teamIndex);
+                    },
+                  ),
+
+                  // Share all teams as a single escalacao card
+                  ListTile(
+                    leading: const Icon(Icons.grid_view_rounded),
+                    title: const Text('Compartilhar escalação completa'),
+                    subtitle: const Text('Todos os times em um card'),
+                    onTap: () {
+                      Navigator.pop(sheetCtx);
+                      _shareEscalacao();
                     },
                   ),
 

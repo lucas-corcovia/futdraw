@@ -14,6 +14,7 @@ import 'package:futdraw/views/schedule_match_view.dart';
 import 'package:futdraw/views/team_generator_view.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MatchDetailView extends StatefulWidget {
   final Match match;
@@ -140,6 +141,15 @@ class _MatchDetailViewState extends State<MatchDetailView> {
       appBar: AppBar(
         title: Text(dateFormat.format(_match.dataHora)),
         actions: [
+          if (_isOrganizer)
+            IconButton(
+              icon: const Icon(Icons.link),
+              tooltip: 'Compartilhar link de presença',
+              onPressed: () {
+                final link = 'futdraw://partidas/${_match.id}';
+                Share.share(link, subject: 'Confirme sua presença na partida FutDraw');
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Editar',

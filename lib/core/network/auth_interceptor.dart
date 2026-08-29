@@ -18,7 +18,7 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      _authService.clearSession();
+      _authService.expireSession();
     }
     handler.next(err);
   }

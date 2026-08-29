@@ -73,6 +73,10 @@ class _AITeamSortViewState extends State<AITeamSortView> {
         );
       },
       error: (message) {
+        if (message.contains('Limite')) {
+          Navigator.of(context).pop(message);
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
