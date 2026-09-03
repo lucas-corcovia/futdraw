@@ -27,6 +27,7 @@ class ServiceLocator {
 
   late AuthService authService;
   late Dio dio;
+  late Dio dioIA;
   late AuthRemoteDataSource authDataSource;
   late GroupRemoteDataSource groupDataSource;
   late PlayerRemoteDataSource playerDataSource;
@@ -51,11 +52,12 @@ class ServiceLocator {
 
     sl.authService = AuthService(prefs);
     sl.dio = DioClient.create(sl.authService);
+    sl.dioIA = DioClient.createForAI(sl.authService);
     sl.authDataSource = AuthRemoteDataSource(sl.dio);
     sl.groupDataSource = GroupRemoteDataSource(sl.dio);
     sl.playerDataSource = PlayerRemoteDataSource(sl.dio);
     sl.sorteioDataSource = SorteioRemoteDataSource(sl.dio);
-    sl.sorteioIADataSource = SorteioIARemoteDataSource(sl.dio);
+    sl.sorteioIADataSource = SorteioIARemoteDataSource(sl.dioIA);
     sl.matchDataSource = MatchRemoteDataSource(sl.dio);
     sl.attendanceDataSource = AttendanceRemoteDataSource(sl.dio);
     sl.resultDataSource = ResultRemoteDataSource(sl.dio);
