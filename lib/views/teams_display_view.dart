@@ -2,13 +2,21 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:futdraw/components/widgets/escalacao_share_widget.dart';
-import 'package:futdraw/components/widgets/soccer_field.dart';
+import 'package:futdraw/models/formation/formation.dart';
+import 'package:futdraw/models/formation/formation_assignment.dart';
+import 'package:futdraw/models/formation/formation_catalog.dart';
+import 'package:futdraw/models/formation/team_tactic.dart';
+import 'package:futdraw/theme/app_theme.dart';
+import 'package:futdraw/theme/app_tokens.dart';
+import 'package:futdraw/views/teams_display/widgets/field_controls.dart';
+import 'package:futdraw/views/teams_display/widgets/pitch_view.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/salvar_sorteio_request.dart';
 import 'package:futdraw/helpers/team_generator.dart';
 import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/utils/file.utils.dart';
 import 'package:screenshot/screenshot.dart';
 
@@ -19,6 +27,13 @@ class TeamsDisplayScreen extends StatefulWidget {
   final bool usouIA;
   final FieldType fieldType;
 
+  /// Tatica padrao do grupo, quando a tela anterior tem o `Group` em maos.
+  ///
+  /// Ate aqui esta tela recebia so `grupoId` e por isso a tatica que o usuario
+  /// configurou no grupo nunca chegava ao campo -- "Reorganizar por Tatica"
+  /// reorganizava por numeros cravados no codigo, nao pela tatica dele.
+  final TeamTactic? tactic;
+
   const TeamsDisplayScreen({
     super.key,
     required this.teams,
@@ -26,6 +41,7 @@ class TeamsDisplayScreen extends StatefulWidget {
     this.instrucoes,
     this.usouIA = false,
     this.fieldType = FieldType.campo,
+    this.tactic,
   });
 
   @override
@@ -40,6 +56,24 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   bool _isSaving = false;
   bool _isSaved = false;
   final ScreenshotController _screenshotController = ScreenshotController();
+
+  /// Formacao por time, chaveada pelo indice da aba. Guardada no State para
+  /// que o arrasto livre da Fase 5 tenha onde gravar os overrides.
+  final Map<int, Formation> _formations = {};
+
+  /// Verdadeiro so durante a captura do PNG. O shader da turfa sai espelhado
+  /// dentro de `RepaintBoundary.toImage` em parte dos Android
+  /// (flutter/flutter#163521), entao a imagem compartilhada -- que e o que sai
+  /// do app e vai para o grupo do WhatsApp -- desenha pelo `CustomPainter`.
+  bool _capturing = false;
+
+  /// Campo destravado para posicionamento livre. Comeca travado.
+  ///
+  /// Travado e o padrao porque a operacao comum e trocar jogador, nao mover
+  /// chip; e porque um campo que se desmonta ao primeiro arraste acidental
+  /// perde o desenho que o sorteio entregou. O cadeado nunca aparece sozinho:
+  /// vem sempre com o rotulo do estado em que esta.
+  bool _freePositioning = false;
 
   // Cross-team swap mode
   bool _crossSwapMode = false;
@@ -200,6 +234,14 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
           _teams[teamAIndex] = Team(name: teamA.name, players: newTeamAPlayers);
           _teams[teamBIndex] = Team(name: teamB.name, players: newTeamBPlayers);
+
+          // Troca entre times muda a composicao dos dois, entao as duas formas
+          // de campo precisam ser refeitas. Troca dentro do mesmo time so
+          // reordena a lista e nao mexe na forma -- e mantem os overrides de
+          // posicao livre, que e o que o usuario espera depois de ter
+          // arrumado o campo a mao.
+          _invalidateFormation(teamAIndex);
+          _invalidateFormation(teamBIndex);
         }
       }
     });
@@ -322,7 +364,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                 controller: _tabController,
                 children: _teams.asMap().entries.map((entry) {
                   return _showField
-                      ? _buildFieldView(entry.value)
+                      ? _buildFieldView(entry.value, entry.key)
                       : _buildTeamView(entry.value, entry.key);
                 }).toList(),
               ),
@@ -381,8 +423,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
+      // Troca para o painter antes de capturar e espera o frame em que ele ja
+      // esta na arvore. Capturar no mesmo frame do setState pegaria o shader.
+      setState(() => _capturing = true);
+      await WidgetsBinding.instance.endOfFrame;
+
       final Uint8List? capturedImage = await _screenshotController.capture(
-        delay: const Duration(milliseconds: 10),
+        delay: const Duration(milliseconds: 40),
         pixelRatio: 3.0,
       );
 
@@ -407,6 +454,8 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           context,
         ).showSnackBar(SnackBar(content: Text('Erro ao exportar imagem: $e')));
       }
+    } finally {
+      if (mounted) setState(() => _capturing = false);
     }
   }
 
@@ -470,18 +519,104 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   // Field view: phase-1 reveal — scale from 0.97 to 1.0 + fade.
   // The drag hint is held back until phase 2 so the first frame is clean.
-  Widget _buildFieldView(Team team) {
+  /// Formacao do time, derivada da composicao real do elenco.
+  ///
+  /// A tatica do grupo **nao** entra aqui de proposito. Ela e um desejo; a
+  /// composicao e um fato. Abrir o campo ja reescalando todo mundo para o
+  /// 4-4-2 do grupo mentiria sobre quem o sorteio de fato entregou, e o
+  /// usuario perderia a informacao de que caiu com tres zagueiros. Quem quer a
+  /// tatica pede por ela em "Reorganizar por Tatica", que e um botao.
+  ///
+  /// `fromTactic` casa com um preset desenhado a mao quando as contagens batem
+  /// e so sintetiza quando nao acha.
+  Formation _formationFor(int index, Team team) {
+    final cached = _formations[index];
+    if (cached != null) return cached;
+
+    int count(PlayerPosition position) =>
+        team.players.where((p) => p.position == position).length;
+
+    final formation = FormationCatalog.fromTactic(
+      fieldType: widget.fieldType,
+      goalkeepers: count(PlayerPosition.goalkeeper),
+      defenders: count(PlayerPosition.defender),
+      midfielders: count(PlayerPosition.midfielder),
+      strikers: count(PlayerPosition.striker),
+    );
+    return _formations[index] = formation;
+  }
+
+  /// Grava a posicao que o dedo soltou, como override normalizado.
+  ///
+  /// Vai para `Formation.overrides`, nao para um mapa de pixels no State: e
+  /// assim que a posicao movida a mao sobrevive a troca de aba e a rotacao, e
+  /// e assim que ela aparece no PNG compartilhado -- tudo isso de graca,
+  /// porque `PitchView` ja desenha por `formation.positionOf(slot)`.
+  void _onSlotMoved(int teamIndex, String slotId, Offset normalized) {
+    final current = _formations[teamIndex];
+    if (current == null) return;
+
+    setState(() {
+      _formations[teamIndex] = current.withOverride(slotId, normalized);
+    });
+  }
+
+  /// Devolve o time ao desenho da formacao, descartando o arrasto livre.
+  void _resetPositions(int teamIndex) {
+    final current = _formations[teamIndex];
+    if (current == null || current.overrides.isEmpty) return;
+
+    setState(() => _formations[teamIndex] = current.clearOverrides());
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Posições restauradas'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Joga fora a formacao guardada de um time.
+  ///
+  /// Sem isto o mapa `_formations` era escrito uma vez por aba e nunca mais:
+  /// depois de reorganizar ou trocar jogadores, o campo continuava desenhando
+  /// a forma antiga enquanto o `FormationAssigner` encaixava o elenco novo
+  /// nela. O aviso dizia "Posicoes redistribuidas" e a tela nao mudava -- que
+  /// e exatamente o sintoma relatado.
+  void _invalidateFormation(int index) => _formations.remove(index);
+
+  Widget _buildFieldView(Team team, int index) {
+    final formation = _formationFor(index, team);
+    // Fora do AnimatedBuilder de proposito: `assign` ordena e aloca, e aqui
+    // dentro rodava uma vez por frame da animacao de entrada sem que nada do
+    // resultado mudasse entre um frame e o outro.
+    final assignment = FormationAssigner.assign(team.players, formation);
+
     return FadeTransition(
       opacity: _fieldReveal,
       child: ScaleTransition(
         scale: Tween<double>(begin: 0.97, end: 1.0).animate(_fieldReveal),
-        child: Stack(
+        child: Column(
+          children: [
+            Expanded(
+              child: Stack(
           children: [
             Positioned.fill(
-              child: SoccerField(
-                players: team.players,
-                onPlayersSwapped: _swapPlayers,
-                fieldType: widget.fieldType,
+              child: AnimatedBuilder(
+                animation: _revealController,
+                builder: (context, _) => PitchView(
+                  formation: formation,
+                  assignment: assignment,
+                  fieldType: widget.fieldType,
+                  teamAccent: context.pitch.accentForTeam(index),
+                  shaderEnabled: !_capturing,
+                  linesProgress: _fieldReveal.value,
+                  chipsProgress: _chromeReveal.value,
+                  onPlayersSwapped: _swapPlayers,
+                  freePositioning: _freePositioning,
+                  onSlotMoved: (slotId, normalized) =>
+                      _onSlotMoved(index, slotId, normalized),
+                ),
               ),
             ),
 
@@ -540,32 +675,26 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               ),
             ),
 
-            // Drag hint deferred to phase 2 — instructional copy should not
-            // compete with the reveal moment.
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: FadeTransition(
-                  opacity: _chromeReveal,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'Arraste jogadores da mesma posição para trocar',
-                        style: TextStyle(
-                          fontFamily: 'Kanit',
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
+            // Cadeado e dica, adiados para a fase 2: texto instrucional nao
+            // disputa com o momento da revelacao.
+          ],
+              ),
+            ),
+
+            // Fora do gramado, nao por cima dele. Sobreposto ao pe do campo,
+            // o controle caia exatamente em cima do goleiro -- que e o unico
+            // jogador cuja posicao e sempre aquela.
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: FadeTransition(
+                opacity: _chromeReveal,
+                child: FieldControls(
+                  freePositioning: _freePositioning,
+                  hasOverrides:
+                      _formations[index]?.overrides.isNotEmpty ?? false,
+                  onToggleLock: () =>
+                      setState(() => _freePositioning = !_freePositioning),
+                  onReset: () => _resetPositions(index),
                 ),
               ),
             ),
@@ -777,7 +906,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                             ),
                       title: Text(player.nome),
                       subtitle: Text(
-                        '${player.position} • ${player.nota.toStringAsFixed(1)}',
+                        '${player.position.displayName} • ${player.nota.toStringAsFixed(1)}',
                       ),
                     ),
                   ),
@@ -885,7 +1014,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           ),
         ),
         subtitle: Text(
-          '${_getPositionName(player.position)} • Nota: ${player.nota.toStringAsFixed(1)}',
+          '${player.position.displayName} • Nota: ${player.nota.toStringAsFixed(1)}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -922,19 +1051,6 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         ),
       ),
     );
-  }
-
-  String _getPositionName(PlayerPosition position) {
-    switch (position) {
-      case PlayerPosition.goalkeeper:
-        return 'Goleiro';
-      case PlayerPosition.defender:
-        return 'Defensor';
-      case PlayerPosition.midfielder:
-        return 'Meio-Campo';
-      case PlayerPosition.striker:
-        return 'Atacante';
-    }
   }
 
   void _showActionsSheet() {
@@ -1071,106 +1187,44 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     );
   }
 
+  /// Reaplica a tatica do grupo ao time, so na forma do campo.
+  ///
+  /// Reescrito. A versao anterior fazia tres coisas erradas de uma vez:
+  ///
+  /// 1. **Ignorava a tatica.** O nome do item de menu diz "por Tatica", mas os
+  ///    numeros eram `2/3/1` cravados, com desvios so para times de 4, 5 ou 6
+  ///    na linha. A tatica que o usuario configura no grupo nunca era lida.
+  /// 2. **Apagava jogador.** Fechava com `.take(defendersCount)` e equivalentes.
+  ///    Um time de campo com 10 na linha caia fora de todos os `if` e voltava
+  ///    com 6: quatro jogadores sumiam do time, da lista, da imagem
+  ///    compartilhada e do sorteio salvo, sem aviso.
+  /// 3. **Mutava `Player.position` in place**, editando em silencio os mesmos
+  ///    objetos que a tela anterior ainda segurava.
+  ///
+  /// Agora so a *forma do campo* muda. Quem vai em qual slot continua sendo
+  /// decisao do `FormationAssigner`, que promove por nota, marca quem ficou
+  /// fora de posicao e nunca toca no `Player`.
   void _reorganizeTeamByTactic(int teamIndex) {
     final team = _teams[teamIndex];
-    final goalkeepers =
-        team.players
-            .where((p) => p.position == PlayerPosition.goalkeeper)
-            .toList();
-    final defenders =
-        team.players
-            .where((p) => p.position == PlayerPosition.defender)
-            .toList();
-    final midfielders =
-        team.players
-            .where((p) => p.position == PlayerPosition.midfielder)
-            .toList();
-    final forwards =
-        team.players
-            .where((p) => p.position == PlayerPosition.striker)
-            .toList();
-
-    int defendersCount = 2;
-    int midfieldersCount = 3;
-    int forwardsCount = 1;
-    int totalField =
-        team.players
-            .where((p) => p.position != PlayerPosition.goalkeeper)
-            .length;
-
-    if (totalField == 6) {
-      defendersCount = 2;
-      midfieldersCount = 3;
-      forwardsCount = 1;
-    } else if (totalField == 5) {
-      defendersCount = 2;
-      midfieldersCount = 2;
-      forwardsCount = 1;
-    } else if (totalField == 4) {
-      defendersCount = 1;
-      midfieldersCount = 2;
-      forwardsCount = 1;
-    }
-
-    List<Player> allDefenders = List.from(defenders)
-      ..sort((a, b) => b.nota.compareTo(a.nota));
-    List<Player> allMidfielders = List.from(midfielders)
-      ..sort((a, b) => b.nota.compareTo(a.nota));
-    List<Player> allForwards = List.from(forwards)
-      ..sort((a, b) => b.nota.compareTo(a.nota));
-
-    while (allMidfielders.length < midfieldersCount &&
-        allDefenders.length > defendersCount) {
-      final moved = allDefenders.removeLast();
-      moved.position = PlayerPosition.midfielder;
-      allMidfielders.add(moved);
-    }
-
-    while (allDefenders.length < defendersCount && allMidfielders.isNotEmpty) {
-      final moved = allMidfielders.removeAt(0);
-      moved.position = PlayerPosition.defender;
-      allDefenders.add(moved);
-    }
-
-    while (allMidfielders.length < midfieldersCount && allForwards.isNotEmpty) {
-      final moved = allForwards.removeAt(0);
-      moved.position = PlayerPosition.midfielder;
-      allMidfielders.add(moved);
-    }
-
-    while (allForwards.length < forwardsCount &&
-        allMidfielders.length > midfieldersCount) {
-      final moved = allMidfielders.removeLast();
-      moved.position = PlayerPosition.striker;
-      allForwards.add(moved);
-    }
-
-    while (allForwards.length < forwardsCount && allMidfielders.isNotEmpty) {
-      final moved = allMidfielders.removeLast();
-      moved.position = PlayerPosition.striker;
-      allForwards.add(moved);
-    }
-
-    allDefenders = allDefenders.take(defendersCount).toList();
-    allMidfielders = allMidfielders.take(midfieldersCount).toList();
-    allForwards = allForwards.take(forwardsCount).toList();
-
-    final newPlayers = [
-      ...goalkeepers,
-      ...allDefenders,
-      ...allMidfielders,
-      ...allForwards,
-    ];
+    final base = widget.tactic ?? TeamTactic.defaultFor(widget.fieldType);
+    final tactic = base.scaledTo(team.players);
 
     setState(() {
-      _teams[teamIndex] = Team(name: team.name, players: newPlayers);
+      _formations[teamIndex] = FormationCatalog.fromTactic(
+        fieldType: widget.fieldType,
+        goalkeepers: tactic.goalkeepers,
+        defenders: tactic.defenders,
+        midfielders: tactic.midfielders,
+        strikers: tactic.strikers,
+      );
     });
 
+    final origem = widget.tactic != null ? 'tática do grupo' : 'padrão da modalidade';
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Posições redistribuídas'),
+      SnackBar(
+        content: Text('${team.name} em ${tactic.label} ($origem)'),
         behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 3),
       ),
     );
   }

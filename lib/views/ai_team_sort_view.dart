@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/sortear_ia_request.dart';
 import 'package:futdraw/models/group.dart';
+import 'package:futdraw/models/formation/team_tactic.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/views/teams_display_view.dart';
 
@@ -68,6 +69,7 @@ class _AITeamSortViewState extends State<AITeamSortView> {
                   instrucoes: instrucoes.isEmpty ? null : instrucoes,
                   usouIA: true,
                   fieldType: widget.group.tipoCampo.toFieldType(),
+                  tactic: TeamTactic.ofGroup(widget.group),
                 ),
           ),
         );

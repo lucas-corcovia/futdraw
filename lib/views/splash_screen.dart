@@ -15,7 +15,9 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
-  static const _primaryGreen = Color(0xFF059669);
+  // O acento nao fica cravado aqui: vem do tema, em `build`. O fundo sim, e
+  // de proposito -- ele continua a splash nativa (#060606, no pubspec), e
+  // trocar por `colorScheme.surface` piscaria na passagem de uma para a outra.
   static const _bgColor = Color(0xFF0A0A0A);
 
   @override
@@ -52,6 +54,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    // A cor que o usuario escolheu no drawer. Esta tela fica 2,8 s no ar em
+    // toda abertura: se ignorasse o tema, o app pareceria esquecer a escolha
+    // a cada restart.
+    final accent = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -66,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
                 size: const Size(300, 300),
                 painter: _PulseRingsPainter(
                   progress: _pulseController.value,
-                  color: _primaryGreen,
+                  color: accent,
                 ),
               ),
             ),
@@ -105,12 +112,12 @@ class _SplashScreenState extends State<SplashScreen>
                     )
                     .fadeIn(duration: 400.ms),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Sorteie. Jogue. Vença.',
                   style: TextStyle(
                     fontFamily: 'Kanit',
                     fontSize: 14,
-                    color: _primaryGreen,
+                    color: accent,
                     letterSpacing: 1.5,
                   ),
                 )

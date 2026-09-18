@@ -17,6 +17,14 @@ class GroupResponse {
   final bool goleirosFixos;
   final String? urlAvatar;
 
+  /// Tatica padrao do grupo, escrita em add.group.dart e ate agora nunca lida
+  /// de volta: nem este DTO nem Group.fromJson (codigo morto) traziam os
+  /// campos, entao a tela de times sempre caia no fallback de formacao.
+  final int? taticaGoleiros;
+  final int? taticaDefensores;
+  final int? taticaMeias;
+  final int? taticaAtacantes;
+
   const GroupResponse({
     required this.grupoId,
     required this.nome,
@@ -31,6 +39,10 @@ class GroupResponse {
     this.limiteTitulares = 22,
     this.goleirosFixos = false,
     this.urlAvatar,
+    this.taticaGoleiros,
+    this.taticaDefensores,
+    this.taticaMeias,
+    this.taticaAtacantes,
   });
 
   factory GroupResponse.fromJson(Map<String, dynamic> json) => GroupResponse(
@@ -47,6 +59,10 @@ class GroupResponse {
     limiteTitulares: json['limiteTitulares'] as int? ?? 22,
     goleirosFixos: json['goleirosFixos'] as bool? ?? false,
     urlAvatar: json['urlAvatar'] as String?,
+    taticaGoleiros: json['taticaGoleiros'] as int?,
+    taticaDefensores: json['taticaDefensores'] as int?,
+    taticaMeias: json['taticaMeias'] as int?,
+    taticaAtacantes: json['taticaAtacantes'] as int?,
   );
 
   Group toModel() => Group(
@@ -63,6 +79,10 @@ class GroupResponse {
     limiteTitulares: limiteTitulares,
     goleirosFixos: goleirosFixos,
     urlAvatar: urlAvatar,
+    taticaGoleiros: taticaGoleiros,
+    taticaDefensores: taticaDefensores,
+    taticaMeias: taticaMeias,
+    taticaAtacantes: taticaAtacantes,
   );
 }
 
@@ -83,6 +103,10 @@ class GroupDetailedResponse extends GroupResponse {
     super.limiteTitulares,
     super.goleirosFixos,
     super.urlAvatar,
+    super.taticaGoleiros,
+    super.taticaDefensores,
+    super.taticaMeias,
+    super.taticaAtacantes,
     required this.jogadores,
   });
 
@@ -101,6 +125,10 @@ class GroupDetailedResponse extends GroupResponse {
         limiteTitulares: json['limiteTitulares'] as int? ?? 22,
         goleirosFixos: json['goleirosFixos'] as bool? ?? false,
         urlAvatar: json['urlAvatar'] as String?,
+    taticaGoleiros: json['taticaGoleiros'] as int?,
+    taticaDefensores: json['taticaDefensores'] as int?,
+    taticaMeias: json['taticaMeias'] as int?,
+    taticaAtacantes: json['taticaAtacantes'] as int?,
         jogadores: (json['jogadores'] as List<dynamic>? ?? [])
             .map((j) => PlayerResponse.fromJson(j as Map<String, dynamic>))
             .toList(),
@@ -121,6 +149,10 @@ class GroupDetailedResponse extends GroupResponse {
     limiteTitulares: limiteTitulares,
     goleirosFixos: goleirosFixos,
     urlAvatar: urlAvatar,
+    taticaGoleiros: taticaGoleiros,
+    taticaDefensores: taticaDefensores,
+    taticaMeias: taticaMeias,
+    taticaAtacantes: taticaAtacantes,
     players: jogadores.map((j) => j.toModel(grupoId)).toList(),
   );
 

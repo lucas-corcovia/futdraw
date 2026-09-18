@@ -5,6 +5,7 @@ import 'package:futdraw/core/di/service_locator.dart';
 import 'package:futdraw/data/models/requests/sortear_request.dart';
 import 'package:futdraw/data/models/responses/match_response.dart';
 import 'package:futdraw/models/enums/field_type.dart';
+import 'package:futdraw/models/formation/team_tactic.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/components/widgets/pro_paywall_sheet.dart';
@@ -126,6 +127,7 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                 teams: teams,
                 grupoId: grupoId,
                 fieldType: widget.preselectedGroup?.tipoCampo.toFieldType() ?? FieldType.campo,
+                tactic: TeamTactic.ofGroup(widget.preselectedGroup),
               ),
             ),
           );

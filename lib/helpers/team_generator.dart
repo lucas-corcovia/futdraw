@@ -4,18 +4,35 @@ import '../models/player.dart';
 import 'dart:math' as math;
 
 class Team {
+  Team({required this.name, required this.players, double? averageSkill})
+      : _serverAverage = averageSkill;
+
   final String name;
   final List<Player> players;
-  final double averageSkill;
 
-  Team({required this.name, required this.players, double? averageSkill})
-      : averageSkill = averageSkill ??
-            (players.isEmpty
-                ? 0.0
-                : players
-                        .where((p) => !p.isGoalkeeper)
-                        .fold(0.0, (sum, player) => sum + player.nota) /
-                    players.length);
+  /// Media informada pela API. Enquanto o elenco nao muda, o servidor e a fonte
+  /// da verdade; assim que alguem troca um jogador aqui, o valor local assume.
+  final double? _serverAverage;
+
+  double get averageSkill => _serverAverage ?? _computedAverage;
+
+  /// Media das notas dos jogadores de linha.
+  ///
+  /// Goleiros ficam fora do calculo porque a nota deles mede outra coisa. O
+  /// bug anterior somava so os jogadores de linha mas dividia por
+  /// `players.length` inteiro, entao todo time com goleiro tinha a media
+  /// deflacionada -- e isso nao afetava apenas o numero exibido:
+  /// `_distributePlayersBalanced` usa `averageSkill` para decidir quais
+  /// jogadores trocar entre times.
+  double get _computedAverage {
+    final outfield = players.where((p) => !p.isGoalkeeper).toList();
+    if (outfield.isNotEmpty) {
+      return outfield.fold(0.0, (sum, p) => sum + p.nota) / outfield.length;
+    }
+    // Time so de goleiros: a media deles diz mais que zero.
+    if (players.isEmpty) return 0.0;
+    return players.fold(0.0, (sum, p) => sum + p.nota) / players.length;
+  }
 
   int get goalkeepersCount => players.where((p) => p.isGoalkeeper).length;
   int get captainsCount => players.where((p) => p.ehCapitao).length;
@@ -23,7 +40,9 @@ class Team {
   Team copyWith({String? name, List<Player>? players}) {
     return Team(
       name: name ?? this.name,
-      players: players ?? List.from(this.players),
+      players: players ?? List<Player>.from(this.players),
+      // Trocar o elenco invalida a media do servidor; renomear nao.
+      averageSkill: players == null ? _serverAverage : null,
     );
   }
 }

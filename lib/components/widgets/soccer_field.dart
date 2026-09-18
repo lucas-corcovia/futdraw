@@ -5,6 +5,7 @@ import 'package:futdraw/models/consts/app.colors.dart';
 import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:futdraw/utils/extensions.dart';
 
 // Configuração de layout por modalidade: posições Y e tamanho de avatar.
 class _FieldLayout {
@@ -542,7 +543,7 @@ class _SoccerFieldState extends State<SoccerField> {
                         shape: BoxShape.circle,
                       ),
                       child: Text(
-                        _getPositionShortLabel(player.position),
+                        player.position.shortLabel,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -589,19 +590,6 @@ class _SoccerFieldState extends State<SoccerField> {
         return Colors.green;
       case PlayerPosition.striker:
         return Colors.red;
-    }
-  }
-
-  String _getPositionShortLabel(PlayerPosition position) {
-    switch (position) {
-      case PlayerPosition.goalkeeper:
-        return 'G';
-      case PlayerPosition.defender:
-        return 'D';
-      case PlayerPosition.midfielder:
-        return 'M';
-      case PlayerPosition.striker:
-        return 'A';
     }
   }
 }

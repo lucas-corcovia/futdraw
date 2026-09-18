@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:futdraw/models/configuration.dart';
 import 'package:futdraw/models/enums/generation_algorithm.dart';
 import 'package:futdraw/models/enums/theme_color.dart';
@@ -11,7 +11,9 @@ class ConfigurationsController extends ChangeNotifier {
   Configuration? _configuration;
 
   Configuration get configuration =>
-      _configuration ??= Configuration(
+      _configuration ??= _defaults();
+
+  static Configuration _defaults() => Configuration(
         generationAlgorithm: GenerationAlgorithm.balanced,
         themeColor: ThemeColor.esmeralda,
         isDarkMode: true,
@@ -24,50 +26,53 @@ class ConfigurationsController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = prefs.getString(_key);
       if (jsonString == null) {
-        _configuration = Configuration(
-          generationAlgorithm: GenerationAlgorithm.balanced,
-          themeColor: ThemeColor.esmeralda,
-          isDarkMode: true,
-        );
+        _configuration = _defaults();
         await save();
       } else {
         _configuration = Configuration.fromJson(jsonDecode(jsonString));
       }
-    } catch (_) {
-      _configuration = Configuration(
-        generationAlgorithm: GenerationAlgorithm.balanced,
-        themeColor: ThemeColor.esmeralda,
-        isDarkMode: true,
-      );
+    } catch (e) {
+      // Registro ilegível: volta ao padrão e **regrava**. Sem essa regravação o
+      // mesmo lixo seria relido em toda abertura, e o app pareceria esquecer a
+      // cor escolhida para sempre.
+      debugPrint('ConfigurationsController.init falhou, usando padrão: $e');
+      _configuration = _defaults();
+      await save();
     }
   }
 
   Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(configuration.toJson()));
+    // Uma escrita que falha em silêncio é indistinguível de uma preferência que
+    // não persiste. O catch aqui existe para que o motivo apareça no log.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_key, jsonEncode(configuration.toJson()));
+    } catch (e) {
+      debugPrint('ConfigurationsController.save falhou: $e');
+    }
   }
 
-  void setTheme(ThemeColor value) {
+  Future<void> setTheme(ThemeColor value) async {
     configuration.themeColor = value;
-    save();
     notifyListeners();
+    await save();
   }
 
-  void setAlgorithm(GenerationAlgorithm value) {
+  Future<void> setAlgorithm(GenerationAlgorithm value) async {
     configuration.generationAlgorithm = value;
-    save();
     notifyListeners();
+    await save();
   }
 
-  void toggleDarkMode() {
+  Future<void> toggleDarkMode() async {
     configuration.isDarkMode = !configuration.isDarkMode;
-    save();
     notifyListeners();
+    await save();
   }
 
-  void setGerarIndependenteDaPosicao(bool value) {
+  Future<void> setGerarIndependenteDaPosicao(bool value) async {
     configuration.gerarIndependenteDaPosicao = value;
-    save();
     notifyListeners();
+    await save();
   }
 }

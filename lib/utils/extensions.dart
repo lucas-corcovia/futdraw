@@ -31,16 +31,66 @@ extension PlayerPositionExtension on PlayerPosition {
     }
   }
 
+  /// Glifo da posicao. E o segundo sinal do chip, junto com a cor e o texto:
+  /// cor sozinha nao serve para quem nao distingue vermelho de verde.
+  ///
+  /// `change_circle` estava em meio-campo e nao dizia nada sobre a funcao; a
+  /// familia agora e concreta -- a luva, o escudo, o no que liga os setores e a
+  /// bola.
   IconData get icon {
     switch (this) {
       case PlayerPosition.goalkeeper:
-        return Icons.sports_handball;
+        return Icons.back_hand;
       case PlayerPosition.defender:
         return Icons.shield;
       case PlayerPosition.midfielder:
-        return Icons.change_circle;
+        return Icons.hub;
       case PlayerPosition.striker:
         return Icons.sports_soccer;
+    }
+  }
+
+  /// Nome completo da posicao. Fonte unica: antes existiam quatro copias
+  /// desta tabela (teams_display_view, soccer_field, escalacao_share_widget
+  /// e este arquivo), e uma delas vazava o enum cru na UI.
+  String get displayName {
+    switch (this) {
+      case PlayerPosition.goalkeeper:
+        return 'Goleiro';
+      case PlayerPosition.defender:
+        return 'Defensor';
+      case PlayerPosition.midfielder:
+        return 'Meio-Campo';
+      case PlayerPosition.striker:
+        return 'Atacante';
+    }
+  }
+
+  /// Letra unica, para badges onde nao cabe texto.
+  String get shortLabel {
+    switch (this) {
+      case PlayerPosition.goalkeeper:
+        return 'G';
+      case PlayerPosition.defender:
+        return 'Z';
+      case PlayerPosition.midfielder:
+        return 'M';
+      case PlayerPosition.striker:
+        return 'A';
+    }
+  }
+
+  /// Titulo de secao, no plural.
+  String get sectionTitle {
+    switch (this) {
+      case PlayerPosition.goalkeeper:
+        return 'Goleiros';
+      case PlayerPosition.defender:
+        return 'Defensores';
+      case PlayerPosition.midfielder:
+        return 'Meio-Campistas';
+      case PlayerPosition.striker:
+        return 'Atacantes';
     }
   }
 }

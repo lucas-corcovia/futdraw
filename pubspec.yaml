@@ -101,6 +101,12 @@ flutter:
     - assets/images/sortear.png      
     - assets/images/logo.png
     - assets/images/newsplash.png
+
+  # Compilado em tempo de build pelo impellerc. O fallback em CustomPainter
+  # (PitchSurfacePainter) continua existindo: o primeiro frame e a captura de
+  # PNG desenham por ele.
+  shaders:
+    - assets/shaders/pitch_turf.frag
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -121,6 +127,13 @@ flutter:
     - family: Kanit
       fonts:
         - asset: assets/fonts/KanitRegular.ttf
+          weight: 400
+        - asset: assets/fonts/Kanit-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Kanit-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Kanit-Bold.ttf
+          weight: 700
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

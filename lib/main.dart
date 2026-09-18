@@ -12,7 +12,7 @@ import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/controllers/ranking_controller.dart';
 import 'package:futdraw/controllers/result_controller.dart';
 import 'package:futdraw/core/di/service_locator.dart';
-import 'package:futdraw/utils/theme.selector.dart';
+import 'package:futdraw/theme/app_theme.dart';
 import 'package:futdraw/views/rsvp_handler_view.dart';
 import 'package:futdraw/views/splash_screen.dart';
 import 'package:provider/provider.dart';
@@ -110,8 +110,8 @@ class _FutDrawAppState extends State<FutDrawApp> {
         return MaterialApp(
           title: 'FutDraw',
           navigatorKey: navigatorKey,
-          theme: ThemeSelector.build(controller.configuration.themeColor, false),
-          darkTheme: ThemeSelector.build(controller.configuration.themeColor, true),
+          theme: AppTheme.build(controller.configuration.themeColor, false),
+          darkTheme: AppTheme.build(controller.configuration.themeColor, true),
           themeMode: controller.configuration.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,

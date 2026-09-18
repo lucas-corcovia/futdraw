@@ -7,18 +7,30 @@ import 'package:provider/provider.dart';
 class FiltersPlayerList extends StatefulWidget {
   final int tabIndex;
 
-  const FiltersPlayerList({super.key, required this.tabIndex});
+  /// Controlador vindo de fora. A tela mantem um so para as duas abas: sem
+  /// isto, cada aba teria a sua caixa de busca e trocar de aba mostraria um
+  /// campo vazio com o filtro ainda aplicado.
+  final TextEditingController? searchController;
+
+  const FiltersPlayerList({
+    super.key,
+    required this.tabIndex,
+    this.searchController,
+  });
 
   @override
   State<FiltersPlayerList> createState() => _FiltersPlayerListState();
 }
 
 class _FiltersPlayerListState extends State<FiltersPlayerList> {
-  final TextEditingController _searchController = TextEditingController();
+  TextEditingController? _owned;
+
+  TextEditingController get _searchController =>
+      widget.searchController ?? (_owned ??= TextEditingController());
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _owned?.dispose();
     super.dispose();
   }
 
