@@ -1,5 +1,8 @@
 abstract final class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:5020';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:5020',
+  );
 
   static const String login = '/api/auth/login';
   static const String registrar = '/api/auth/registrar';

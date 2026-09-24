@@ -1,0 +1,6 @@
+[mcp_servers.mobile]
+command = "npx"
+args = [
+    "-y",
+    "@mobilenext/mobile-mcp@latest",
+]

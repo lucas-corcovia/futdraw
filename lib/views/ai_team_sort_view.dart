@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/core/di/service_locator.dart';
+import 'package:futdraw/controllers/configurations_controller.dart';
 import 'package:futdraw/data/models/requests/sortear_ia_request.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/formation/team_tactic.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/views/teams_display_view.dart';
+import 'package:provider/provider.dart';
 
 class AITeamSortView extends StatefulWidget {
   final Group group;
@@ -52,7 +54,9 @@ class _AITeamSortViewState extends State<AITeamSortView> {
         if (teams.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('A IA não conseguiu realizar o sorteio. Verifique sua conexão e tente novamente.'),
+              content: const Text(
+                'A IA não conseguiu realizar o sorteio. Verifique sua conexão e tente novamente.',
+              ),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
             ),
@@ -70,6 +74,16 @@ class _AITeamSortViewState extends State<AITeamSortView> {
                   usouIA: true,
                   fieldType: widget.group.tipoCampo.toFieldType(),
                   tactic: TeamTactic.ofGroup(widget.group),
+                  applyTacticOnOpen:
+                      !context
+                          .read<ConfigurationsController>()
+                          .configuration
+                          .gerarIndependenteDaPosicao,
+                  showPlayerRatings:
+                      context
+                          .read<ConfigurationsController>()
+                          .configuration
+                          .exibirNotasEmCampo,
                 ),
           ),
         );

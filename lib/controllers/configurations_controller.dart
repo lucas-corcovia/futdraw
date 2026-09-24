@@ -75,4 +75,10 @@ class ConfigurationsController extends ChangeNotifier {
     notifyListeners();
     await save();
   }
+
+  Future<void> setExibirNotasEmCampo(bool value) async {
+    configuration.exibirNotasEmCampo = value;
+    notifyListeners();
+    await save();
+  }
 }

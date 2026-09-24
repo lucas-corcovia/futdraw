@@ -40,6 +40,7 @@ class PlayerChip extends StatelessWidget {
     this.isSelected = false,
     this.isDropTarget = false,
     this.isOutOfPosition = false,
+    this.showNota = true,
     this.opacity = 1.0,
   });
 
@@ -54,6 +55,7 @@ class PlayerChip extends StatelessWidget {
   final bool isSelected;
   final bool isDropTarget;
   final bool isOutOfPosition;
+  final bool showNota;
   final double opacity;
 
   double get _totalWidth => math.max(avatarSize, labelWidth ?? avatarSize);
@@ -94,6 +96,7 @@ class PlayerChip extends StatelessWidget {
                     isOutOfPosition: isOutOfPosition,
                     teamAccent: teamAccent,
                     pitch: pitch,
+                    showNota: showNota,
                   ),
                 ),
               ),
@@ -113,7 +116,7 @@ class PlayerChip extends StatelessWidget {
 
   String _semanticsLabel() {
     final parts = <String>[player.nome, player.position.displayName];
-    parts.add('nota ${player.nota.toStringAsFixed(1)}');
+    if (showNota) parts.add('nota ${player.nota.toStringAsFixed(1)}');
     if (player.ehCapitao) parts.add('capitao');
     if (isOutOfPosition) parts.add('fora de posicao');
     return parts.join(', ');
@@ -129,6 +132,7 @@ class _Badge extends StatelessWidget {
     required this.isOutOfPosition,
     required this.teamAccent,
     required this.pitch,
+    required this.showNota,
   });
 
   final Player player;
@@ -138,10 +142,11 @@ class _Badge extends StatelessWidget {
   final bool isOutOfPosition;
   final Color teamAccent;
   final PitchTheme pitch;
+  final bool showNota;
 
   @override
   Widget build(BuildContext context) {
-    final showNota = avatarSize >= _kNotaBadgeThreshold;
+    final showRatingBadge = showNota && avatarSize >= _kNotaBadgeThreshold;
 
     return SizedBox.square(
       dimension: avatarSize,
@@ -172,7 +177,7 @@ class _Badge extends StatelessWidget {
               ),
             ),
           ),
-          if (showNota)
+          if (showRatingBadge)
             Positioned(
               right: -2,
               bottom: -2,
@@ -258,8 +263,9 @@ class _NameLozenge extends StatelessWidget {
           child: Text(
             name.toUpperCase(),
             textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            softWrap: true,
+            overflow: TextOverflow.clip,
             style: AppTypography.pitchChipName.copyWith(
               color: pitch.chipOnSurface,
             ),

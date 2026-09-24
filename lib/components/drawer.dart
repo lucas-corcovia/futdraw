@@ -40,6 +40,7 @@ class DrawerComponent extends StatelessWidget {
                         const _SectionLabel(label: 'CONFIGURAÇÕES'),
                         _AlgorithmSelector(controller: controller),
                         _GerarPosicaoToggle(controller: controller),
+                        _ExibirNotasToggle(controller: controller),
                       ],
                     ),
                   ),
@@ -323,6 +324,26 @@ class _GerarPosicaoToggle extends StatelessWidget {
         subtitle: const Text('Redistribui posições conforme a tática do grupo'),
         value: !controller.configuration.gerarIndependenteDaPosicao,
         onChanged: (v) => controller.setGerarIndependenteDaPosicao(!v),
+      ),
+    );
+  }
+}
+
+class _ExibirNotasToggle extends StatelessWidget {
+  final ConfigurationsController controller;
+
+  const _ExibirNotasToggle({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: SwitchListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('Exibir notas em campo'),
+        subtitle: const Text('Mostra a nota de cada jogador no campo'),
+        value: controller.configuration.exibirNotasEmCampo,
+        onChanged: controller.setExibirNotasEmCampo,
       ),
     );
   }

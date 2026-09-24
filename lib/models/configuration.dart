@@ -6,12 +6,14 @@ class Configuration {
   ThemeColor themeColor;
   bool isDarkMode;
   bool gerarIndependenteDaPosicao;
+  bool exibirNotasEmCampo;
 
   Configuration({
     required this.generationAlgorithm,
     required this.themeColor,
     required this.isDarkMode,
     this.gerarIndependenteDaPosicao = false,
+    this.exibirNotasEmCampo = true,
   });
 
   factory Configuration.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class Configuration {
       themeColor: _parseThemeColor(json),
       isDarkMode: (json['isDarkMode'] as bool?) ?? true,
       gerarIndependenteDaPosicao: (json['gerarIndependenteDaPosicao'] as bool?) ?? false,
+      exibirNotasEmCampo: (json['exibirNotasEmCampo'] as bool?) ?? true,
     );
   }
 
@@ -29,6 +32,7 @@ class Configuration {
       'themeColor': themeColor.index,
       'isDarkMode': isDarkMode,
       'gerarIndependenteDaPosicao': gerarIndependenteDaPosicao,
+      'exibirNotasEmCampo': exibirNotasEmCampo,
     };
   }
 

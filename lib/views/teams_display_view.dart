@@ -34,6 +34,12 @@ class TeamsDisplayScreen extends StatefulWidget {
   /// reorganizava por numeros cravados no codigo, nao pela tatica dele.
   final TeamTactic? tactic;
 
+  /// Abre o campo ja distribuido pela tatica quando "Gerar por posicao" esta
+  /// ativo. O sorteio continua sendo a fonte da composicao do time; esta flag
+  /// controla a formacao/atribuicao visual inicial.
+  final bool applyTacticOnOpen;
+  final bool showPlayerRatings;
+
   const TeamsDisplayScreen({
     super.key,
     required this.teams,
@@ -42,6 +48,8 @@ class TeamsDisplayScreen extends StatefulWidget {
     this.usouIA = false,
     this.fieldType = FieldType.campo,
     this.tactic,
+    this.applyTacticOnOpen = false,
+    this.showPlayerRatings = true,
   });
 
   @override
@@ -519,16 +527,8 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
   // Field view: phase-1 reveal — scale from 0.97 to 1.0 + fade.
   // The drag hint is held back until phase 2 so the first frame is clean.
-  /// Formacao do time, derivada da composicao real do elenco.
-  ///
-  /// A tatica do grupo **nao** entra aqui de proposito. Ela e um desejo; a
-  /// composicao e um fato. Abrir o campo ja reescalando todo mundo para o
-  /// 4-4-2 do grupo mentiria sobre quem o sorteio de fato entregou, e o
-  /// usuario perderia a informacao de que caiu com tres zagueiros. Quem quer a
-  /// tatica pede por ela em "Reorganizar por Tatica", que e um botao.
-  ///
-  /// `fromTactic` casa com um preset desenhado a mao quando as contagens batem
-  /// e so sintetiza quando nao acha.
+  /// Usa a tatica do grupo ao abrir quando "Gerar por posicao" estiver ligado;
+  /// caso contrario, reflete as posicoes efetivamente sorteadas.
   Formation _formationFor(int index, Team team) {
     final cached = _formations[index];
     if (cached != null) return cached;
@@ -536,12 +536,21 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     int count(PlayerPosition position) =>
         team.players.where((p) => p.position == position).length;
 
+    final counts = widget.applyTacticOnOpen
+        ? (widget.tactic ?? TeamTactic.defaultFor(widget.fieldType))
+            .scaledTo(team.players)
+        : TeamTactic(
+            goalkeepers: count(PlayerPosition.goalkeeper),
+            defenders: count(PlayerPosition.defender),
+            midfielders: count(PlayerPosition.midfielder),
+            strikers: count(PlayerPosition.striker),
+          );
     final formation = FormationCatalog.fromTactic(
       fieldType: widget.fieldType,
-      goalkeepers: count(PlayerPosition.goalkeeper),
-      defenders: count(PlayerPosition.defender),
-      midfielders: count(PlayerPosition.midfielder),
-      strikers: count(PlayerPosition.striker),
+      goalkeepers: counts.goalkeepers,
+      defenders: counts.defenders,
+      midfielders: counts.midfielders,
+      strikers: counts.strikers,
     );
     return _formations[index] = formation;
   }
@@ -592,12 +601,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     // resultado mudasse entre um frame e o outro.
     final assignment = FormationAssigner.assign(team.players, formation);
 
-    return FadeTransition(
-      opacity: _fieldReveal,
-      child: ScaleTransition(
-        scale: Tween<double>(begin: 0.97, end: 1.0).animate(_fieldReveal),
-        child: Column(
-          children: [
+    return SafeArea(
+      child: FadeTransition(
+        opacity: _fieldReveal,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.97, end: 1.0).animate(_fieldReveal),
+          child: Column(
+            children: [
             Expanded(
               child: Stack(
           children: [
@@ -614,6 +624,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                   chipsProgress: _chromeReveal.value,
                   onPlayersSwapped: _swapPlayers,
                   freePositioning: _freePositioning,
+                  showPlayerRatings: widget.showPlayerRatings,
                   onSlotMoved: (slotId, normalized) =>
                       _onSlotMoved(index, slotId, normalized),
                 ),
@@ -698,7 +709,8 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

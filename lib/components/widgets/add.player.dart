@@ -173,6 +173,8 @@ class _AddPlayerState extends State<AddPlayer> {
             // Player Name
             TextFormField(
               initialValue: _name,
+              keyboardType: TextInputType.name,
+              textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
                 labelText: 'Nome do Jogador',
                 border: OutlineInputBorder(

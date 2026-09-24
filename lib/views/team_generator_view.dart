@@ -128,6 +128,8 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                 grupoId: grupoId,
                 fieldType: widget.preselectedGroup?.tipoCampo.toFieldType() ?? FieldType.campo,
                 tactic: TeamTactic.ofGroup(widget.preselectedGroup),
+                applyTacticOnOpen: !config.gerarIndependenteDaPosicao,
+                showPlayerRatings: config.exibirNotasEmCampo,
               ),
             ),
           );

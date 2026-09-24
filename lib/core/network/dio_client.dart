@@ -33,7 +33,9 @@ class DioClient {
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: connectTimeout,
         receiveTimeout: receiveTimeout,
-        contentType: 'application/json',
+        // Names may contain Portuguese characters; declare the JSON encoding
+        // explicitly so every request preserves them end to end.
+        contentType: 'application/json; charset=utf-8',
         responseType: ResponseType.json,
       ),
     );

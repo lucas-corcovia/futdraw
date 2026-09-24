@@ -34,6 +34,7 @@ class PitchView extends StatelessWidget {
     this.pitchKey,
     this.shaderEnabled = true,
     this.freePositioning = false,
+    this.showPlayerRatings = true,
     this.onSlotMoved,
   });
 
@@ -62,6 +63,7 @@ class PitchView extends StatelessWidget {
   /// essa separacao, soltar um chip perto de outro seria ambiguo justamente
   /// onde o alvo e menor: no meio de um campo cheio.
   final bool freePositioning;
+  final bool showPlayerRatings;
 
   /// Chamado ao soltar o chip, com a posicao ja normalizada em `[0,1]`.
   ///
@@ -155,6 +157,7 @@ class PitchView extends StatelessWidget {
                       reveal: reveal,
                       isSelected: selectedPlayerId == player.id,
                       isOutOfPosition: assignment.isOutOfPosition(player),
+                      showNota: showPlayerRatings,
                       origin: offset,
                       pitchSize: size,
                       onTap: onPlayerTap,
@@ -169,6 +172,7 @@ class PitchView extends StatelessWidget {
                       reveal: reveal,
                       isSelected: selectedPlayerId == player.id,
                       isOutOfPosition: assignment.isOutOfPosition(player),
+                      showNota: showPlayerRatings,
                       onTap: onPlayerTap,
                       onSwap: onPlayersSwapped,
                     ),
@@ -211,7 +215,8 @@ class _ChipMetrics {
 
   static const double _minAvatar = 30;
   static const double _maxAvatar = 60;
-  static const double _labelHeight = 20;
+  // O nome pode ocupar duas linhas quando ha pouco espaco entre os slots.
+  static const double _labelHeight = 32;
 
   static _ChipMetrics forFormation(Formation formation, Size size) {
     var busiest = 1;
@@ -260,6 +265,7 @@ class _SwappableChip extends StatelessWidget {
     required this.isOutOfPosition,
     this.onTap,
     this.onSwap,
+    this.showNota = true,
   });
 
   final Player player;
@@ -270,6 +276,7 @@ class _SwappableChip extends StatelessWidget {
   final bool isOutOfPosition;
   final void Function(Player player)? onTap;
   final void Function(Player a, Player b)? onSwap;
+  final bool showNota;
 
   @override
   Widget build(BuildContext context) {
@@ -290,6 +297,7 @@ class _SwappableChip extends StatelessWidget {
             isSelected: isSelected,
             isDropTarget: candidates.isNotEmpty,
             isOutOfPosition: isOutOfPosition,
+            showNota: showNota,
           );
 
           return LongPressDraggable<Player>(
@@ -306,6 +314,7 @@ class _SwappableChip extends StatelessWidget {
                   labelWidth: metrics.labelWidth,
                   teamAccent: teamAccent,
                   isSelected: true,
+                  showNota: showNota,
                 ),
               ),
             ),
@@ -315,6 +324,7 @@ class _SwappableChip extends StatelessWidget {
               labelWidth: metrics.labelWidth,
               teamAccent: teamAccent,
               opacity: 0.3,
+              showNota: showNota,
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -347,6 +357,7 @@ class _FreeChip extends StatefulWidget {
     required this.pitchSize,
     this.onTap,
     this.onMoved,
+    this.showNota = true,
   });
 
   final Player player;
@@ -361,6 +372,7 @@ class _FreeChip extends StatefulWidget {
   final Size pitchSize;
   final void Function(Player player)? onTap;
   final void Function(Offset normalized)? onMoved;
+  final bool showNota;
 
   @override
   State<_FreeChip> createState() => _FreeChipState();
@@ -410,6 +422,7 @@ class _FreeChipState extends State<_FreeChip> {
       teamAccent: widget.teamAccent,
       isSelected: widget.isSelected || _dragging,
       isOutOfPosition: widget.isOutOfPosition,
+      showNota: widget.showNota,
     );
 
     return Transform.translate(

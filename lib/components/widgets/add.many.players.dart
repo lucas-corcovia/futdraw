@@ -48,6 +48,7 @@ class _AddManyPlayersState extends State<AddManyPlayers> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: namesController,
+                  keyboardType: TextInputType.name,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Nomes dos jogadores',
