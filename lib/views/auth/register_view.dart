@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:futdraw/controllers/auth_controller.dart';
-import 'package:futdraw/views/auth/verificar_email_view.dart';
 import 'package:futdraw/views/home_view.dart';
 import 'package:provider/provider.dart';
 
@@ -39,11 +38,9 @@ class _RegisterViewState extends State<RegisterView> {
     );
 
     if (success && mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) =>
-              VerificarEmailView(email: _emailController.text.trim()),
-        ),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeView()),
+        (_) => false,
       );
     }
   }
@@ -102,20 +99,18 @@ class _RegisterViewState extends State<RegisterView> {
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureSenha
-                            ? Icons.visibility_off
-                            : Icons.visibility,
+                        _obscureSenha ? Icons.visibility_off : Icons.visibility,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureSenha = !_obscureSenha),
+                      onPressed:
+                          () => setState(() => _obscureSenha = !_obscureSenha),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.length < 6) {
-                      return 'A senha deve ter pelo menos 6 caracteres';
+                    if (v == null || v.length < 8) {
+                      return 'A senha deve ter pelo menos 8 caracteres';
                     }
                     return null;
                   },
@@ -158,48 +153,50 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
                 Consumer<AuthController>(
                   builder: (context, controller, _) {
-                    final isLoading =
-                        controller.status == AuthStatus.loading;
+                    final isLoading = controller.status == AuthStatus.loading;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         FilledButton(
                           onPressed: isLoading ? null : _register,
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Criar Conta'),
+                          child:
+                              isLoading
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : const Text('Criar Conta'),
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
                           icon: const Icon(Icons.g_mobiledata, size: 24),
                           label: const Text('Cadastrar com Google'),
                           style: OutlinedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: isLoading
-                              ? null
-                              : () async {
-                                  final success = await context
-                                      .read<AuthController>()
-                                      .loginWithGoogle();
-                                  if (success && mounted) {
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                      MaterialPageRoute(
-                                        builder: (_) => const HomeView(),
-                                      ),
-                                      (_) => false,
-                                    );
-                                  }
-                                },
+                          onPressed:
+                              isLoading
+                                  ? null
+                                  : () async {
+                                    final success =
+                                        await context
+                                            .read<AuthController>()
+                                            .loginWithGoogle();
+                                    if (success && mounted) {
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (_) => const HomeView(),
+                                        ),
+                                        (_) => false,
+                                      );
+                                    }
+                                  },
                         ),
                       ],
                     );

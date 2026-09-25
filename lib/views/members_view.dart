@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
+import 'package:futdraw/controllers/auth_controller.dart';
 import 'package:futdraw/controllers/member_controller.dart';
 import 'package:futdraw/models/enums/papel_membro.dart';
 import 'package:futdraw/models/group.dart';
@@ -28,66 +29,78 @@ class _MembrosViewState extends State<MembrosView> {
 
   bool get _canManage {
     final members = context.read<MemberController>().members;
+    final email = context.read<AuthController>().userEmail;
+    if (email == null) return false;
     return members.any(
-      (m) => m.papel == PapelMembro.dono || m.papel == PapelMembro.admin,
+      (m) =>
+          m.email.toLowerCase() == email.toLowerCase() &&
+          (m.papel == PapelMembro.dono || m.papel == PapelMembro.admin),
     );
   }
 
-  Future<void> _showMemberOptions(BuildContext context, GroupMember member) async {
+  Future<void> _showMemberOptions(
+    BuildContext context,
+    GroupMember member,
+  ) async {
     if (member.papel == PapelMembro.dono) return;
 
     await showModalBottomSheet(
       context: context,
-      builder: (ctx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.swap_vert),
-            title: const Text('Alterar Papel'),
-            onTap: () async {
-              Navigator.pop(ctx);
-              await _changePapel(member);
-            },
+      builder:
+          (ctx) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.swap_vert),
+                title: const Text('Alterar Papel'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _changePapel(member);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.remove_circle, color: Colors.red),
+                title: const Text(
+                  'Remover Membro',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await context.read<MemberController>().remove(
+                    context,
+                    member.id,
+                  );
+                },
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.remove_circle, color: Colors.red),
-            title: const Text(
-              'Remover Membro',
-              style: TextStyle(color: Colors.red),
-            ),
-            onTap: () async {
-              Navigator.pop(ctx);
-              await context
-                  .read<MemberController>()
-                  .remove(context, member.id);
-            },
-          ),
-        ],
-      ),
     );
   }
 
   Future<void> _changePapel(GroupMember member) async {
     final novoPapel = await showDialog<PapelMembro>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Escolher Papel'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(ctx, PapelMembro.admin),
-            child: const Text('Admin'),
+      builder:
+          (ctx) => SimpleDialog(
+            title: const Text('Escolher Papel'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, PapelMembro.admin),
+                child: const Text('Admin'),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, PapelMembro.membro),
+                child: const Text('Membro'),
+              ),
+            ],
           ),
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(ctx, PapelMembro.membro),
-            child: const Text('Membro'),
-          ),
-        ],
-      ),
     );
     if (novoPapel != null && mounted) {
-      await context
-          .read<MemberController>()
-          .changePapel(context, member.id, novoPapel);
+      await context.read<MemberController>().changePapel(
+        context,
+        member.id,
+        novoPapel,
+      );
     }
   }
 
@@ -102,8 +115,7 @@ class _MembrosViewState extends State<MembrosView> {
             return const Center(child: CircularProgressIndicator());
           }
           return RefreshIndicator(
-            onRefresh: () =>
-                controller.loadMembers(context, widget.group.id),
+            onRefresh: () => controller.loadMembers(context, widget.group.id),
             child: ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: members.length,
@@ -112,47 +124,53 @@ class _MembrosViewState extends State<MembrosView> {
                 return _MemberCard(
                   member: member,
                   canManage: _canManage,
-                  onOptions: _canManage
-                      ? () => _showMemberOptions(context, member)
-                      : null,
-                  onClaimPlayer: member.jogadorId == null
-                      ? () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ClaimPlayerView(
-                              group: widget.group,
-                              memberId: member.id,
-                            ),
-                          ),
-                        ).then(
-                          (_) => controller.loadMembers(
+                  onOptions:
+                      _canManage
+                          ? () => _showMemberOptions(context, member)
+                          : null,
+                  onClaimPlayer:
+                      _canManage && member.jogadorId == null
+                          ? () => Navigator.push(
                             context,
-                            widget.group.id,
-                          ),
-                        )
-                      : null,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => ClaimPlayerView(
+                                    group: widget.group,
+                                    memberId: member.id,
+                                  ),
+                            ),
+                          ).then(
+                            (_) => controller.loadMembers(
+                              context,
+                              widget.group.id,
+                            ),
+                          )
+                          : null,
                 );
               },
             ),
           );
         },
       ),
-      floatingActionButton: _canManage
-          ? FloatingActionButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => InviteMemberView(group: widget.group),
-                ),
-              ).then(
-                (_) => context
-                    .read<MemberController>()
-                    .loadMembers(context, widget.group.id),
-              ),
-              tooltip: 'Convidar Membro',
-              child: const Icon(Icons.person_add),
-            )
-          : null,
+      floatingActionButton:
+          _canManage
+              ? FloatingActionButton(
+                onPressed:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => InviteMemberView(group: widget.group),
+                      ),
+                    ).then(
+                      (_) => context.read<MemberController>().loadMembers(
+                        context,
+                        widget.group.id,
+                      ),
+                    ),
+                tooltip: 'Convidar Membro',
+                child: const Icon(Icons.person_add),
+              )
+              : null,
     );
   }
 }
@@ -194,7 +212,7 @@ class _MemberCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(member.email, style: Theme.of(context).textTheme.bodySmall),
-            if (member.jogadorId == null)
+            if (onClaimPlayer != null)
               TextButton.icon(
                 onPressed: onClaimPlayer,
                 icon: const Icon(Icons.link, size: 14),

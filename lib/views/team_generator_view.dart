@@ -47,7 +47,9 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
     super.initState();
     if (widget.partidaId != null) {
       _useOnlyConfirmados = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadConfirmadosForPartida(widget.partidaId!));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _loadConfirmadosForPartida(widget.partidaId!),
+      );
     }
   }
 
@@ -68,10 +70,9 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
     setState(() => _loadingPartidas = false);
     result.when(
       success: (list) {
-        final upcoming = list
-            .where((m) => m.status <= 1)
-            .toList()
-          ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
+        final upcoming =
+            list.where((m) => m.status <= 1).toList()
+              ..sort((a, b) => a.dataHora.compareTo(b.dataHora));
         setState(() => _partidas = upcoming);
       },
       error: (_) {},
@@ -79,10 +80,16 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
   }
 
   Future<void> _loadConfirmadosForPartida(String partidaId) async {
-    final result = await ServiceLocator().attendanceDataSource.getPanel(partidaId);
+    final result = await ServiceLocator().attendanceDataSource.getPanel(
+      partidaId,
+    );
     result.when(
       success: (panel) {
-        setState(() => _confirmadosIds = panel.confirmados.map((a) => a.jogadorId).toList());
+        setState(
+          () =>
+              _confirmadosIds =
+                  panel.confirmados.map((a) => a.jogadorId).toList(),
+        );
       },
       error: (_) {},
     );
@@ -94,8 +101,14 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
     final grupoId = widget.preselectedGroup?.id;
     if (grupoId == null || grupoId.isEmpty) return;
 
-    if (_useOnlyConfirmados && _selectedPartida == null && widget.partidaId == null) {
-      Toast.show(context, 'Selecione uma partida para filtrar os confirmados', true);
+    if (_useOnlyConfirmados &&
+        _selectedPartida == null &&
+        widget.partidaId == null) {
+      Toast.show(
+        context,
+        'Selecione uma partida para filtrar os confirmados',
+        true,
+      );
       return;
     }
 
@@ -109,7 +122,10 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
         numeroTimes: _numberOfTeams,
         algoritmo: config.generationAlgorithm.index,
         gerarIndependenteDaPosicao: config.gerarIndependenteDaPosicao,
-        jogadorIds: (_useOnlyConfirmados && _confirmadosIds.isNotEmpty) ? _confirmadosIds : null,
+        jogadorIds:
+            (_useOnlyConfirmados && _confirmadosIds.isNotEmpty)
+                ? _confirmadosIds
+                : null,
       ),
     );
 
@@ -123,14 +139,17 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TeamsDisplayScreen(
-                teams: teams,
-                grupoId: grupoId,
-                fieldType: widget.preselectedGroup?.tipoCampo.toFieldType() ?? FieldType.campo,
-                tactic: TeamTactic.ofGroup(widget.preselectedGroup),
-                applyTacticOnOpen: !config.gerarIndependenteDaPosicao,
-                showPlayerRatings: config.exibirNotasEmCampo,
-              ),
+              builder:
+                  (context) => TeamsDisplayScreen(
+                    teams: teams,
+                    grupoId: grupoId,
+                    fieldType:
+                        widget.preselectedGroup?.tipoCampo.toFieldType() ??
+                        FieldType.campo,
+                    tactic: TeamTactic.ofGroup(widget.preselectedGroup),
+                    applyTacticOnOpen: !config.gerarIndependenteDaPosicao,
+                    showPlayerRatings: config.exibirNotasEmCampo,
+                  ),
             ),
           );
         }
@@ -154,7 +173,10 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
               title: const Text('Usar apenas confirmados'),
               subtitle: const Text('Sortear só com quem confirmou presença'),
               value: _useOnlyConfirmados,
-              onChanged: widget.preselectedGroup != null ? _onConfirmadosToggled : null,
+              onChanged:
+                  widget.preselectedGroup != null
+                      ? _onConfirmadosToggled
+                      : null,
             ),
             if (_useOnlyConfirmados && widget.partidaId == null) ...[
               const Divider(height: 1),
@@ -184,12 +206,17 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  items: _partidas.map((m) {
-                    final label = fmt.format(m.dataHora.toLocal()) +
-                        (m.local != null ? ' · ${m.local}' : '') +
-                        ' (${m.totalConfirmados} conf.)';
-                    return DropdownMenuItem(value: m, child: Text(label, overflow: TextOverflow.ellipsis));
-                  }).toList(),
+                  items:
+                      _partidas.map((m) {
+                        final label =
+                            fmt.format(m.dataHora.toLocal()) +
+                            (m.local != null ? ' · ${m.local}' : '') +
+                            ' (${m.totalConfirmados} conf.)';
+                        return DropdownMenuItem(
+                          value: m,
+                          child: Text(label, overflow: TextOverflow.ellipsis),
+                        );
+                      }).toList(),
                   onChanged: (m) {
                     setState(() {
                       _selectedPartida = m;
@@ -210,7 +237,9 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
               ],
               const SizedBox(height: 8),
             ],
-            if (_useOnlyConfirmados && widget.partidaId != null && _confirmadosIds.isNotEmpty) ...[
+            if (_useOnlyConfirmados &&
+                widget.partidaId != null &&
+                _confirmadosIds.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
@@ -347,18 +376,28 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                                       selectedColor:
                                           Theme.of(context).colorScheme.primary,
                                       checkmarkColor:
-                                          Theme.of(context).colorScheme.onPrimary,
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
                                       labelStyle: TextStyle(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: isSelected
-                                            ? Theme.of(context).colorScheme.onPrimary
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        fontWeight:
+                                            isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color:
+                                            isSelected
+                                                ? Theme.of(
+                                                  context,
+                                                ).colorScheme.onPrimary
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                       ),
                                       onSelected: (selected) {
                                         if (selected) {
-                                          setState(() => _numberOfTeams = number);
+                                          setState(
+                                            () => _numberOfTeams = number,
+                                          );
                                         }
                                       },
                                     );
@@ -379,27 +418,30 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                         label: const Text('Sortear Times'),
                       ),
                       const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          final group = widget.preselectedGroup;
-                          if (group == null) return;
-                          final result = await Navigator.push<String?>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AITeamSortView(group: group),
-                            ),
-                          );
-                          // AITeamSortView returns an error string when limit is reached
-                          if (result != null && result.contains('Limite') && mounted) {
-                            ProPaywallSheet.show(context);
-                          }
-                        },
-                        icon: const Icon(Icons.auto_awesome_rounded),
-                        label: Text(
-                          'Sortear com IA',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                      if (const bool.fromEnvironment('AI_ENABLED'))
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            final group = widget.preselectedGroup;
+                            if (group == null) return;
+                            final result = await Navigator.push<String?>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AITeamSortView(group: group),
+                              ),
+                            );
+                            // AITeamSortView returns an error string when limit is reached
+                            if (result != null &&
+                                result.contains('Limite') &&
+                                mounted) {
+                              ProPaywallSheet.show(context);
+                            }
+                          },
+                          icon: const Icon(Icons.auto_awesome_rounded),
+                          label: Text(
+                            'Sortear com IA',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

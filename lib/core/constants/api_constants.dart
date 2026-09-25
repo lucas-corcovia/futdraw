@@ -29,8 +29,8 @@ abstract final class ApiConstants {
   static String grupoMembros(String id) => '/api/grupos/$id/membros';
   static String grupoMembroPapel(String id) => '/api/grupos/membros/$id/papel';
   static String membroById(String id) => '/api/grupos/membros/$id';
-  static String reivindicarJogador(String grupoId, String jogadorId) =>
-      '/api/grupos/$grupoId/jogadores/$jogadorId/reivindicar';
+  static String atribuirJogador(String grupoId, String membroId) =>
+      '/api/grupos/$grupoId/membros/$membroId/jogador';
 
   // Partidas
   static String grupoPartidas(String id) => '/api/grupos/$id/partidas';

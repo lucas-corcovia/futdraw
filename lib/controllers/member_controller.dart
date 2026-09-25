@@ -82,12 +82,13 @@ class MemberController extends ChangeNotifier {
     );
   }
 
-  Future<bool> claimPlayer(
+  Future<bool> assignPlayer(
     BuildContext context,
     String grupoId,
+    String membroId,
     String jogadorId,
   ) async {
-    final result = await repository.claimPlayer(grupoId, jogadorId);
+    final result = await repository.assignPlayer(grupoId, membroId, jogadorId);
     return result.when(
       success: (_) {
         Toast.show(context, 'Ficha vinculada com sucesso!', false);

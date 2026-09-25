@@ -13,9 +13,10 @@ class MemberRemoteDataSource {
   Future<AppResult<List<MemberResponse>>> getAll(String grupoId) async {
     try {
       final response = await _dio.get(ApiConstants.grupoMembros(grupoId));
-      final list = (response.data as List<dynamic>)
-          .map((j) => MemberResponse.fromJson(j as Map<String, dynamic>))
-          .toList();
+      final list =
+          (response.data as List<dynamic>)
+              .map((j) => MemberResponse.fromJson(j as Map<String, dynamic>))
+              .toList();
       return AppResult.success(list);
     } on DioException catch (e) {
       return AppResult.error(AppException.fromDio(e).message);
@@ -65,12 +66,16 @@ class MemberRemoteDataSource {
     }
   }
 
-  Future<AppResult<void>> claimPlayer(
+  Future<AppResult<void>> assignPlayer(
     String grupoId,
+    String membroId,
     String jogadorId,
   ) async {
     try {
-      await _dio.post(ApiConstants.reivindicarJogador(grupoId, jogadorId));
+      await _dio.put(
+        ApiConstants.atribuirJogador(grupoId, membroId),
+        data: {'jogadorId': jogadorId},
+      );
       return AppResult.success(null);
     } on DioException catch (e) {
       return AppResult.error(AppException.fromDio(e).message);

@@ -11,8 +11,8 @@ class MemberRepository {
   Future<AppResult<List<GroupMember>>> getAll(String grupoId) async {
     final result = await _dataSource.getAll(grupoId);
     return result.when(
-      success: (data) =>
-          AppResult.success(data.map((r) => r.toModel()).toList()),
+      success:
+          (data) => AppResult.success(data.map((r) => r.toModel()).toList()),
       error: AppResult.error,
     );
   }
@@ -43,10 +43,11 @@ class MemberRepository {
     return _dataSource.remove(membroId);
   }
 
-  Future<AppResult<void>> claimPlayer(
+  Future<AppResult<void>> assignPlayer(
     String grupoId,
+    String membroId,
     String jogadorId,
   ) async {
-    return _dataSource.claimPlayer(grupoId, jogadorId);
+    return _dataSource.assignPlayer(grupoId, membroId, jogadorId);
   }
 }

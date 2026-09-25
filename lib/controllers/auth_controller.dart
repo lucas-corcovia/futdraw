@@ -19,6 +19,7 @@ class AuthController extends ChangeNotifier {
 
   bool get isLoggedIn => _authService.isLoggedIn;
   String? get userName => _authService.userName;
+  String? get userEmail => _authService.userEmail;
   String? get lastEmail => _authService.lastEmail;
   bool get isPro => _authService.isPro;
 
@@ -41,7 +42,9 @@ class AuthController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
-    final result = await _dataSource.login(LoginRequest(email: email, senha: senha));
+    final result = await _dataSource.login(
+      LoginRequest(email: email, senha: senha),
+    );
 
     return result.when(
       success: (data) async {
@@ -74,7 +77,13 @@ class AuthController extends ChangeNotifier {
     );
 
     return result.when(
-      success: (_) {
+      success: (data) async {
+        await _authService.saveSession(
+          token: data.token,
+          nome: data.nome,
+          email: data.email,
+          isPro: data.isPro,
+        );
         status = AuthStatus.success;
         notifyListeners();
         return true;
@@ -141,7 +150,8 @@ class AuthController extends ChangeNotifier {
 
     try {
       final googleSignIn = GoogleSignIn(
-        serverClientId: '461202599388-l587j3gunnfablfq7u2bg6mi5ehpg99c.apps.googleusercontent.com',
+        serverClientId:
+            '461202599388-l587j3gunnfablfq7u2bg6mi5ehpg99c.apps.googleusercontent.com',
       );
 
       final account = await googleSignIn.signIn();
@@ -171,6 +181,7 @@ class AuthController extends ChangeNotifier {
             token: data.token,
             nome: data.nome,
             email: data.email,
+            isPro: data.isPro,
           );
           status = AuthStatus.success;
           notifyListeners();

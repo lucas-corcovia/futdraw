@@ -24,9 +24,10 @@ class _ClaimPlayerViewState extends State<ClaimPlayerView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<PlayerController>()
-          .getAllByGroupId(context, widget.group.id);
+      context.read<PlayerController>().getAllByGroupId(
+        context,
+        widget.group.id,
+      );
     });
   }
 
@@ -36,9 +37,8 @@ class _ClaimPlayerViewState extends State<ClaimPlayerView> {
       appBar: AppBar(title: const Text('Vincular Ficha')),
       body: Consumer<PlayerController>(
         builder: (context, playerController, _) {
-          final available = playerController.players
-              .where((p) => !p.reserva)
-              .toList();
+          final available =
+              playerController.players.where((p) => !p.reserva).toList();
 
           if (available.isEmpty) {
             return const Center(
@@ -58,10 +58,12 @@ class _ClaimPlayerViewState extends State<ClaimPlayerView> {
                   subtitle: Text('Nota: ${player.nota}'),
                   trailing: const Icon(Icons.link),
                   onTap: () async {
-                    final success =
-                        await context.read<MemberController>().claimPlayer(
+                    final success = await context
+                        .read<MemberController>()
+                        .assignPlayer(
                           context,
                           widget.group.id,
+                          widget.memberId,
                           player.id,
                         );
                     if (success && context.mounted) Navigator.pop(context);

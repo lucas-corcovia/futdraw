@@ -40,17 +40,7 @@ class DioClient {
       ),
     );
 
-    dio.interceptors.addAll([
-      AuthInterceptor(authService),
-      LogInterceptor(
-        request: false,
-        requestHeader: false,
-        responseHeader: false,
-        requestBody: true,
-        responseBody: true,
-        error: true,
-      ),
-    ]);
+    dio.interceptors.add(AuthInterceptor(authService));
 
     return dio;
   }

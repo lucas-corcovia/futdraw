@@ -58,7 +58,11 @@ Single Flutter app (Dart SDK `^3.7.0`, Material 3) that talks to a separate .NET
 
 ## REST API
 
-Base URL: `http://10.0.2.2:5020` (Android emulator loopback to host). **Must be changed** for a real device, iOS simulator, or production. Defined in `core/constants/api_constants.dart`.
+Base URL: `http://10.0.2.2:5020` no emulador. Para o Render, use `flutter build apk --release --dart-define=API_BASE_URL=https://futdrawapi.onrender.com`; `core/constants/api_constants.dart` lê a URL de `API_BASE_URL` em tempo de compilação. Não inclua `/api` no valor.
+
+Sem `Resend__ApiToken`, `POST /api/auth/registrar` devolve o mesmo payload de autenticação do login e o app abre a Home diretamente. `AI_ENABLED` é falso por padrão e oculta o botão de sorteio com IA. `PUT /api/grupos/{grupoId}/membros/{membroId}/jogador` com `{ jogadorId }` vincula a ficha; apenas dono/admin pode executar.
+
+O APK `--release` usa a chave de debug no Gradle atual. Antes de publicação, configurar assinatura própria e o cliente OAuth Android correspondente ao `applicationId` e SHA-1 dessa chave. `Google__ClientId` da API deve corresponder ao cliente OAuth Web usado pelo app.
 
 Key endpoints:
 - `POST /api/auth/login`, `/registrar`, `/confirmar-email`, `/google`
@@ -73,7 +77,7 @@ Key endpoints:
 
 ```
 SplashScreen → LoginView | HomeView (based on stored token)
-LoginView → HomeView | RegisterView → VerificarEmailView → HomeView
+LoginView → HomeView | RegisterView → HomeView (sem Resend)
 HomeView (GroupList) → PlayerListScreen → TeamGenerationScreen
   → TeamsDisplayScreen (field view, list view, share as PNG, save draw)
   → AITeamSortView → TeamsDisplayScreen
