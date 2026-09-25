@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:futdraw/data/models/requests/auth_request.dart';
 import 'package:futdraw/data/remote/auth_remote_datasource.dart';
 import 'package:futdraw/services/auth_service.dart';
@@ -148,6 +149,7 @@ class AuthController extends ChangeNotifier {
     errorMessage = null;
     notifyListeners();
 
+    var etapa = 'abrir a conta Google';
     try {
       final googleSignIn = GoogleSignIn(
         serverClientId:
@@ -161,6 +163,7 @@ class AuthController extends ChangeNotifier {
         return false;
       }
 
+      etapa = 'obter o token Google';
       final auth = await account.authentication;
       final idToken = auth.idToken;
 
@@ -171,6 +174,7 @@ class AuthController extends ChangeNotifier {
         return false;
       }
 
+      etapa = 'autenticar na API';
       final result = await _dataSource.googleLogin(
         GoogleLoginRequest(idToken: idToken),
       );
@@ -194,8 +198,30 @@ class AuthController extends ChangeNotifier {
           return false;
         },
       );
-    } catch (_) {
-      errorMessage = 'Erro ao autenticar com Google.';
+    } on PlatformException catch (error) {
+      debugPrint(
+        'Login Google falhou em $etapa: ${error.code} - ${error.message}',
+      );
+      if (error.code == 'sign_in_canceled') {
+        status = AuthStatus.idle;
+        notifyListeners();
+        return false;
+      }
+      if (error.code == 'network_error') {
+        errorMessage =
+            'Não foi possível conectar ao Google. Verifique sua rede.';
+      } else if (error.message?.contains('ApiException: 10:') == true) {
+        errorMessage =
+            'Login Google indisponível: configuração OAuth do Android inválida (código 10).';
+      } else {
+        errorMessage = 'Erro ao autenticar com Google (${error.code}).';
+      }
+      status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    } catch (error, stackTrace) {
+      debugPrint('Login Google falhou em $etapa: $error\n$stackTrace');
+      errorMessage = 'Erro ao autenticar com Google durante $etapa.';
       status = AuthStatus.error;
       notifyListeners();
       return false;
