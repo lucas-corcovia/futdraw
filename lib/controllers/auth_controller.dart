@@ -210,11 +210,19 @@ class AuthController extends ChangeNotifier {
       if (error.code == 'network_error') {
         errorMessage =
             'Não foi possível conectar ao Google. Verifique sua rede.';
-      } else if (error.message?.contains('ApiException: 10:') == true) {
+      } else if (RegExp(
+        r'ApiException:\s*10\b',
+      ).hasMatch(error.message ?? '')) {
         errorMessage =
             'Login Google indisponível: configuração OAuth do Android inválida (código 10).';
       } else {
-        errorMessage = 'Erro ao autenticar com Google (${error.code}).';
+        final nativeCode = RegExp(
+          r'ApiException:\s*(\d+)',
+        ).firstMatch(error.message ?? '')?.group(1);
+        errorMessage =
+            nativeCode == null
+                ? 'Erro ao autenticar com Google (${error.code}: ${error.message ?? 'sem detalhes'}).'
+                : 'Erro ao autenticar com Google (${error.code}, código $nativeCode).';
       }
       status = AuthStatus.error;
       notifyListeners();
