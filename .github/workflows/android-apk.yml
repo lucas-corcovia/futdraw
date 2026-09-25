@@ -1,0 +1,58 @@
+name: APK de teste
+
+on:
+  push:
+    branches:
+      - BranchLucas
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v7
+
+      - name: Configurar Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.2'
+          cache: true
+
+      - name: Restaurar chave de assinatura de teste
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_TEST_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::Configure o segredo ANDROID_TEST_KEYSTORE_BASE64 no repositório."
+            exit 1
+          fi
+          mkdir -p "$HOME/.android"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          chmod 600 "$HOME/.android/debug.keystore"
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Gerar APK para o Render
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://futdrawapi.onrender.com --build-number=$((10000 + BUILD_NUMBER))
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v7
+        with:
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+          archive: false

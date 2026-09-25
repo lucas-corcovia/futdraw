@@ -64,6 +64,8 @@ Sem `Resend__ApiToken`, `POST /api/auth/registrar` devolve o mesmo payload de au
 
 O APK `--release` usa a chave de debug no Gradle atual. Antes de publicação, configurar assinatura própria e o cliente OAuth Android correspondente ao `applicationId` e SHA-1 dessa chave. `Google__ClientId` da API deve corresponder ao cliente OAuth Web usado pelo app.
 
+O workflow `.github/workflows/android-apk.yml` gera o APK a cada push em `BranchLucas` com URL do Render e `versionCode` crescente. Exige o segredo `ANDROID_TEST_KEYSTORE_BASE64`, criado a partir da chave local `~/.android/debug.keystore`; veja o procedimento em `README.md`. Não versionar a chave.
+
 Key endpoints:
 - `POST /api/auth/login`, `/registrar`, `/confirmar-email`, `/google`
 - `GET|POST|PUT|DELETE /api/grupos` — group CRUD

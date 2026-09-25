@@ -38,6 +38,31 @@ publicar na Play Store. Para login Google, o cliente OAuth Android deve
 cobrir o `applicationId` e a impressão SHA-1 da chave usada no APK, e o
 cliente OAuth Web do app deve coincidir com `Google__ClientId` na API.
 
+## APK automático para testes
+
+O workflow em `.github/workflows/android-apk.yml` compila um APK a cada
+push em `BranchLucas`, com a URL do Render e um `versionCode` crescente.
+
+Antes do primeiro push, configure o segredo `ANDROID_TEST_KEYSTORE_BASE64`
+em **Settings → Secrets and variables → Actions → New repository secret**.
+No PowerShell deste computador, copie a chave de teste já usada nos APKs
+locais para a área de transferência:
+
+```powershell
+$keystore = Join-Path $env:USERPROFILE '.android\debug.keystore'
+[Convert]::ToBase64String([IO.File]::ReadAllBytes($keystore)) | Set-Clipboard
+```
+
+Cole o conteúdo no campo do segredo, sem incluí-lo em commit, issue ou
+mensagem. A mesma chave permite instalar novos APKs sobre os anteriores e
+preserva a impressão SHA-1 usada pelo login Google.
+
+Após o push, abra **Actions → APK de teste → execução mais recente →
+Artifacts → app-release.apk**. O GitHub baixa o APK diretamente;
+abra-o no Android para instalar. É preciso estar
+logado no GitHub e ter acesso ao repositório para baixar o artefato.
+O GitHub remove esses APKs após 14 dias.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
