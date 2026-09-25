@@ -1,6 +1,8 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:futdraw/components/widgets/escalacao_share_widget.dart';
 import 'package:futdraw/models/formation/formation.dart';
 import 'package:futdraw/models/formation/formation_assignment.dart';
@@ -18,6 +20,7 @@ import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
 import 'package:futdraw/utils/extensions.dart';
 import 'package:futdraw/utils/file.utils.dart';
+import 'package:futdraw/utils/player_photo.dart';
 import 'package:screenshot/screenshot.dart';
 
 class TeamsDisplayScreen extends StatefulWidget {
@@ -64,6 +67,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   bool _isSaving = false;
   bool _isSaved = false;
   final ScreenshotController _screenshotController = ScreenshotController();
+  late final List<GlobalKey> _fieldCaptureKeys;
 
   /// Formacao por time, chaveada pelo indice da aba. Guardada no State para
   /// que o arrasto livre da Fase 5 tenha onde gravar os overrides.
@@ -104,6 +108,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
     super.initState();
     _teams = List.from(widget.teams);
     _tabController = TabController(length: _teams.length, vsync: this);
+    _fieldCaptureKeys = List.generate(_teams.length, (_) => GlobalKey());
 
     _revealController = AnimationController(
       vsync: this,
@@ -366,16 +371,13 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
       body: Column(
         children: [
           Expanded(
-            child: Screenshot(
-              controller: _screenshotController,
-              child: TabBarView(
-                controller: _tabController,
-                children: _teams.asMap().entries.map((entry) {
-                  return _showField
-                      ? _buildFieldView(entry.value, entry.key)
-                      : _buildTeamView(entry.value, entry.key);
-                }).toList(),
-              ),
+            child: TabBarView(
+              controller: _tabController,
+              children: _teams.asMap().entries.map((entry) {
+                return _showField
+                    ? _buildFieldView(entry.value, entry.key)
+                    : _buildTeamView(entry.value, entry.key);
+              }).toList(),
             ),
           ),
           if (_crossSwapMode && !_showField) _buildCrossSwapBanner(),
@@ -424,6 +426,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
   }
 
   Future<void> _exportTeamsImage() async {
+    final wasShowingField = _showField;
     try {
       showDialog(
         context: context,
@@ -433,13 +436,18 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
 
       // Troca para o painter antes de capturar e espera o frame em que ele ja
       // esta na arvore. Capturar no mesmo frame do setState pegaria o shader.
-      setState(() => _capturing = true);
+      setState(() {
+        _showField = true;
+        _capturing = true;
+      });
       await WidgetsBinding.instance.endOfFrame;
 
-      final Uint8List? capturedImage = await _screenshotController.capture(
-        delay: const Duration(milliseconds: 40),
-        pixelRatio: 3.0,
-      );
+      final boundary = _fieldCaptureKeys[_tabController.index]
+          .currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final image = await boundary?.toImage(pixelRatio: 3.0);
+      final byteData = await image?.toByteData(format: ui.ImageByteFormat.png);
+      image?.dispose();
+      final capturedImage = byteData?.buffer.asUint8List();
 
       if (context.mounted) {
         Navigator.pop(context);
@@ -463,7 +471,12 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
         ).showSnackBar(SnackBar(content: Text('Erro ao exportar imagem: $e')));
       }
     } finally {
-      if (mounted) setState(() => _capturing = false);
+      if (mounted) {
+        setState(() {
+          _capturing = false;
+          _showField = wasShowingField;
+        });
+      }
     }
   }
 
@@ -609,7 +622,9 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
           child: Column(
             children: [
             Expanded(
-              child: Stack(
+              child: RepaintBoundary(
+                key: _fieldCaptureKeys[index],
+                child: Stack(
           children: [
             Positioned.fill(
               child: AnimatedBuilder(
@@ -686,9 +701,8 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
               ),
             ),
 
-            // Cadeado e dica, adiados para a fase 2: texto instrucional nao
-            // disputa com o momento da revelacao.
           ],
+              ),
               ),
             ),
 
@@ -907,7 +921,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
                     child: ListTile(
                       leading: player.urlFoto != null
                           ? CircleAvatar(
-                              backgroundImage: NetworkImage(player.urlFoto!),
+                              backgroundImage: PlayerPhoto.provider(player.urlFoto),
                             )
                           : CircleAvatar(
                               backgroundColor:
@@ -1011,7 +1025,7 @@ class _TeamsDisplayScreenState extends State<TeamsDisplayScreen>
             ? Hero(
                 tag: 'team_player_${player.id}',
                 child: CircleAvatar(
-                  backgroundImage: NetworkImage(player.urlFoto!),
+                  backgroundImage: PlayerPhoto.provider(player.urlFoto),
                 ),
               )
             : CircleAvatar(

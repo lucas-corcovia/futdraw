@@ -10,8 +10,13 @@ import 'package:provider/provider.dart';
 
 class AITeamSortView extends StatefulWidget {
   final Group group;
+  final int initialNumberOfTeams;
 
-  const AITeamSortView({super.key, required this.group});
+  const AITeamSortView({
+    super.key,
+    required this.group,
+    this.initialNumberOfTeams = 2,
+  });
 
   @override
   State<AITeamSortView> createState() => _AITeamSortViewState();
@@ -21,8 +26,15 @@ class _AITeamSortViewState extends State<AITeamSortView> {
   static const int _minTeams = 2;
   static const int _maxTeams = 10;
 
-  int _numberOfTeams = 2;
+  late int _numberOfTeams;
+  bool _isGenerating = false;
   final TextEditingController _instrucoesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _numberOfTeams = widget.initialNumberOfTeams.clamp(_minTeams, _maxTeams);
+  }
 
   @override
   void dispose() {
@@ -31,11 +43,13 @@ class _AITeamSortViewState extends State<AITeamSortView> {
   }
 
   Future<void> _generateTeams() async {
+    if (_isGenerating) return;
     final grupoId = widget.group.id;
     if (grupoId.isEmpty) return;
 
     final instrucoes = _instrucoesController.text.trim();
 
+    setState(() => _isGenerating = true);
     _showLoadingDialog();
 
     final result = await ServiceLocator().sorteioIADataSource.sortearIA(
@@ -48,6 +62,7 @@ class _AITeamSortViewState extends State<AITeamSortView> {
 
     if (!mounted) return;
     Navigator.of(context).pop(); // fecha o dialog de loading (sempre)
+    setState(() => _isGenerating = false);
 
     result.when(
       success: (teams) {
@@ -108,7 +123,7 @@ class _AITeamSortViewState extends State<AITeamSortView> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const _LoadingIADialog(),
+      builder: (_) => const PopScope(canPop: false, child: _LoadingIADialog()),
     );
   }
 
@@ -131,7 +146,7 @@ class _AITeamSortViewState extends State<AITeamSortView> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           child: FilledButton.icon(
-            onPressed: _generateTeams,
+            onPressed: _isGenerating ? null : _generateTeams,
             icon: const Icon(Icons.auto_awesome_rounded),
             label: const Text('Sortear com IA'),
             style: FilledButton.styleFrom(

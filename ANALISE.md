@@ -14,7 +14,7 @@ App Flutter para sorteio balanceado de times de futebol por nota.
 | `image_picker ^1.1.2` | Foto do jogador (câmera/galeria) |
 | `screenshot + share_plus` | Exportar/compartilhar times |
 | `file_picker` | Importar banco de dados |
-| `http ^1.3.0` | Upload de imagens para ImgBB |
+| `image ^4.5.4` | Reduz e converte fotos para JPEG antes de salvar na API |
 
 ---
 
@@ -57,7 +57,6 @@ App Flutter para sorteio balanceado de times de futebol por nota.
 | `GroupController` | CRUD de grupos, grupo selecionado |
 | `PlayerController` | CRUD de jogadores, filtros, import/export JSON |
 | `ConfigurationsController` | Tema e algoritmo (SharedPreferences) |
-| `ImgBBController` | Upload de foto via HTTP |
 | `DrawController` | Algoritmo legado (sem estado) |
 
 ---
@@ -89,7 +88,7 @@ Drawer → DrawView → ResultsView  (fluxo legado)
 |---|---|
 | `SoccerField` | Campo visual com CustomPainter; modo tático e modo livre |
 | `PlayerCard` | Card com foto, nota, posição, menu de ações |
-| `AddPlayer` | Formulário completo com upload de foto |
+| `AddPlayer` | Formulário completo com foto salva pela API |
 | `AddGroup` | Formulário de grupo |
 | `AddManyPlayers` | Adição em massa |
 | `FiltersPlayerList` | Barra de filtros por posição (animada) |
@@ -98,7 +97,7 @@ Drawer → DrawView → ResultsView  (fluxo legado)
 
 ## Observações
 
-- Fotos hospedadas externamente no **ImgBB** via HTTP.
+- Fotos novas são salvas como JPEG em base64 no campo `url_foto` da API (até 100 KB). URLs antigas continuam visíveis.
 - `GroupItem` tem dados hardcoded (data, local, formato) — funcionalidades planejadas não implementadas.
 - Exportação/importação do banco SQLite disponível (visível apenas em dev).
 - `DrawView`/`ResultsView` são fluxo legado; o fluxo principal é `TeamGenerationScreen` → `TeamsDisplayScreen`.

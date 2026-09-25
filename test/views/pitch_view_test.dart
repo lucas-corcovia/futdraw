@@ -82,6 +82,33 @@ void main() {
   setUp(() => _seq = 0);
 
   group('PitchView', () {
+    testWidgets('nome usa o espaco da fileira e continua completo ao quebrar', (
+      tester,
+    ) async {
+      final formation = FormationCatalog.derivedFromCounts(
+        fieldType: FieldType.campo,
+        goalkeepers: 1,
+        defenders: 5,
+        midfielders: 3,
+        strikers: 1,
+      );
+      final players = _squadFor(formation);
+      final midfielders = players
+          .where((player) => player.position == PlayerPosition.midfielder)
+          .toList();
+      midfielders[0].nome = 'Anderson';
+      midfielders[1].nome = 'Anderson Goncalves Silva';
+
+      await _pumpPitch(tester, formation: formation, players: players);
+
+      final shortName = find.text('ANDERSON');
+      final longName = find.text('ANDERSON GONCALVES SILVA');
+      expect(tester.getSize(shortName).height, lessThan(20));
+      expect(tester.getSize(longName).height, greaterThan(20));
+      expect(tester.widget<Text>(longName).maxLines, isNull);
+      expect(tester.widget<Text>(longName).overflow, isNot(TextOverflow.ellipsis));
+    });
+
     testWidgets('renderiza um chip por jogador escalado', (tester) async {
       final formation = FormationCatalog.defaultFor(FieldType.campo);
       final players = _squadFor(formation);

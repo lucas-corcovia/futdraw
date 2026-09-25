@@ -133,7 +133,19 @@ class PitchView extends StatelessWidget {
       final position = formation.positionOf(slot);
       final player = assignment.playerAt(slot.id);
 
-      final offset = metrics.topLeftFor(position, size);
+      final labelWidth = _labelWidthFor(
+        slot,
+        position,
+        size,
+        metrics.avatarZone,
+      );
+      final slotMetrics = metrics.withLabelWidth(
+        labelWidth,
+        labelHeight: player == null
+            ? 0
+            : _nameHeight(context, player.nome, labelWidth),
+      );
+      final offset = slotMetrics.topLeftFor(position, size);
       // Escalonamento por linha da formacao, da mais recuada para a frente.
       final rowIndex = rows.indexOf(slot.row);
       final reveal = _revealFor(rowIndex, rows.length);
@@ -145,14 +157,14 @@ class PitchView extends StatelessWidget {
           child: player == null
               ? _GhostSlot(
                   slot: slot,
-                  metrics: metrics,
+                  metrics: slotMetrics,
                   reveal: reveal,
                 )
               : freePositioning
                   ? _FreeChip(
                       key: ValueKey('free-${slot.id}'),
                       player: player,
-                      metrics: metrics,
+                      metrics: slotMetrics,
                       teamAccent: teamAccent,
                       reveal: reveal,
                       isSelected: selectedPlayerId == player.id,
@@ -167,7 +179,7 @@ class PitchView extends StatelessWidget {
                     )
                   : _SwappableChip(
                       player: player,
-                      metrics: metrics,
+                      metrics: slotMetrics,
                       teamAccent: teamAccent,
                       reveal: reveal,
                       isSelected: selectedPlayerId == player.id,
@@ -181,6 +193,38 @@ class PitchView extends StatelessWidget {
     }
 
     return widgets;
+  }
+
+  double _labelWidthFor(
+    FormationSlot slot,
+    Offset position,
+    Size size,
+    double minimumWidth,
+  ) {
+    // Cada fileira tem um espacamento diferente. O nome pode usar o espaco
+    // livre ate a borda ou ate o centro do jogador vizinho na mesma fileira.
+    var available = math.min(position.dx, 1 - position.dx) * size.width * 2;
+    for (final neighbor in formation.slotsInRow(slot.row)) {
+      if (neighbor.id == slot.id) continue;
+      final distance =
+          (position.dx - formation.positionOf(neighbor).dx).abs() * size.width;
+      available = math.min(available, distance * 0.98);
+    }
+    return available.clamp(minimumWidth, 120.0);
+  }
+
+  double _nameHeight(BuildContext context, String name, double labelWidth) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: name.toUpperCase(),
+        style: AppTypography.pitchChipName,
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: math.max(1, labelWidth - 12));
+    final height = painter.height + 4;
+    painter.dispose();
+    return height;
   }
 
   /// Cada linha entra 55 ms depois da anterior, dentro do progresso global.
@@ -213,9 +257,17 @@ class _ChipMetrics {
   /// Altura reservada ao avatar, que nunca e menor que o alvo de toque.
   final double avatarZone;
 
+  _ChipMetrics withLabelWidth(double width, {double labelHeight = 0}) => _ChipMetrics(
+    avatarSize: avatarSize,
+    labelWidth: width,
+    chipWidth: math.max(width, kChipMinTapTarget),
+    chipHeight: avatarZone + AppSpacing.xxs + math.max(_labelHeight, labelHeight),
+    avatarZone: avatarZone,
+  );
+
   static const double _minAvatar = 30;
   static const double _maxAvatar = 60;
-  // O nome pode ocupar duas linhas quando ha pouco espaco entre os slots.
+  // Reserva minima; nomes maiores aumentam a caixa conforme o texto real.
   static const double _labelHeight = 32;
 
   static _ChipMetrics forFormation(Formation formation, Size size) {

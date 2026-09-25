@@ -27,6 +27,8 @@ class SorteioIARemoteDataSource {
       return AppResult.success(teams);
     } on DioException catch (e) {
       return AppResult.error(AppException.fromDio(e).message);
+    } catch (_) {
+      return AppResult.error('Resposta inválida do servidor de IA. Tente novamente.');
     }
   }
 

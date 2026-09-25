@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:futdraw/controllers/imgbb_controller.dart';
+import 'package:futdraw/components/toast.dart';
 import 'package:futdraw/controllers/player_controller.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/group.dart';
 import 'package:futdraw/models/player.dart';
+import 'package:futdraw/utils/player_photo.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,6 @@ class AddPlayer extends StatefulWidget {
 
 class _AddPlayerState extends State<AddPlayer> {
   final _formKey = GlobalKey<FormState>();
-  final _imgController = ImgBBController();
 
   late String _id;
   late String _groupId;
@@ -103,9 +103,10 @@ class _AddPlayerState extends State<AddPlayer> {
               child: Stack(
                 children: [
                   GestureDetector(
-                    onTap: (_photoPath != null || _imageFile != null)
-                        ? _deletePlayerPhoto
-                        : null,
+                    onTap:
+                        (_photoPath != null || _imageFile != null)
+                            ? _deletePlayerPhoto
+                            : null,
                     child: CircleAvatar(
                       radius: 60,
                       backgroundColor:
@@ -135,14 +136,14 @@ class _AddPlayerState extends State<AddPlayer> {
                           color: Theme.of(context).colorScheme.onSecondary,
                         ),
                         onSelected: (ImageSource value) async {
-                          var imageFile = await _imgController.selectImage(
-                            context,
-                            value,
-                            _id,
+                          final image = await ImagePicker().pickImage(
+                            source: value,
+                            maxWidth: 1024,
+                            maxHeight: 1024,
                           );
-                          setState(() {
-                            _imageFile = imageFile;
-                          });
+                          if (image != null && mounted) {
+                            setState(() => _imageFile = File(image.path));
+                          }
                         },
                         itemBuilder:
                             (BuildContext context) =>
@@ -330,22 +331,38 @@ class _AddPlayerState extends State<AddPlayer> {
     context.loaderOverlay.show();
 
     _formKey.currentState!.save();
-    final bool success;
-    if (!_isEditing) {
-      success = await context.read<PlayerController>().add(context, await _buildPlayer());
-    } else {
-      success = await context.read<PlayerController>().update(
-        context,
-        await _buildPlayer(),
-      );
+    try {
+      final player = await _buildPlayer();
+      final controller = context.read<PlayerController>();
+      final success =
+          _isEditing
+              ? await controller.update(context, player)
+              : await controller.add(context, player);
+      if (success && mounted) {
+        Navigator.pop(context);
+      }
+    } on FormatException catch (e) {
+      if (mounted) {
+        Toast.show(
+          context,
+          'Não foi possível salvar a foto: ${e.message}',
+          true,
+        );
+      }
+    } on FileSystemException {
+      if (mounted) {
+        Toast.show(context, 'Não foi possível ler a foto selecionada.', true);
+      }
+    } finally {
+      if (mounted) context.loaderOverlay.hide();
     }
-    context.loaderOverlay.hide();
-
-    if (success && mounted) Navigator.pop(context);
   }
 
   Future<Player> _buildPlayer() async {
-    var urlFoto = await getPhotoPath();
+    final urlFoto =
+        _imageFile == null
+            ? _photoPath
+            : PlayerPhoto.encode(await _imageFile!.readAsBytes());
     return Player(
       id: _id,
       grupoId: _groupId,
@@ -358,16 +375,10 @@ class _AddPlayerState extends State<AddPlayer> {
     );
   }
 
-  Future<String?> getPhotoPath() async {
-    if (_imageFile == null) return widget.player?.urlFoto;
-
-    return await _imgController.uploadAndSaveImage(context, _imageFile);
-  }
-
   ImageProvider? getProfilePicture() {
     if (_imageFile != null) return FileImage(_imageFile!);
 
-    return _photoPath == null ? null : NetworkImage(_photoPath!);
+    return PlayerPhoto.provider(_photoPath);
   }
 
   void _deletePlayerPhoto() {
@@ -404,7 +415,6 @@ class _AddPlayerState extends State<AddPlayer> {
                 setState(() {
                   _photoPath = null;
                   _imageFile = null;
-                  widget.player?.urlFoto = null;
                 });
               },
             ),

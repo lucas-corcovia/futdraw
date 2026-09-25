@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:futdraw/theme/app_tokens.dart';
+import 'package:futdraw/utils/player_photo.dart';
 
 /// Avatar de jogador do app inteiro.
 ///
@@ -28,7 +29,8 @@ class PlayerAvatar extends StatelessWidget {
   final Color? backgroundColor;
   final Color? foregroundColor;
 
-  static const String _fallbackAsset = 'assets/images/jogador_nao_encontrado.png';
+  static const String _fallbackAsset =
+      'assets/images/jogador_nao_encontrado.png';
 
   @override
   Widget build(BuildContext context) {
@@ -36,47 +38,59 @@ class PlayerAvatar extends StatelessWidget {
     final background = backgroundColor ?? scheme.surfaceContainerHighest;
     final foreground = foregroundColor ?? scheme.onSurfaceVariant;
 
-    final cacheWidth =
-        (size * MediaQuery.devicePixelRatioOf(context)).round().clamp(1, 2048);
+    final cacheWidth = (size * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(1, 2048);
+    final photo = PlayerPhoto.provider(url);
 
     return ClipOval(
       child: SizedBox.square(
         dimension: size,
         child: ColoredBox(
           color: background,
-          child: url == null || url!.isEmpty
-              ? _Initial(name: name, size: size, color: foreground)
-              : Image.network(
-                  url!,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.cover,
-                  cacheWidth: cacheWidth,
-                  frameBuilder: (context, child, frame, wasSync) {
-                    if (wasSync) return child;
-                    return AnimatedOpacity(
-                      opacity: frame == null ? 0 : 1,
-                      duration: AppMotion.fast,
-                      curve: AppMotion.settling,
-                      child: child,
-                    );
-                  },
-                  // Placeholder que segura o layout: pop-in e deslocamento sao
-                  // defeitos visiveis.
-                  loadingBuilder: (context, child, progress) =>
-                      progress == null
-                      ? child
-                      : _Initial(name: name, size: size, color: foreground),
-                  errorBuilder: (context, error, stack) => Image.asset(
-                    _fallbackAsset,
+          child:
+              photo == null
+                  ? _Initial(name: name, size: size, color: foreground)
+                  : Image(
+                    image: ResizeImage.resizeIfNeeded(cacheWidth, null, photo),
                     width: size,
                     height: size,
                     fit: BoxFit.cover,
-                    cacheWidth: cacheWidth,
-                    errorBuilder: (context, error, stack) =>
-                        _Initial(name: name, size: size, color: foreground),
+                    frameBuilder: (context, child, frame, wasSync) {
+                      if (wasSync) return child;
+                      return AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: AppMotion.fast,
+                        curve: AppMotion.settling,
+                        child: child,
+                      );
+                    },
+                    // Placeholder que segura o layout: pop-in e deslocamento sao
+                    // defeitos visiveis.
+                    loadingBuilder:
+                        (context, child, progress) =>
+                            progress == null
+                                ? child
+                                : _Initial(
+                                  name: name,
+                                  size: size,
+                                  color: foreground,
+                                ),
+                    errorBuilder:
+                        (context, error, stack) => Image.asset(
+                          _fallbackAsset,
+                          width: size,
+                          height: size,
+                          fit: BoxFit.cover,
+                          cacheWidth: cacheWidth,
+                          errorBuilder:
+                              (context, error, stack) => _Initial(
+                                name: name,
+                                size: size,
+                                color: foreground,
+                              ),
+                        ),
                   ),
-                ),
         ),
       ),
     );

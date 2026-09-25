@@ -418,15 +418,17 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                         label: const Text('Sortear Times'),
                       ),
                       const SizedBox(height: 12),
-                      if (const bool.fromEnvironment('AI_ENABLED'))
-                        OutlinedButton.icon(
-                          onPressed: () async {
+                      OutlinedButton.icon(
+                          onPressed: _useOnlyConfirmados ? null : () async {
                             final group = widget.preselectedGroup;
                             if (group == null) return;
                             final result = await Navigator.push<String?>(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => AITeamSortView(group: group),
+                                builder: (_) => AITeamSortView(
+                                  group: group,
+                                  initialNumberOfTeams: _numberOfTeams,
+                                ),
                               ),
                             );
                             // AITeamSortView returns an error string when limit is reached
@@ -440,6 +442,15 @@ class _TeamGenerationScreenState extends State<TeamGenerationScreen> {
                           label: Text(
                             'Sortear com IA',
                             style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ),
+                      if (_useOnlyConfirmados)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'O sorteio com IA usa todos os titulares. Desative o filtro de confirmados para continuar.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.center,
                           ),
                         ),
                     ],

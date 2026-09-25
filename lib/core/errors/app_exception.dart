@@ -26,6 +26,7 @@ class AppException implements Exception {
     final message = switch (data) {
       List list => list.join(', '),
       Map map when map.containsKey('message') => map['message'] as String,
+      Map map when map.containsKey('mensagem') => map['mensagem'] as String,
       _ => _defaultMessage(code),
     };
 
@@ -39,6 +40,7 @@ class AppException implements Exception {
     404 => 'Recurso não encontrado.',
     409 => 'Conflito: recurso já existe.',
     500 => 'Erro interno do servidor.',
+    503 => 'Serviço temporariamente indisponível.',
     _ => 'Erro inesperado.',
   };
 

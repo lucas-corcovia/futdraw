@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:futdraw/models/consts/app.colors.dart';
+import 'package:futdraw/components/widgets/player_avatar.dart';
 import 'package:futdraw/models/enums/field_type.dart';
 import 'package:futdraw/models/enums/player.position.dart';
 import 'package:futdraw/models/player.dart';
@@ -266,7 +266,12 @@ class _SoccerFieldState extends State<SoccerField> {
                 avatarSize,
               ),
             if (isFreeEditMode)
-              ..._buildFreePlayers(fieldWidth, fieldHeight, avatarSize, feedbackSize),
+              ..._buildFreePlayers(
+                fieldWidth,
+                fieldHeight,
+                avatarSize,
+                feedbackSize,
+              ),
           ],
         );
       },
@@ -493,28 +498,10 @@ class _SoccerFieldState extends State<SoccerField> {
               ),
               child: Stack(
                 children: [
-                  ClipOval(
-                    child:
-                        player.urlFoto != null
-                            ? Image.network(
-                              player.urlFoto!,
-                              width: size,
-                              height: size,
-                              fit: BoxFit.cover,
-                            )
-                            : Container(
-                              color: CommonsColors.avatarFieldBackgroundColor,
-                              child: Center(
-                                child: Text(
-                                  player.nome[0].toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: size / 3,
-                                  ),
-                                ),
-                              ),
-                            ),
+                  PlayerAvatar(
+                    url: player.urlFoto,
+                    name: player.nome,
+                    size: size,
                   ),
                   if (player.ehCapitao)
                     Positioned(
@@ -631,16 +618,10 @@ class VignettePainter extends CustomPainter {
     final gradient = RadialGradient(
       center: Alignment.center,
       radius: 0.88,
-      colors: [
-        Colors.transparent,
-        Colors.black.withValues(alpha: 0.28),
-      ],
+      colors: [Colors.transparent, Colors.black.withValues(alpha: 0.28)],
       stops: const [0.5, 1.0],
     );
-    canvas.drawRect(
-      rect,
-      Paint()..shader = gradient.createShader(rect),
-    );
+    canvas.drawRect(rect, Paint()..shader = gradient.createShader(rect));
   }
 
   @override
@@ -704,10 +685,7 @@ class CampoFieldPainter extends CustomPainter {
     final goalHeight = size.height * 0.08;
     final goalLeft = (size.width - goalWidth) / 2;
 
-    canvas.drawRect(
-      Rect.fromLTWH(goalLeft, 0, goalWidth, goalHeight),
-      paint,
-    );
+    canvas.drawRect(Rect.fromLTWH(goalLeft, 0, goalWidth, goalHeight), paint);
     canvas.drawRect(
       Rect.fromLTWH(goalLeft, size.height - goalHeight, goalWidth, goalHeight),
       paint,

@@ -48,8 +48,7 @@ class PlayerChip extends StatelessWidget {
   final double avatarSize;
   final Color teamAccent;
 
-  /// Largura maxima do losango de nome. Vem do espacamento do slot, para dois
-  /// nomes vizinhos nunca se tocarem.
+  /// Largura maxima do nome no espaco disponivel para este slot.
   final double? labelWidth;
 
   final bool isSelected;
@@ -263,9 +262,7 @@ class _NameLozenge extends StatelessWidget {
           child: Text(
             name.toUpperCase(),
             textAlign: TextAlign.center,
-            maxLines: 2,
             softWrap: true,
-            overflow: TextOverflow.clip,
             style: AppTypography.pitchChipName.copyWith(
               color: pitch.chipOnSurface,
             ),

@@ -29,8 +29,13 @@ nova execução ou compilação do aplicativo.
 
 O APK fica em `build/app/outputs/flutter-apk/app-release.apk`. O cadastro
 por e-mail e senha entra diretamente no app enquanto o envio de e-mails
-estiver desativado na API. O sorteio com IA permanece oculto por padrão;
-quando a API oferecer esse recurso, compile com `--dart-define=AI_ENABLED=true`.
+estiver desativado na API. A opção de sorteio com IA aparece na tela de gerar
+times. Para funcionar, a API precisa ter `AI:ModelId`, `AI:Endpoint` e
+`AI:ApiKey` configurados (ou um endpoint local durante o desenvolvimento).
+No Render, use as variáveis `AI__ModelId`, `AI__Endpoint` e `AI__ApiKey`.
+O filtro de jogadores confirmados não é aplicado ao sorteio com IA.
+Com a API local em `Development`, os sorteios com IA não exigem FutDraw Pro
+nem consomem a cota mensal. A API publicada mantém a regra de assinatura.
 
 O build Android atual usa a chave de debug mesmo em `--release`. Esse APK
 serve para instalação e testes; configure uma chave própria antes de
